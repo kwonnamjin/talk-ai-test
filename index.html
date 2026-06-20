@@ -147,34 +147,46 @@
                 </div>
             </div>
 
-                <div class="flex flex-col space-y-1">
-                <div class="bg-white border border-blue-100 rounded-2xl rounded-tl-none p-4 max-w-[95%] shadow-md shadow-blue-900/5 self-start" id="welcomeMessage">
-                    <p class="chat-text-dynamic text-slate-800 font-extrabold mb-3 border-b border-slate-100 pb-2 flex items-center gap-2"><i class="fa-solid fa-robot text-blue-500"></i> <span id="welcome_title">당신의 AI 튜터입니다.</span></p>
-                    <div class="space-y-3 text-xs text-slate-600 leading-relaxed">
-                        <div class="flex items-start gap-2">
-                            <div class="w-6 h-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 mt-0.5 border border-blue-100"><i class="fa-solid fa-microphone text-[10px]"></i></div>
-                            <div>
-                                <p id="welcome_f1_title" class="font-bold text-slate-800 mb-0.5">실시간 음성 대화</p>
-                                <p id="welcome_f1_desc" class="text-slate-500">하단의 파란 마이크를 눌러 말해보세요. 대화형 튜터와 통번역 모드를 지원합니다.</p>
-                            </div>
-                        </div>
-                        <div class="flex items-start gap-2">
-                            <div class="w-6 h-6 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 mt-0.5 border border-amber-100"><i class="fa-solid fa-hand-pointer text-[10px]"></i></div>
-                            <div>
-                                <p id="welcome_f2_title" class="font-bold text-slate-800 mb-0.5">스마트 단어 선택</p>
-                                <p id="welcome_f2_desc" class="text-slate-500">말풍선 속 텍스트를 터치하여 구간을 선택하면 숨겨진 메뉴가 나타납니다.</p>
-                            </div>
-                        </div>
-                        <div class="flex items-start gap-2">
-                            <div class="w-6 h-6 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5 border border-emerald-100"><i class="fa-solid fa-graduation-cap text-[10px]"></i></div>
-                            <div>
-                                <p id="welcome_f3_title" class="font-bold text-slate-800 mb-0.5">원어민 발음 & 맞춤 해설</p>
-                                <p id="welcome_f3_desc" class="text-slate-500">선택한 단어만 원어민 발음으로 다시 듣기(🔊) 하거나, 집중 해설(💡)을 받을 수 있습니다.</p>
-                            </div>
-                        </div>
-                    </div>
+                <div id="welcomeWrapper" class="flex flex-col space-y-1">
+    <div class="bg-white border border-blue-100 rounded-2xl rounded-tl-none p-4 max-w-[95%] shadow-md shadow-blue-900/5 self-start" id="welcomeMessage">
+        <p class="chat-text-dynamic text-slate-800 font-extrabold mb-3 border-b border-slate-100 pb-2 flex items-center gap-2"><i class="fa-solid fa-robot text-blue-500"></i> <span id="welcome_title">당신의 AI 튜터입니다.</span></p>
+        <div class="space-y-3 text-xs text-slate-600 leading-relaxed">
+            
+            <div class="flex items-start gap-2">
+                <div class="w-6 h-6 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 mt-0.5 border border-purple-100"><i class="fa-solid fa-masks-theater text-[10px]"></i></div>
+                <div>
+                    <p id="welcome_f1_title" class="font-bold text-slate-800 mb-0.5">맞춤형 페르소나 & 환경설정</p>
+                    <p id="welcome_f1_desc" class="text-slate-500">상단의 버튼으로 AI의 성격(친구·비서·가이드)을 바꾸고, 톱니바퀴(⚙️)를 눌러 목소리와 글자 크기를 조절해 보세요.</p>
                 </div>
             </div>
+
+            <div class="flex items-start gap-2">
+                <div class="w-6 h-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 mt-0.5 border border-blue-100"><i class="fa-solid fa-microphone text-[10px]"></i></div>
+                <div>
+                    <p id="welcome_f2_title" class="font-bold text-slate-800 mb-0.5">실시간 대화 & 재생 멈춤</p>
+                    <p id="welcome_f2_desc" class="text-slate-500">하단의 파란 마이크를 눌러 말해보세요. AI가 말하는 도중 듣기를 끊고 싶다면 좌측 하단의 스피커 정지(🔇) 버튼을 누르면 됩니다.</p>
+                </div>
+            </div>
+
+            <div class="flex items-start gap-2">
+                <div class="w-6 h-6 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5 border border-emerald-100"><i class="fa-solid fa-lightbulb text-[10px]"></i></div>
+                <div>
+                    <p id="welcome_f3_title" class="font-bold text-slate-800 mb-0.5">심층 과외 해설 & 단어 선택</p>
+                    <p id="welcome_f3_desc" class="text-slate-500">말풍선 단어를 터치해 뜻을 확인하거나, 우측 하단의 과외 해설(💡) 버튼을 눌러 AI의 마지막 대답에 대한 문법 분석과 예문을 받아보세요.</p>
+                </div>
+            </div>
+
+            <div class="flex items-start gap-2">
+                <div class="w-6 h-6 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 mt-0.5 border border-amber-100"><i class="fa-solid fa-note-sticky text-[10px]"></i></div>
+                <div>
+                    <p id="welcome_f4_title" class="font-bold text-slate-800 mb-0.5">똑똑한 자동 메모장</p>
+                    <p id="welcome_f4_desc" class="text-slate-500">대화 중 AI에게 "이거 메모해 줘"라고 말하면, 상단의 메모장(📝)에 일정을 자동으로 꼼꼼히 기록해 둡니다.</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
                 
                 <div id="selectionTooltip" class="hidden absolute z-50 bg-slate-800 text-white rounded-lg shadow-xl flex items-center px-1 py-1 tooltip-arrow transition-opacity duration-200 opacity-0 pointer-events-none border border-slate-700" style="transform: translate(-50%, -100%); margin-top: -8px;">
                     <button onclick="readSelectedText()" class="hover:bg-slate-700 p-2 rounded-md transition-colors flex items-center justify-center text-blue-400" title="듣기"><i class="fa-solid fa-volume-high text-sm"></i></button>
@@ -456,14 +468,21 @@
                 "settings_close": "닫기", "settings_save": "저장", "pw_title": "튜터링 종료", "paywallReasonText": "무료 튜터링 대화를 모두 소진하셨습니다.", "pw_upgrade_text": "프리미엄 결제하기",
                 "picker_target": "학습할 언어 선택", "picker_stt": "내 음성 언어 선택", "picker_exp": "사용자 언어 선택",
                 "lang_ko-KR": "한국어", "lang_en-US": "영어", "lang_es-ES": "스페인어", "lang_ja-JP": "일본어", "lang_zh-CN": "중국어", "lang_th-TH": "태국어", "lang_vi-VN": "베트남어", "lang_ar-SA": "아랍어", "lang_gd-GB": "스코틀랜드어", "lang_fr-FR": "프랑스어", "lang_ru-RU": "러시아어", "lang_hi-IN": "힌디어", "lang_la": "라틴어", "lang_he-IL": "히브리어", "lang_ne-NP": "네팔어", "lang_de-DE": "독일어", "lang_mn-MN": "몽골어", "lang_bo-CN": "티베트어", "lang_pl-PL": "폴란드어", "lang_sw-KE": "스와힐리",
-                "ui_persona_friend": "친근한 친구", "ui_persona_assistant": "개인 비서", "ui_persona_guide": "여행 가이드", "ui_memo_text": "메모장", "ui_memo_title": "AI 비서의 메모장", "ui_memo_clear": "모든 메모 지우기", "ui_memo_empty": "아직 작성된 메모가 없습니다.<br>채팅으로 AI에게 일정을 메모해 달라고 해보세요!"
+                "ui_persona_friend": "친근한 친구", "ui_persona_assistant": "개인 비서", "ui_persona_guide": "여행 가이드", "ui_memo_text": "메모장", "ui_memo_title": "AI 비서의 메모장", "ui_memo_clear": "모든 메모 지우기", "ui_memo_empty": "아직 작성된 메모가 없습니다.<br>채팅으로 AI에게 일정을 메모해 달라고 해보세요!",
+                "welcome_f1_title": "맞춤형 페르소나 & 환경설정", "welcome_f1_desc": "상단의 버튼으로 AI의 성격(친구·비서·가이드)을 바꾸고, 톱니바퀴(⚙️)를 눌러 목소리와 글자 크기를 조절해 보세요.",
+                "welcome_f2_title": "실시간 대화 & 재생 멈춤", "welcome_f2_desc": "하단의 파란 마이크를 눌러 말해보세요. AI가 말하는 도중 듣기를 끊고 싶다면 좌측 하단의 스피커 정지(🔇) 버튼을 누르면 됩니다.",
+                "welcome_f3_title": "심층 과외 해설 & 단어 선택", "welcome_f3_desc": "말풍선 단어를 터치해 뜻을 확인하거나, 우측 하단의 과외 해설(💡) 버튼을 눌러 AI의 마지막 대답에 대한 문법 분석과 예문을 받아보세요.",
+                "welcome_f4_title": "똑똑한 자동 메모장", "welcome_f4_desc": "대화 중 AI에게 '이거 메모해 줘'라고 말하면, 상단의 메모장(📝)에 일정을 자동으로 꼼꼼히 기록해 둡니다."
+            
             },
             "en": {
                 "main_subtitle": "Smart Language Partner", "mic_warning_text": "Mic restricted by browser. Please select 'Open in another browser'.",
                 "ai_engine_label": "AI Engine", "premium_title": "Premium Unlimited Subscription", "premium_desc": "Learn unlimited for $4.99/month!",
-                "welcome_title": "I am your AI Tutor.", "welcome_f1_title": "Live Voice Chat", "welcome_f1_desc": "Tap the mic icon below to speak. We support Chat Tutor and Translate Mode.",
-                "welcome_f2_title": "Smart Word Selection", "welcome_f2_desc": "Tap text in the speech bubbles to select words and open hidden menus.",
-                "welcome_f3_title": "Native Pronunciation & Explanation", "welcome_f3_desc": "Listen to the selected words in native pronunciation (🔊) or get detailed explanations (💡).",
+                "welcome_title": "I am your AI Tutor.", 
+                "welcome_f1_title": "Custom Persona & Settings", "welcome_f1_desc": "Change the AI's personality (Friend, Assistant, Guide) at the top, and adjust voice and font size using the gear icon (⚙️).",
+                "welcome_f2_title": "Live Chat & Stop Audio", "welcome_f2_desc": "Tap the blue mic to speak. If you want to stop the AI while it's speaking, press the stop audio (🔇) button.",
+                "welcome_f3_title": "Tutor Explanation & Select Words", "welcome_f3_desc": "Tap words in the bubble for meanings, or press the Tutor Explain (💡) button for grammar analysis of the AI's last reply.",
+                "welcome_f4_title": "Smart Auto Notes", "welcome_f4_desc": "Say 'Note this down' during the chat, and the AI will automatically record your schedule in the Notes (📝).",
                 "appMode_tutor": "🎓 Chat Tutor", "appMode_translate": "🌐 Translate Mode", "textInputPlaceholder": "Type a message here...",
                 "expGlobalBtnText": "Tutor Explain", "header_room2": "🎬 Situational Roleplay", "rp_level_text": "1. Select Level",
                 "rp_lv1": "Beginner", "rp_lv2": "Basic", "rp_lv3": "Intermediate", "rp_lv4": "Native", "rp_sit_text": "2. Select Situation",
@@ -503,8 +522,13 @@
                 "settings_close": "閉じる", "settings_save": "保存", "pw_title": "チュータリング終了", "paywallReasonText": "無料会話回数をすべて使い切りました。", "pw_upgrade_text": "プレミアム決済",
                 "picker_target": "学習する言語を選択", "picker_stt": "音声入力言語を選択", "picker_exp": "ユーザー言語を選択",
                 "lang_ko-KR": "韓国語", "lang_en-US": "英語", "lang_es-ES": "スペイン語", "lang_ja-JP": "日本語", "lang_zh-CN": "中国語", "lang_th-TH": "タイ語", "lang_vi-VN": "ベトナム語", "lang_ar-SA": "アラビア語", "lang_gd-GB": "スコットランド語", "lang_fr-FR": "フランス語", "lang_ru-RU": "ロシア語", "lang_hi-IN": "ヒンディー語", "lang_la": "ラテン語", "lang_he-IL": "ヘブライ語", "lang_ne-NP": "ネパール語", "lang_de-DE": "ドイツ語", "lang_mn-MN": "モンゴル語", "lang_bo-CN": "チベット語", "lang_pl-PL": "ポーランド語", "lang_sw-KE": "スワヒリ語",
-                "ui_persona_friend": "親しい友達", "ui_persona_assistant": "個人秘書", "ui_persona_guide": "旅行ガイド", "ui_memo_text": "メモ帳", "ui_memo_title": "AI秘書のメモ帳", "ui_memo_clear": "すべてのメモを消去", "ui_memo_empty": "まだメモがありません。<br>チャットでAIに予定をメモしてもらおう！"
-           
+                "ui_persona_friend": "親しい友達", "ui_persona_assistant": "個人秘書", "ui_persona_guide": "旅行ガイド", "ui_memo_text": "メモ帳", "ui_memo_title": "AI秘書のメモ帳", "ui_memo_clear": "すべてのメモを消去", "ui_memo_empty": "まだメモがありません。<br>チャットでAIに予定をメモしてもらおう！",
+                "welcome_f1_title": "カスタムペルソナ＆設定", "welcome_f1_desc": "上部のボタンでAIの性格(友達・秘書・ガイド)を変更し、歯車(⚙️)を押して声や文字サイズを調整してください。",
+                "welcome_f2_title": "リアルタイム会話＆再生停止", "welcome_f2_desc": "下の青いマイクを押して話してください。AIが話している途中で止めたい場合は、左下の停止(🔇)ボタンを押します。",
+                "welcome_f3_title": "詳細な解説＆単語選択", "welcome_f3_desc": "吹き出しの単語をタッチして意味を確認するか、右下の解説(💡)ボタンを押して最後の回答の文法分析を受け取れます。",
+                "welcome_f4_title": "スマート自動メモ帳", "welcome_f4_desc": "会話中に「これメモして」と言うと、上部のメモ帳(📝)に予定を自動で記録します。"
+
+
             },
             "zh": {
                 "main_subtitle": "Smart Language Partner", "mic_warning_text": "浏览器麦克风受限，请选择“在其他浏览器中打开”。",
@@ -527,8 +551,13 @@
                 "settings_close": "关闭", "settings_save": "保存", "pw_title": "辅导结束", "paywallReasonText": "您的免费对话次数已用完。", "pw_upgrade_text": "升级到高级版",
                 "picker_target": "选择学习语言", "picker_stt": "选择语音输入语言", "picker_exp": "选择用户语言",
                 "lang_ko-KR": "韩语", "lang_en-US": "英语", "lang_es-ES": "西班牙语", "lang_ja-JP": "日语", "lang_zh-CN": "中文", "lang_th-TH": "泰语", "lang_vi-VN": "越南语", "lang_ar-SA": "阿拉伯语", "lang_gd-GB": "苏格兰语", "lang_fr-FR": "法语", "lang_ru-RU": "俄语", "lang_hi-IN": "印地语", "lang_la": "拉丁语", "lang_he-IL": "希伯来语", "lang_ne-NP": "尼泊尔语", "lang_de-DE": "德语", "lang_mn-MN": "蒙古语", "lang_bo-CN": "藏语", "lang_pl-PL": "波兰语", "lang_sw-KE": "斯瓦希里语",
-                "ui_persona_friend": "亲密朋友", "ui_persona_assistant": "私人助理", "ui_persona_guide": "旅行向导", "ui_memo_text": "备忘录", "ui_memo_title": "AI助理备忘录", "ui_memo_clear": "清除所有备忘录", "ui_memo_empty": "还没有备忘录。<br>在聊天中让AI为您记下日程吧！"
-          
+                "ui_persona_friend": "亲密朋友", "ui_persona_assistant": "私人助理", "ui_persona_guide": "旅行向导", "ui_memo_text": "备忘录", "ui_memo_title": "AI助理备忘录", "ui_memo_clear": "清除所有备忘录", "ui_memo_empty": "还没有备忘录。<br>在聊天中让AI为您记下日程吧！",
+                "welcome_f1_title": "自定义角色与设置", "welcome_f1_desc": "使用顶部按钮更改AI性格(朋友、助手、导游)，点击齿轮(⚙️)调节声音和字体大小。",
+                "welcome_f2_title": "实时语音与停止播放", "welcome_f2_desc": "点击底部的蓝色麦克风开始说话。想中断AI发言时，按左下角的停止(🔇)按钮。",
+                "welcome_f3_title": "深度解析与单词选择", "welcome_f3_desc": "触摸气泡中的单词查看含义，或点击右下角的解析(💡)按钮获取AI最后回答的语法分析。",
+                "welcome_f4_title": "智能自动备忘录", "welcome_f4_desc": "在聊天中对AI说“记下这个”，它就会自动将日程记录在顶部的备忘录(📝)中。"
+
+
             },
             "es": {
                 "main_subtitle": "Socio de Idiomas Inteligente", "mic_warning_text": "Micrófono restringido. Por favor, seleccione 'Abrir en otro navegador'.",
@@ -551,9 +580,14 @@
                 "settings_close": "Cerrar", "settings_save": "Guardar", "pw_title": "Tutoría Finalizada", "paywallReasonText": "Has agotado tus conversaciones gratuitas.", "pw_upgrade_text": "Actualizar a Premium",
                 "picker_target": "Seleccionar idioma objetivo", "picker_stt": "Idioma de entrada de voz", "picker_exp": "Idioma del usuario",
                 "lang_ko-KR": "Coreano", "lang_en-US": "Inglés", "lang_es-ES": "Español", "lang_ja-JP": "Japonés", "lang_zh-CN": "Chino", "lang_th-TH": "Tailandés", "lang_vi-VN": "Vietnamita", "lang_ar-SA": "Árabe", "lang_gd-GB": "Escocés", "lang_fr-FR": "Francés", "lang_ru-RU": "Ruso", "lang_hi-IN": "Hindi", "lang_la": "Latín", "lang_he-IL": "Hebreo", "lang_ne-NP": "Nepalí", "lang_de-DE": "Alemán", "lang_mn-MN": "Mongol", "lang_bo-CN": "Tibetano", "lang_pl-PL": "Polaco", "lang_sw-KE": "Suajili",
-                 "ui_persona_friend": "Mejor Amigo", "ui_persona_assistant": "Asistente", "ui_persona_guide": "Guía de Viaje", 
-                "ui_memo_text": "Notas", "ui_memo_title": "Notas del Asistente de IA", "ui_memo_clear": "Borrar todas las notas", "ui_memo_empty": "Aún no hay notas.<br>¡Pídele a la IA que anote tu horario en el chat!"
-                
+                "ui_persona_friend": "Mejor Amigo", "ui_persona_assistant": "Asistente", "ui_persona_guide": "Guía de Viaje", 
+                "ui_memo_text": "Notas", "ui_memo_title": "Notas del Asistente de IA", "ui_memo_clear": "Borrar todas las notas", "ui_memo_empty": "Aún no hay notas.<br>¡Pídele a la IA que anote tu horario en el chat!",
+                "welcome_f1_title": "Persona Personalizada y Ajustes", "welcome_f1_desc": "Cambia la personalidad de la IA (Amigo, Asistente, Guía) en la parte superior y ajusta la voz y el tamaño de letra en el engranaje (⚙️).",
+                "welcome_f2_title": "Chat de Voz en Vivo y Detener", "welcome_f2_desc": "Toca el micrófono azul abajo para hablar. Si quieres que la IA deje de hablar, presiona el botón de detener audio (🔇).",
+                "welcome_f3_title": "Explicación Detallada y Selección", "welcome_f3_desc": "Toca las palabras para ver su significado o presiona el botón de explicación (💡) para obtener un análisis gramatical de la última respuesta.",
+                "welcome_f4_title": "Bloc de Notas Inteligente", "welcome_f4_desc": "Di 'Anota esto' durante la charla y la IA registrará automáticamente tu horario en el bloc de notas (📝) de la parte superior."
+
+
             },
             "fr": {
                 "main_subtitle": "Partenaire Linguistique Intelligent", "mic_warning_text": "Microphone restreint. Veuillez sélectionner 'Ouvrir dans un autre navigateur'.",
@@ -576,8 +610,11 @@
                 "settings_close": "Fermer", "settings_save": "Sauvegarder", "pw_title": "Tutorat Terminé", "paywallReasonText": "Vous avez épuisé vos conversations gratuites.", "pw_upgrade_text": "Passer à Premium",
                 "picker_target": "Langue cible", "picker_stt": "Langue de saisie vocale", "picker_exp": "Langue de l'utilisateur",
                 "lang_ko-KR": "Coréen", "lang_en-US": "Anglais", "lang_es-ES": "Espagnol", "lang_ja-JP": "Japonais", "lang_zh-CN": "Chinois", "lang_th-TH": "Thaï", "lang_vi-VN": "Vietnamien", "lang_ar-SA": "Arabe", "lang_gd-GB": "Écossais", "lang_fr-FR": "Français", "lang_ru-RU": "Russe", "lang_hi-IN": "Hindi", "lang_la": "Latin", "lang_he-IL": "Hébreu", "lang_ne-NP": "Népalais", "lang_de-DE": "Allemand", "lang_mn-MN": "Mongol", "lang_bo-CN": "Tibétain", "lang_pl-PL": "Polonais", "lang_sw-KE": "Swahili",
-                "ui_persona_friend": "Ami Proche", "ui_persona_assistant": "Assistant", "ui_persona_guide": "Guide Touristique", "ui_memo_text": "Notes", "ui_memo_title": "Notes de l'Assistant IA", "ui_memo_clear": "Tout effacer", "ui_memo_empty": "Aucune note pour le moment.<br>Demandez à l'IA de noter votre emploi du temps !"
-            
+                "ui_persona_friend": "Ami Proche", "ui_persona_assistant": "Assistant", "ui_persona_guide": "Guide Touristique", "ui_memo_text": "Notes", "ui_memo_title": "Notes de l'Assistant IA", "ui_memo_clear": "Tout effacer", "ui_memo_empty": "Aucune note pour le moment.<br>Demandez à l'IA de noter votre emploi du temps !",
+                "welcome_f1_title": "Persona Personnalisée et Paramètres", "welcome_f1_desc": "Changez la personnalité de l'IA (Ami, Assistant, Guide) en haut, et ajustez la voix et la police avec l'engrenage (⚙️).",
+                "welcome_f2_title": "Chat Vocal en Direct & Arrêt", "welcome_f2_desc": "Appuyez sur le micro bleu pour parler. Pour arrêter l'IA pendant qu'elle parle, appuyez sur le bouton d'arrêt audio (🔇).",
+                "welcome_f3_title": "Explication Détaillée & Sélection", "welcome_f3_desc": "Touchez les mots pour voir leur sens ou appuyez sur l'explication (💡) pour obtenir une analyse grammaticale de la dernière réponse.",
+                "welcome_f4_title": "Bloc-notes Intelligent", "welcome_f4_desc": "Dites 'Note ça' pendant la conversation, et l'IA enregistrera automatiquement votre emploi du temps dans le bloc-notes (📝) en haut."
             },
             "de": {
                 "main_subtitle": "Intelligenter Sprachpartner", "mic_warning_text": "Mikrofon blockiert. Bitte wählen Sie 'In anderem Browser öffnen'.",
@@ -600,8 +637,11 @@
                 "settings_close": "Schließen", "settings_save": "Speichern", "pw_title": "Nachhilfe Beendet", "paywallReasonText": "Kostenlose Gespräche aufgebraucht.", "pw_upgrade_text": "Premium kaufen",
                 "picker_target": "Zielsprache", "picker_stt": "Spracheingabe", "picker_exp": "Benutzersprache",
                 "lang_ko-KR": "Koreanisch", "lang_en-US": "Englisch", "lang_es-ES": "Spanisch", "lang_ja-JP": "Japanisch", "lang_zh-CN": "Chinesisch", "lang_th-TH": "Thailändisch", "lang_vi-VN": "Vietnamesisch", "lang_ar-SA": "Arabisch", "lang_gd-GB": "Schottisch", "lang_fr-FR": "Französisch", "lang_ru-RU": "Russisch", "lang_hi-IN": "Hindi", "lang_la": "Latein", "lang_he-IL": "Hebräisch", "lang_ne-NP": "Nepalesisch", "lang_de-DE": "Deutsch", "lang_mn-MN": "Mongolisch", "lang_bo-CN": "Tibetisch", "lang_pl-PL": "Polnisch", "lang_sw-KE": "Suaheli",
-                "ui_persona_friend": "Bester Freund", "ui_persona_assistant": "Assistent", "ui_persona_guide": "Reiseführer", "ui_memo_text": "Notizen", "ui_memo_title": "KI-Assistent Notizen", "ui_memo_clear": "Alle löschen", "ui_memo_empty": "Noch keine Notizen.<br>Bitte die KI im Chat, deinen Zeitplan zu notieren!"
-          
+                "ui_persona_friend": "Bester Freund", "ui_persona_assistant": "Assistent", "ui_persona_guide": "Reiseführer", "ui_memo_text": "Notizen", "ui_memo_title": "KI-Assistent Notizen", "ui_memo_clear": "Alle löschen", "ui_memo_empty": "Noch keine Notizen.<br>Bitte die KI im Chat, deinen Zeitplan zu notieren!",
+                "welcome_f1_title": "Persona & Einstellungen", "welcome_f1_desc": "Ändere oben die Persönlichkeit der KI (Freund, Assistent, Reiseführer) und passe Stimme und Schriftgröße über das Zahnrad (⚙️) an.",
+                "welcome_f2_title": "Live-Voice-Chat & Stopp", "welcome_f2_desc": "Tippe auf das blaue Mikrofon, um zu sprechen. Drücke die Stopp-Taste (🔇), um die Sprachausgabe der KI zu unterbrechen.",
+                "welcome_f3_title": "Detaillierte Erklärung & Wortauswahl", "welcome_f3_desc": "Tippe auf Wörter, um deren Bedeutung zu sehen, oder nutze die Erklärung (💡) für eine Grammatikanalyse der letzten Antwort.",
+                "welcome_f4_title": "Intelligenter Notizblock", "welcome_f4_desc": "Sag während des Chats 'Notiere das', und die KI speichert deinen Zeitplan automatisch im Notizblock (📝) oben."
             },
             "vi": {
                 "main_subtitle": "Đối tác ngôn ngữ thông minh", "mic_warning_text": "Micro bị hạn chế. Vui lòng chọn 'Mở trong trình duyệt khác'.",
@@ -624,8 +664,11 @@
                 "settings_close": "Đóng", "settings_save": "Lưu", "pw_title": "Kết thúc buổi học", "paywallReasonText": "Bạn đã hết số lượt trò chuyện miễn phí.", "pw_upgrade_text": "Nâng cấp Premium",
                 "picker_target": "Ngôn ngữ mục tiêu", "picker_stt": "Ngôn ngữ nhập giọng nói", "picker_exp": "Ngôn ngữ người dùng",
                 "lang_ko-KR": "Tiếng Hàn", "lang_en-US": "Tiếng Anh", "lang_es-ES": "Tiếng Tây Ban Nha", "lang_ja-JP": "Tiếng Nhật", "lang_zh-CN": "Tiếng Trung", "lang_th-TH": "Tiếng Thái", "lang_vi-VN": "Tiếng Việt", "lang_ar-SA": "Tiếng Ả Rập", "lang_gd-GB": "Tiếng Scotland", "lang_fr-FR": "Tiếng Pháp", "lang_ru-RU": "Tiếng Nga", "lang_hi-IN": "Tiếng Hindi", "lang_la": "Tiếng Latinh", "lang_he-IL": "Tiếng Do Thái", "lang_ne-NP": "Tiếng Nepal", "lang_de-DE": "Tiếng Đức", "lang_mn-MN": "Tiếng Mông Cổ", "lang_bo-CN": "Tiếng Tây Tạng", "lang_pl-PL": "Tiếng Ba Lan", "lang_sw-KE": "Tiếng Swahili",
-                "ui_persona_friend": "Bạn thân", "ui_persona_assistant": "Trợ lý", "ui_persona_guide": "Hướng dẫn viên", "ui_memo_text": "Ghi chú", "ui_memo_title": "Ghi chú của Trợ lý AI", "ui_memo_clear": "Xóa tất cả", "ui_memo_empty": "Chưa có ghi chú nào.<br>Hãy yêu cầu AI ghi lại lịch trình của bạn!"
-           
+                "ui_persona_friend": "Bạn thân", "ui_persona_assistant": "Trợ lý", "ui_persona_guide": "Hướng dẫn viên", "ui_memo_text": "Ghi chú", "ui_memo_title": "Ghi chú của Trợ lý AI", "ui_memo_clear": "Xóa tất cả", "ui_memo_empty": "Chưa có ghi chú nào.<br>Hãy yêu cầu AI ghi lại lịch trình của bạn!",
+                "welcome_f1_title": "Tùy chỉnh Persona & Cài đặt", "welcome_f1_desc": "Thay đổi tính cách AI (Bạn bè, Trợ lý, Hướng dẫn viên) ở trên và điều chỉnh giọng nói/cỡ chữ bằng biểu tượng bánh răng (⚙️).",
+                "welcome_f2_title": "Chat Thoại Trực Tiếp & Dừng", "welcome_f2_desc": "Nhấn vào mic xanh để nói. Nếu muốn dừng AI khi đang nói, hãy nhấn nút tắt âm thanh (🔇).",
+                "welcome_f3_title": "Giải thích Chi tiết & Chọn từ", "welcome_f3_desc": "Chạm vào từ để xem nghĩa hoặc nhấn nút giải thích (💡) để nhận phân tích ngữ pháp về câu trả lời cuối của AI.",
+                "welcome_f4_title": "Sổ tay Thông minh", "welcome_f4_desc": "Hãy nói 'Ghi chú lại' trong lúc chat, AI sẽ tự động lưu lịch trình của bạn vào sổ tay (📝) ở trên cùng."
            
             },
             "ru": {
@@ -649,8 +692,11 @@
                 "settings_close": "Закрыть", "settings_save": "Сохранить", "pw_title": "Урок окончен", "paywallReasonText": "Бесплатные разговоры исчерпаны.", "pw_upgrade_text": "Купить Премиум",
                 "picker_target": "Изучаемый язык", "picker_stt": "Язык голосового ввода", "picker_exp": "Язык пользователя",
                 "lang_ko-KR": "Корейский", "lang_en-US": "Английский", "lang_es-ES": "Испанский", "lang_ja-JP": "Японский", "lang_zh-CN": "Китайский", "lang_th-TH": "Тайский", "lang_vi-VN": "Вьетнамский", "lang_ar-SA": "Арабский", "lang_gd-GB": "Шотландский", "lang_fr-FR": "Французский", "lang_ru-RU": "Русский", "lang_hi-IN": "Хинди", "lang_la": "Латынь", "lang_he-IL": "Иврит", "lang_ne-NP": "Непальский", "lang_de-DE": "Немецкий", "lang_mn-MN": "Монгольский", "lang_bo-CN": "Тибетский", "lang_pl-PL": "Польский", "lang_sw-KE": "Суахили",
-                "ui_persona_friend": "Близкий друг", "ui_persona_assistant": "Ассистент", "ui_persona_guide": "Гид", "ui_memo_text": "Заметки", "ui_memo_title": "Заметки ИИ-ассистеннта", "ui_memo_clear": "Удалить всё", "ui_memo_empty": "Заметок пока нет.<br>Попросите ИИ записать ваше расписание!"
-          
+                "ui_persona_friend": "Близкий друг", "ui_persona_assistant": "Ассистент", "ui_persona_guide": "Гид", "ui_memo_text": "Заметки", "ui_memo_title": "Заметки ИИ-ассистеннта", "ui_memo_clear": "Удалить всё", "ui_memo_empty": "Заметок пока нет.<br>Попросите ИИ записать ваше расписание!",
+                "welcome_f1_title": "Настройка ИИ и Параметры", "welcome_f1_desc": "Меняйте характер ИИ (Друг, Ассистент, Гид) наверху и настраивайте голос и шрифт с помощью шестеренки (⚙️).",
+                "welcome_f2_title": "Голосовой чат и Остановка", "welcome_f2_desc": "Нажмите на синий микрофон, чтобы говорить. Чтобы остановить речь ИИ, нажмите кнопку отключения звука (🔇).",
+                "welcome_f3_title": "Глубокий разбор и Выбор слов", "welcome_f3_desc": "Нажимайте на слова, чтобы узнать перевод, или нажмите кнопку разбора (💡) для грамматического анализа последнего ответа ИИ.",
+                "welcome_f4_title": "Умный блокнот", "welcome_f4_desc": "Скажите 'Запиши это' во время чата, и ИИ автоматически сохранит ваше расписание в блокноте (📝) наверху."
           
             },
             "th": {
@@ -674,8 +720,38 @@
                 "settings_close": "ปิด", "settings_save": "บันทึก", "pw_title": "หมดเวลาเรียน", "paywallReasonText": "คุณใช้โควต้าสนทนาฟรีหมดแล้ว", "pw_upgrade_text": "อัปเกรดเป็นพรีเมียม",
                 "picker_target": "เลือกภาษาเป้าหมาย", "picker_stt": "เลือกภาษาพูด", "picker_exp": "เลือกภาษาผู้ใช้",
                 "lang_ko-KR": "เกาหลี", "lang_en-US": "อังกฤษ", "lang_es-ES": "สเปน", "lang_ja-JP": "ญี่ปุ่น", "lang_zh-CN": "จีน", "lang_th-TH": "ไทย", "lang_vi-VN": "เวียดนาม", "lang_ar-SA": "อาหรับ", "lang_gd-GB": "สกอตติช", "lang_fr-FR": "ฝรั่งเศส", "lang_ru-RU": "รัสเซีย", "lang_hi-IN": "ฮินดี", "lang_la": "ละติน", "lang_he-IL": "ฮีบรู", "lang_ne-NP": "เนปาลี", "lang_de-DE": "เยอรมัน", "lang_mn-MN": "มองโกเลีย", "lang_bo-CN": "ทิเบต", "lang_pl-PL": "โปแลนด์", "lang_sw-KE": "สวาฮีลี",
-                "ui_persona_friend": "เพื่อนสนิท", "ui_persona_assistant": "ผู้ช่วยส่วนตัว", "ui_persona_guide": "ไกด์นำเที่ยว", "ui_memo_text": "บันทึก", "ui_memo_title": "บันทึกของผู้ช่วย AI", "ui_memo_clear": "ลบทั้งหมด", "ui_memo_empty": "ยังไม่มีบันทึก<br>บอกให้ AI จดตารางเวลาของคุณในแชทสิ!"
-           
+                "ui_persona_friend": "เพื่อนสนิท", "ui_persona_assistant": "ผู้ช่วยส่วนตัว", "ui_persona_guide": "ไกด์นำเที่ยว", "ui_memo_text": "บันทึก", "ui_memo_title": "บันทึกของผู้ช่วย AI", "ui_memo_clear": "ลบทั้งหมด", "ui_memo_empty": "ยังไม่มีบันทึก<br>บอกให้ AI จดตารางเวลาของคุณในแชทสิ!",
+                "welcome_f1_title": "ปรับแต่งบุคลิก & การตั้งค่า", "welcome_f1_desc": "เปลี่ยนบุคลิก AI (เพื่อน, ผู้ช่วย, ไกด์) ที่ด้านบน และปรับเสียง/ขนาดตัวอักษรที่ฟันเฟือง (⚙️)",
+                "welcome_f2_title": "แชทด้วยเสียง & หยุดเสียง", "welcome_f2_desc": "แตะไมค์สีน้ำเงินเพื่อพูด หากต้องการหยุด AI ขณะพูด ให้กดปุ่มหยุดเสียง (🔇) ที่มุมซ้ายล่าง",
+                "welcome_f3_title": "คำอธิบายเชิงลึก & เลือกคำศัพท์", "welcome_f3_desc": "แตะคำศัพท์ในบอลลูนเพื่อดูความหมาย หรือกดปุ่มคำอธิบาย (💡) เพื่อวิเคราะห์ไวยากรณ์จากคำตอบล่าสุดของ AI",
+                "welcome_f4_title": "สมุดโน้ตอัจฉริยะ", "welcome_f4_desc": "พูดว่า 'จดบันทึกให้หน่อย' ระหว่างแชท แล้ว AI จะบันทึกตารางเวลาของคุณลงในสมุดโน้ต (📝) ด้านบนโดยอัตโนมัติ"
+            },
+
+            "ar": {
+                "main_subtitle": "شريكك الذكي لتعلم اللغات", "mic_warning_text": "تم تقييد الميكروفون بواسطة المتصفح. يرجى اختيار 'الفتح في متصفح آخر'.",
+                "ai_engine_label": "محرك الذكاء الاصطناعي", "premium_title": "الاشتراك المميز غير المحدود", "premium_desc": "تعلم بلا حدود مقابل 4.99 دولار/شهر!",
+                "welcome_title": "أنا معلمك الذكي.", 
+                "welcome_f1_title": "تخصيص الشخصية والإعدادات", "welcome_f1_desc": "قم بتغيير شخصية الذكاء الاصطناعي (صديق، مساعد، دليل) في الأعلى، واضبط الصوت وحجم الخط من خلال الترس (⚙️).",
+                "welcome_f2_title": "محادثة صوتية وإيقاف الصوت", "welcome_f2_desc": "اضغط على الميكروفون الأزرق للتحدث. إذا أردت إيقاف الذكاء الاصطناعي أثناء حديثه، اضغط على زر إيقاف الصوت (🔇).",
+                "welcome_f3_title": "شرح تفصيلي واختيار الكلمات", "welcome_f3_desc": "المس الكلمات لمعرفة معناها، أو اضغط على زر الشرح (💡) للحصول على تحليل نحوي لآخر إجابة.",
+                "welcome_f4_title": "المفكرة الذكية", "welcome_f4_desc": "قل 'سجل هذا' أثناء المحادثة، وسيقوم الذكاء الاصطناعي تلقائياً بحفظ جدولك في المفكرة (📝) بالأعلى.",
+                "appMode_tutor": "🎓 المعلم التفاعلي", "appMode_translate": "🌐 وضع الترجمة", "textInputPlaceholder": "اكتب رسالة هنا...",
+                "expGlobalBtnText": "شرح المعلم", "header_room2": "🎬 لعب الأدوار الظرفية", "rp_level_text": "1. اختر المستوى",
+                "rp_lv1": "مبتدئ", "rp_lv2": "أساسي", "rp_lv3": "متوسط", "rp_lv4": "متقدم", "rp_sit_text": "2. اختر الموقف",
+                "rp_sit1": "🎲 يومي عشوائي", "rp_sit2": "☕ طلب مقهى", "rp_sit3": "🍽️ مطعم", "rp_sit4": "🛂 الجوازات", "rp_sit5": "🛍️ تسوق ملابس", "rp_sit6": "🚕 ركوب سيارة أجرة",
+                "generateBtn": "✨ توليد سيناريو الذكاء الاصطناعي", "statusBoxTitle": "معلومات الموقف", "statusBoxText": "يرجى اختيار المستوى والموقف، ثم الضغط على [توليد سيناريو]!",
+                "roleplayMicText": "ابدأ التحدث (ميكروفون)", "rp_save_count": "تم حفظ {n} سيناريوهات.", "rp_ai": "الذكاء الاصطناعي", "rp_user": "أنا",
+                "header_room3": "📝 مفرداتي", "vc_theme1": "✈️ السفر", "vc_theme2": "💼 الأعمال", "vc_theme3": "❤️ الرومانسية", "vc_theme4": "🍽️ مطعم/مقهى",
+                "generateVocabBtn": "✨ توليد مفردات الذكاء الاصطناعي", "vc_select": "اختر كلمة", "vc_flip_hint": "المس للقلب", "vc_listen_btn": "صوت أصلي",
+                "vc_empty_text": "اضغط على الزر أعلاه لتوليد أول قائمة مفردات لك!", "header_room4": "🔤 الصوتيات الأساسية", "generateAlphaBtn": "✨ الحصول على صوتيات الذكاء الاصطناعي",
+                "alpha_desc": "تعلم الحروف والأصوات الأساسية! المس الحروف لسماع النطق الأصلي.", "alpha_empty_text": "اضغط على الزر أعلاه لجلب الصوتيات الأساسية!",
+                "alpha_fetching": "الذكاء الاصطناعي يقوم بجلب الحروف والصوتيات...", "settings_title_text": "الإعدادات", "set_font_size": "حجم خط الدردشة",
+                "set_voice_gender": "جنس صوت الذكاء الاصطناعي", "gender_f_text": "أنثى", "gender_m_text": "ذكر", "set_exp_lang": "لغة المستخدم",
+                "settings_close": "إغلاق", "settings_save": "حفظ", "pw_title": "انتهى الدرس", "paywallReasonText": "لقد استنفدت محادثاتك المجانية.", "pw_upgrade_text": "الترقية إلى المميز",
+                "picker_target": "اختر لغة التعلم", "picker_stt": "اختر لغة الإدخال الصوتي", "picker_exp": "اختر لغة المستخدم",
+                "lang_ko-KR": "الكورية", "lang_en-US": "الإنجليزية", "lang_es-ES": "الإسبانية", "lang_ja-JP": "اليابانية", "lang_zh-CN": "الصينية", "lang_th-TH": "التايلاندية", "lang_vi-VN": "الفيتنامية", "lang_ar-SA": "العربية", "lang_gd-GB": "الاسكتلندية", "lang_fr-FR": "الفرنسية", "lang_ru-RU": "الروسية", "lang_hi-IN": "الهندية", "lang_la": "اللاتينية", "lang_he-IL": "العبرية", "lang_ne-NP": "النيبالية", "lang_de-DE": "الألمانية", "lang_mn-MN": "المنغولية", "lang_bo-CN": "التبتية", "lang_pl-PL": "البولندية", "lang_sw-KE": "السواحيلية",
+                "ui_persona_friend": "صديق مقرب", "ui_persona_assistant": "مساعد شخصي", "ui_persona_guide": "مرشد سياحي", 
+                "ui_memo_text": "ملاحظات", "ui_memo_title": "ملاحظات المساعد الذكي", "ui_memo_clear": "مسح كل الملاحظات", "ui_memo_empty": "لا توجد ملاحظات بعد.<br>اطلب من الذكاء الاصطناعي تدوين جدولك الزمني في الدردشة!"
             },
             "hi": {
                 "main_subtitle": "Smart Language Partner", "mic_warning_text": "Mic restricted by browser. Please select 'Open in another browser'.",
@@ -899,26 +975,30 @@
         }
 
         window.changeUILanguage = function(langCode) {
-            const baseLang = langCode.split('-')[0];
-            const currentDict = UI_DICTIONARY[baseLang] || UI_DICTIONARY["en"];
-            
-            for (const [id, text] of Object.entries(currentDict)) {
-                const element = document.getElementById(id);
-                if (element) {
-                    if (id === "textInputPlaceholder") document.getElementById("textInput").placeholder = text;
-                    else element.innerText = text;
-                }
-            }
+    const baseLang = langCode.split('-')[0];
+    const currentDict = UI_DICTIONARY[baseLang] || UI_DICTIONARY["en"];
+    
+    for (const [id, text] of Object.entries(currentDict)) {
+        const element = document.getElementById(id);
+        if (element) {
+            if (id === "textInputPlaceholder") document.getElementById("textInput").placeholder = text;
+            else element.innerText = text;
+        }
+    }
 
-            const tutorOpt = document.querySelector("#appMode option[value='tutor']");
-            const transOpt = document.querySelector("#appMode option[value='translate']");
-            if (tutorOpt) tutorOpt.text = currentDict["appMode_tutor"] || "Tutor";
-            if (transOpt) transOpt.text = currentDict["appMode_translate"] || "Translate";
+    const tutorOpt = document.querySelector("#appMode option[value='tutor']");
+    const transOpt = document.querySelector("#appMode option[value='translate']");
+    if (tutorOpt) tutorOpt.text = currentDict["appMode_tutor"] || "Tutor";
+    if (transOpt) transOpt.text = currentDict["appMode_translate"] || "Translate";
 
-            window.renderScripts();
-            window.renderVocabs();
-            window.updateLangDisplays();
-        };
+    // 🔄 기존에 있던 대본, 단어장, 언어표시 새로고침 명령들
+    window.renderScripts();
+    window.renderVocabs();
+    window.updateLangDisplays();
+    
+    // 🌟 [여기가 핵심!] 언어가 바뀔 때 페르소나 버튼과 메모장 UI도 다시 새로고침 하도록 명령 추가!
+    if (typeof window.updateExtraUI === 'function') window.updateExtraUI();
+};
 
         function renderLanguageSelects() {
             const optionsHtml = SUPPORTED_LANGUAGES.map(lang => `<option value="${lang.code}" data-lang-name="${lang.name}">${lang.flag} ${lang.name}</option>`).join('');
@@ -1621,7 +1701,10 @@ window.stopSpeaking = function() {
             } catch(e) { console.error(e); window.updateStatus("해설 통신 에러"); document.getElementById('avatarWrap').style.borderColor = "#f87171"; }
         };
 
-        function clearChatSession() { conversationHistory=[]; uiChatHistory=[]; sessionStorage.clear(); document.querySelectorAll('#chatContainer > div.flex.flex-col').forEach(el=>el.remove()); }
+        function clearChatSession() { conversationHistory=[]; uiChatHistory=[]; sessionStorage.clear(); document.querySelectorAll('#chatContainer > div.flex.flex-col').forEach(el => {
+        if(el.id !== 'welcomeWrapper') el.remove(); }); 
+        }
+
         // ========== [페르소나 변경 로직 수정] ==========
         window.currentPersona = localStorage.getItem('ai_persona') || 'friend';
 
