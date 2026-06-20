@@ -1761,39 +1761,7 @@ function resetMic() {
 
         window.speakText = function(text, langCode) {
     if(!text) return;
-
-
-
-    // 1. [감정] 텍스트가 있는지 확인하고, 있으면 지우고 그 감정을 추출!
-    let emotion = "neutral";
-    let cleanText = text;
     
-    if (text.includes("[신남]")) { emotion = "happy"; cleanText = text.replace("[신남]", ""); }
-    else if (text.includes("[진지]")) { emotion = "serious"; cleanText = text.replace("[진지]", ""); }
-    else if (text.includes("[차분]")) { emotion = "calm"; cleanText = text.replace("[차분]", ""); }
-
-    const utt = new SpeechSynthesisUtterance(cleanText.trim()); 
-    utt.lang = langCode;
-
-    // 2. 감정에 따라 Pitch와 Rate를 튜닝!
-    if (emotion === "happy") {
-        utt.pitch = 1.4; // 톤을 높여서 들뜸
-        utt.rate = 1.2;  // 속도를 빠르게
-    } else if (emotion === "serious") {
-        utt.pitch = 0.8; // 톤을 낮춰서 진지하게
-        utt.rate = 0.9;  // 속도를 천천히
-    } else if (emotion === "calm") {
-        utt.pitch = 1.0;
-        utt.rate = 0.9;
-    } else {
-        utt.pitch = currentVoiceGender === 'female' ? 1.2 : 0.7;
-        utt.rate = 1.0;
-    }
-
-
-
-
-
     const clean = text.replace(/[\*\#\`\~\"\'\(\)\[\]]/g, ' ').trim(); 
     if(!clean) return;
 
