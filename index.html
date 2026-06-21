@@ -1333,7 +1333,7 @@
             setTimeout(() => document.getElementById('customLangModal').classList.add('hidden'), 300);
         };
 
-        const WORKER_URL = "https://talkaitest.thin770.workers.dev/";
+        const WORKER_URL = "https://talk-ai-test-olive.vercel.app/";
 
         let isListening = false, isSpeaking = false, recognition = null;
         const synthesis = window.speechSynthesis;
@@ -1885,14 +1885,37 @@ window.stopSpeaking = function() {
                     if(typeof window.compressMemory === 'function') window.compressMemory(); // 백그라운드 기억 요약
                 }
 
-                // 🎯 [핵심] AI가 보낸 "save_memo"를 낚아채서 내 화면 메모장에 꽂아넣는 코드!
+                // 🎯 [수정된 코드] 메모장 및 커스텀 알림 처리
                 if(parsed.save_memo && parsed.save_memo.trim() !== "") {
                     let currentMemos = JSON.parse(localStorage.getItem('ai_auto_memos')) || [];
                     currentMemos.unshift({ content: parsed.save_memo, timestamp: Date.now() });
                     localStorage.setItem('ai_auto_memos', JSON.stringify(currentMemos));
                     
-                    if(typeof window.renderMemos === 'function') window.renderMemos(); // 뱃지 숫자 즉시 갱신
-                    updateStatus("📝 AI가 일정을 메모장에 저장했습니다!"); // 성공 메시지
+                    if(typeof window.renderMemos === 'function') window.renderMemos(); 
+
+                    // 🌟 1. 시간이 지정된 경우 (커스텀 알림)
+                    if (parsed.alarm_time && window.flutter_inappwebview) {
+                        let alarmDate = new Date(parsed.alarm_time);
+                        let diffMs = alarmDate.getTime() - Date.now();
+                        
+                        if (diffMs > 0) {
+                            let delayHours = diffMs / (1000 * 60 * 60); // 남은 시간을 '시간' 단위로 변환
+                            window.flutter_inappwebview.callHandler('scheduleLocalPush', {
+                                id: Math.floor(Math.random() * 100000), // 무작위 ID (여러 개 쌓임)
+                                title: "⏰ 튜터의 리마인더",
+                                body: parsed.save_memo,
+                                delayHours: delayHours
+                            });
+                            updateStatus("⏰ 알림과 함께 메모가 저장되었습니다!"); 
+                        } else {
+                            updateStatus("📝 일정 시간이 지나 메모로만 저장되었습니다.");
+                        }
+                    } 
+                    // 🌟 2. 시간이 없는 경우 (조용한 메모)
+                    else {
+                        updateStatus("📝 AI가 메모장에 기록했습니다. (알림 없음)"); 
+                        // -> 플러터로 신호를 보내지 않으므로 알림이 울리지 않음!
+                    }
                 }
                 
                 if(parsed.foreign_text) { 
@@ -2404,7 +2427,20 @@ window.stopSpeaking = function() {
                 let newId = savedVocabs.length > 0 ? savedVocabs[savedVocabs.length - 1].id + 1 : 1;
                 if (savedVocabs.length >= 5) savedVocabs.shift(); 
                 savedVocabs.push({ id: newId, theme: theme, langName: targetLangName, langCode: document.getElementById('targetLanguage').value, vocabData: data.vocabData });
-                localStorage.setItem('vocab_scripts', JSON.stringify(savedVocabs)); window.showFlashcard(savedVocabs.length - 1, 0);
+                localStorage.setItem('vocab_scripts', JSON.stringify(savedVocabs)); 
+                window.showFlashcard(savedVocabs.length - 1, 0);
+
+                // 🌟 자동 학습 복습 알림 (항상 id: 999 고정!)
+                if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
+                    window.flutter_inappwebview.callHandler('scheduleLocalPush', {
+                        id: 999, // 👈 핵심! 이 ID를 고정하면 마지막 학습 기준으로 시간이 계속 초기화됨
+                        title: "📚 학습 복습 시간!",
+                        body: `오늘 공부했던 내용들, 까먹기 전에 한 번 복습해 볼까요?`,
+                        delayHours: 24 
+                    });
+                }
+
+
             } catch (err) { alert("Fail"); } finally { 
                 const baseLang = (document.getElementById('explanationLanguage').value || 'ko-KR').split('-')[0];
                 btn.innerHTML = UI_DICTIONARY[baseLang]?.generateVocabBtn || "✨ AI 단어장 생성하기"; btn.disabled = false; 
