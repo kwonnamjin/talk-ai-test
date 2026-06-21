@@ -344,8 +344,8 @@
                     
                     <input type="text" id="rp_custom_input" placeholder="예시) 이세계 상인과 가격 흥정하는 대본" class="w-full h-11 bg-slate-50 border border-slate-200 text-slate-700 text-[11px] font-bold rounded-xl px-4 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all shadow-inner mb-3" oninput="document.querySelectorAll('.sit-card').forEach(c => c.classList.remove('selected-card'))">
                     
-                    <button id="generateBtn" class="w-full bg-slate-900 text-white text-sm font-bold py-2.5 rounded-xl shadow-md hover:bg-black transition-all">
-                        ✨ AI 대본 생성하기
+                    <button id="generateBtn" onclick="generateScript()" class="w-full bg-slate-900 text-white text-sm font-bold py-2.5 rounded-xl shadow-md hover:bg-black transition-all">
+                       ✨ AI 대본 생성하기
                     </button>
                 </section>
 
@@ -1567,11 +1567,10 @@ window.sendTextMessage = function() {
     }
 }
 
-        // =================================================================
+// =================================================================
 // 🌟 여기서부터 복사해서 붙여넣으세요! (마이크, 통신, UI 완벽 통합본)
 // =================================================================
 
-// 1. 잃어버린 AI 심장(통신 함수)
 async function fetchAPI(url, options) {
     let delay = 500;
     for(let i=0; i<3; i++) { 
@@ -1586,207 +1585,187 @@ async function fetchAPI(url, options) {
     }
 }
 
-// 2. 상태 업데이트 함수 (안전하게 추가)
 window.updateStatus = function(txt) { 
     const st = document.getElementById('statusText');
     if(st) st.textContent = txt; 
 }
 
-// 3. 웹 브라우저용 마이크 초기화
+// 🌟 [핵심] 마이크 엔진 완전체 복구! (1번방 대화용)
 function initSpeechRecognition() {
     if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
         recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.continuous = false;
+        recognition.interimResults = false;
         recognition.onstart = () => {
-            isListening = true; if(window.stopSpeaking) window.stopSpeaking(); 
-            micBtn.classList.replace('from-blue-400', 'from-red-400'); micBtn.classList.replace('to-blue-600', 'to-red-600'); 
-            micIcon.classList.replace('fa-microphone', 'fa-ear-listen'); window.updateStatus("듣는 중...");
+            isListening = true; 
+            if(window.stopSpeaking) window.stopSpeaking(); 
+            if(micBtn) { micBtn.classList.replace('from-blue-400', 'from-red-400'); micBtn.classList.replace('to-blue-600', 'to-red-600'); }
+            if(micIcon) { micIcon.classList.replace('fa-microphone', 'fa-ear-listen'); }
+            window.updateStatus("듣는 중...");
         };
-        recognition.onresult = (e) => handleUserMessage(e.results[0][0].transcript);
-        recognition.onerror = () => { resetMic(); window.updateStatus("인식 실패"); };
+        recognition.onresult = (e) => {
+            resetMic();
+            if(e.results && e.results[0] && e.results[0][0]) {
+                handleUserMessage(e.results[0][0].transcript);
+            }
+        };
+        recognition.onerror = (e) => { 
+            resetMic(); 
+            window.updateStatus("마이크 인식 실패"); 
+            console.error("Mic Error:", e.error);
+        };
         recognition.onend = () => resetMic();
-    } else { window.updateStatus("마이크 미지원"); micBtn.disabled = true; }
+    }
 }
 initSpeechRecognition();
 
-// 4. 마이크 버튼 클릭 시 (앱과 웹 완벽 구분 & UI 업데이트)
-window.toggleListening = function() {
-    const lang = document.getElementById('sttInputLanguage').value;
-    
-    if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
-        // 앱(플러터) 마이크 켜기
-        if(isListening) {
-            window.flutter_inappwebview.callHandler('stopListening');
-            resetMic();
-        } else {
-            isListening = true;
-            if(window.stopSpeaking) window.stopSpeaking();
-            micBtn.classList.replace('from-blue-400', 'from-red-400');
-            micBtn.classList.replace('to-blue-600', 'to-red-600');
-            micIcon.classList.replace('fa-microphone', 'fa-ear-listen');
-            window.updateStatus("듣는 중..."); // 드디어 폰에서도 '듣는 중...'이 뜹니다!
-            window.flutter_inappwebview.callHandler('startListening', lang);
-        }
-    } else {
-        // 웹 브라우저 마이크 켜기
-        if(!recognition) return;
-        if(isListening) recognition.stop();
-        else { recognition.lang = lang; recognition.start(); }
-    }
-}
-
-// 5. 앱(플러터)에서 듣기가 끝나고 글자를 웹으로 던져주는 '귀' 역할
-window.onSpeechResult = function(text) {
-    resetMic();
-    if(text) handleUserMessage(text);
-}
-
-// 6. 마이크 버튼 원상복구
 function resetMic() { 
     isListening = false; 
-    micBtn.classList.replace('from-red-400', 'from-blue-400'); 
-    micBtn.classList.replace('to-red-600', 'to-blue-600'); 
-    micIcon.classList.replace('fa-ear-listen', 'fa-microphone'); 
+    if(micBtn) { micBtn.classList.replace('from-red-400', 'from-blue-400'); micBtn.classList.replace('to-red-600', 'to-blue-600'); }
+    if(micIcon) { micIcon.classList.replace('fa-ear-listen', 'fa-microphone'); }
     if(typeof isSpeaking !== 'undefined' && !isSpeaking) window.updateStatus("대기 중"); 
 }
 
-// =================================================================
-// 🌟 딱 여기까지 복사하세요! 바로 밑에 function clearSelection() { 이 있어야 합니다.
-// =================================================================
-
-        function clearSelection() {
-            document.querySelectorAll('.word-span, .exp-word-span').forEach(el => el.classList.remove('selected'));
-            startIndex = -1; endIndex = -1; currentBubbleId = null;
-            selectionTooltip.classList.add('opacity-0', 'pointer-events-none'); setTimeout(() => selectionTooltip.classList.add('hidden'), 200);
+// 🌟 [핵심] 1번방 마이크 클릭 시 실행
+window.toggleListening = function() {
+    const lang = document.getElementById('sttInputLanguage').value;
+    if(!recognition) {
+        window.updateStatus("마이크를 사용할 수 없습니다.");
+        return;
+    }
+    if(isListening) {
+        recognition.stop();
+    } else {
+        recognition.lang = lang;
+        try {
+            recognition.start();
+        } catch(e) {
+            window.updateStatus("마이크 시작 오류");
         }
-        
-        window.handleWordClick = function(event, bubbleId, wordIndex, isExplanation = false) {
-            event.stopPropagation(); 
-            if (currentBubbleId !== null && currentBubbleId !== bubbleId) clearSelection();
-            currentBubbleId = bubbleId;
-            if (startIndex === -1) { startIndex = wordIndex; endIndex = wordIndex; } 
-            else if (startIndex === wordIndex && endIndex === wordIndex) { clearSelection(); return; } 
-            else { endIndex = wordIndex; if (startIndex > endIndex) { let temp = startIndex; startIndex = endIndex; endIndex = temp; } }
+    }
+};
 
-            const container = document.getElementById(`bubble-${bubbleId}`); let lastSelectedSpan = null;
-            container.querySelectorAll(isExplanation ? '.exp-word-span' : '.word-span').forEach(span => {
-                const idx = parseInt(span.getAttribute('data-index'));
-                if (idx >= startIndex && idx <= endIndex) { span.classList.add('selected'); lastSelectedSpan = span; } else span.classList.remove('selected');
-            });
+function clearSelection() {
+    document.querySelectorAll('.word-span, .exp-word-span').forEach(el => el.classList.remove('selected'));
+    startIndex = -1; endIndex = -1; currentBubbleId = null;
+    selectionTooltip.classList.add('opacity-0', 'pointer-events-none'); setTimeout(() => selectionTooltip.classList.add('hidden'), 200);
+}
 
-            if (lastSelectedSpan) {
-                const containerRect = chatContainer.getBoundingClientRect(); const rect = lastSelectedSpan.getBoundingClientRect();
-                selectionTooltip.style.top = `${rect.top - containerRect.top + chatContainer.scrollTop}px`; selectionTooltip.style.left = `${rect.left - containerRect.left + (rect.width / 2)}px`;
-                selectionTooltip.classList.remove('hidden'); setTimeout(() => selectionTooltip.classList.remove('opacity-0', 'pointer-events-none'), 10);
-            }
-        }
+window.handleWordClick = function(event, bubbleId, wordIndex, isExplanation = false) {
+    event.stopPropagation(); 
+    if (currentBubbleId !== null && currentBubbleId !== bubbleId) clearSelection();
+    currentBubbleId = bubbleId;
+    if (startIndex === -1) { startIndex = wordIndex; endIndex = wordIndex; } 
+    else if (startIndex === wordIndex && endIndex === wordIndex) { clearSelection(); return; } 
+    else { endIndex = wordIndex; if (startIndex > endIndex) { let temp = startIndex; startIndex = endIndex; endIndex = temp; } }
 
-        window.handleBodyClick = function(e) { if (!e.target.classList.contains('word-span') && !e.target.classList.contains('exp-word-span') && !e.target.closest('#selectionTooltip') && !e.target.closest('button')) clearSelection(); }
+    const container = document.getElementById(`bubble-${bubbleId}`); let lastSelectedSpan = null;
+    container.querySelectorAll(isExplanation ? '.exp-word-span' : '.word-span').forEach(span => {
+        const idx = parseInt(span.getAttribute('data-index'));
+        if (idx >= startIndex && idx <= endIndex) { span.classList.add('selected'); lastSelectedSpan = span; } else span.classList.remove('selected');
+    });
 
-        function getSelectedTextFromBubble(bubbleId, isExplanation = false) {
-            if(startIndex === -1) return null; let textArr = [];
-            document.getElementById(`bubble-${bubbleId}`).querySelectorAll(isExplanation ? '.exp-word-span' : '.word-span').forEach(span => {
-                const idx = parseInt(span.getAttribute('data-index')); if (idx >= startIndex && idx <= endIndex) textArr.push(span.textContent);
-            }); return textArr.join(' ');
-        }
+    if (lastSelectedSpan) {
+        const containerRect = chatContainer.getBoundingClientRect(); const rect = lastSelectedSpan.getBoundingClientRect();
+        selectionTooltip.style.top = `${rect.top - containerRect.top + chatContainer.scrollTop}px`; selectionTooltip.style.left = `${rect.left - containerRect.left + (rect.width / 2)}px`;
+        selectionTooltip.classList.remove('hidden'); setTimeout(() => selectionTooltip.classList.remove('opacity-0', 'pointer-events-none'), 10);
+    }
+}
 
-        // ✂️ 단어 쪼개기 마법 가위 (다국어 지원 + 노란색 형광펜 디자인 추가!)
-        function createSpansForText(text, bubbleId, isExplanation = false) {
-            // 🌟 이 부분에 마우스를 올렸을 때 반응하는 디자인(Tailwind)을 추가했습니다!
-            const visualDesign = "inline-block cursor-pointer hover:bg-yellow-200 hover:text-blue-800 rounded px-[2px] transition-colors duration-200 ";
-            
-            const spanClass = isExplanation ? visualDesign + 'exp-word-span' : visualDesign + 'word-span';
-            const langCode = isExplanation ? (document.getElementById('explanationLanguage').value || 'ko-KR') : (document.getElementById('targetLanguage').value || 'en-US');
-            
-            const tempDiv = document.createElement('div'); tempDiv.innerHTML = text; let wordIndex = 0;
-            
-            function processNode(node) {
-                if (node.nodeType === 3) { 
-                    let nodeText = node.nodeValue;
-                    // 일본어, 중국어, 태국어 등 띄어쓰기가 없는 언어도 똑똑하게 쪼개줍니다!
-                    if (window.Intl && Intl.Segmenter && (langCode.startsWith('ja') || langCode.startsWith('zh') || langCode.startsWith('th'))) {
-                        const segmenter = new Intl.Segmenter(langCode, { granularity: 'word' });
-                        nodeText = Array.from(segmenter.segment(nodeText)).map(seg => seg.segment).join(' ');
-                    } else if (langCode.startsWith('ja') || langCode.startsWith('zh')) { 
-                        nodeText = nodeText.replace(/([一-龥ぁ-んァ-ン])/g, ' $1 '); 
-                    }
-                    
-                    const words = nodeText.trim().split(/\s+/); 
-                    const fragment = document.createDocumentFragment();
-                    
-                    words.forEach((word, i) => {
-                        if (!word) return;
-                        const span = document.createElement('span'); 
-                        span.className = spanClass; 
-                        span.setAttribute('data-index', wordIndex++);
-                        span.setAttribute('onclick', `handleWordClick(event, '${bubbleId}', ${span.getAttribute('data-index')}, ${isExplanation})`);
-                        span.textContent = word; 
-                        fragment.appendChild(span);
-                        
-                        if (i < words.length - 1) fragment.appendChild(document.createTextNode(' '));
-                    });
-                    node.parentNode.replaceChild(fragment, node);
-                } else if (node.nodeType === 1) { 
-                    Array.from(node.childNodes).forEach(processNode); 
-                }
-            }
-            Array.from(tempDiv.childNodes).forEach(processNode); 
-            return tempDiv.innerHTML;
-        }
+window.handleBodyClick = function(e) { if (!e.target.classList.contains('word-span') && !e.target.classList.contains('exp-word-span') && !e.target.closest('#selectionTooltip') && !e.target.closest('button')) clearSelection(); }
 
-        window.readSelectedText = function() {
-            if (!currentBubbleId) return; const text = getSelectedTextFromBubble(currentBubbleId, currentBubbleId.startsWith('exp-'));
-            if (text) window.speakText(text, document.getElementById('targetLanguage').value);
-        }
+function getSelectedTextFromBubble(bubbleId, isExplanation = false) {
+    if(startIndex === -1) return null; let textArr = [];
+    document.getElementById(`bubble-${bubbleId}`).querySelectorAll(isExplanation ? '.exp-word-span' : '.word-span').forEach(span => {
+        const idx = parseInt(span.getAttribute('data-index')); if (idx >= startIndex && idx <= endIndex) textArr.push(span.textContent);
+    }); return textArr.join(' ');
+}
 
-        window.explainSelectedText = function() {
-            if (!currentBubbleId) return; const isExp = currentBubbleId.startsWith('exp-');
-            const fullTxt = Array.from(document.getElementById(`bubble-${currentBubbleId}`).querySelectorAll('span')).map(s=>s.textContent).join(' ');
-            window.requestExplanationFromBubble(currentBubbleId, fullTxt, isExp, getSelectedTextFromBubble(currentBubbleId, isExp)); clearSelection();
-        }
-
-        function addMessageToChat(sender, text, translation = null, targetLangCode = null, isRestore = false) {
-            const msgDiv = document.createElement('div'); msgDiv.className = "flex flex-col space-y-1 mt-4";
-            if (sender === 'user') {
-                msgDiv.innerHTML = `<div class="bg-gradient-to-tr from-blue-600 to-blue-500 text-white rounded-2xl rounded-tr-none p-3.5 max-w-[85%] self-end chat-text-dynamic shadow-md font-medium tracking-wide leading-relaxed">${text}</div>`;
-            } else {
-                if(!isRestore) bubbleCounter++; 
-                const bId = `ai-msg-${bubbleCounter}`; const safeText = encodeURIComponent(text.replace(/[\*\#\`]/g, '')).replace(/'/g, "%27");
-                msgDiv.innerHTML = `<div class="bg-white border border-blue-100 rounded-2xl rounded-tl-none p-4 max-w-[90%] shadow-md shadow-blue-900/5 self-start relative"><div class="flex items-start justify-between gap-2"><p id="bubble-${bId}" class="chat-text-dynamic text-slate-800 break-words leading-relaxed font-medium">${createSpansForText(text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>'), bId)}</p><div class="flex gap-1 ml-2 shrink-0"><button onclick="requestExplanationFromBubble('${bId}', decodeURIComponent('${safeText}'), false)" class="text-emerald-500 w-7 h-7 rounded-full bg-white shadow-sm border border-emerald-100"><i class="fa-solid fa-lightbulb"></i></button><button onclick="speakText(decodeURIComponent('${safeText}'), '${targetLangCode}')" class="text-blue-500 w-7 h-7 rounded-full bg-white shadow-sm border border-blue-100"><i class="fa-solid fa-volume-high"></i></button></div></div>${translation ? `<p class="text-slate-500 mt-2 border-t pt-2 border-slate-100 font-medium" style="font-size: calc(var(--chat-font-size) - 3px);">${translation}</p>` : ''}</div>`;
-            }
-            chatContainer.appendChild(msgDiv); setTimeout(() => chatContainer.scrollTop = chatContainer.scrollHeight, 50);
-            if (!isRestore) { uiChatHistory.push({sender, text, translation, targetLangCode}); sessionStorage.setItem('uiHistory', JSON.stringify(uiChatHistory)); sessionStorage.setItem('bubbleCounter', bubbleCounter.toString()); }
-        }
-
-        if (uiChatHistory.length > 0) uiChatHistory.forEach(msg => addMessageToChat(msg.sender, msg.text, msg.translation, msg.targetLangCode, true));
-
-        window.speakText = function(text, langCode) {
-    if(!text) return;
+function createSpansForText(text, bubbleId, isExplanation = false) {
+    const visualDesign = "inline-block cursor-pointer hover:bg-yellow-200 hover:text-blue-800 rounded px-[2px] transition-colors duration-200 ";
+    const spanClass = isExplanation ? visualDesign + 'exp-word-span' : visualDesign + 'word-span';
+    const langCode = isExplanation ? (document.getElementById('explanationLanguage').value || 'ko-KR') : (document.getElementById('targetLanguage').value || 'en-US');
     
+    const tempDiv = document.createElement('div'); tempDiv.innerHTML = text; let wordIndex = 0;
+    
+    function processNode(node) {
+        if (node.nodeType === 3) { 
+            let nodeText = node.nodeValue;
+            if (window.Intl && Intl.Segmenter && (langCode.startsWith('ja') || langCode.startsWith('zh') || langCode.startsWith('th'))) {
+                const segmenter = new Intl.Segmenter(langCode, { granularity: 'word' });
+                nodeText = Array.from(segmenter.segment(nodeText)).map(seg => seg.segment).join(' ');
+            } else if (langCode.startsWith('ja') || langCode.startsWith('zh')) { 
+                nodeText = nodeText.replace(/([一-龥ぁ-んァ-ン])/g, ' $1 '); 
+            }
+            
+            const words = nodeText.trim().split(/\s+/); 
+            const fragment = document.createDocumentFragment();
+            
+            words.forEach((word, i) => {
+                if (!word) return;
+                const span = document.createElement('span'); 
+                span.className = spanClass; 
+                span.setAttribute('data-index', wordIndex++);
+                span.setAttribute('onclick', `handleWordClick(event, '${bubbleId}', ${span.getAttribute('data-index')}, ${isExplanation})`);
+                span.textContent = word; 
+                fragment.appendChild(span);
+                if (i < words.length - 1) fragment.appendChild(document.createTextNode(' '));
+            });
+            node.parentNode.replaceChild(fragment, node);
+        } else if (node.nodeType === 1) { 
+            Array.from(node.childNodes).forEach(processNode); 
+        }
+    }
+    Array.from(tempDiv.childNodes).forEach(processNode); 
+    return tempDiv.innerHTML;
+}
+
+window.readSelectedText = function() {
+    if (!currentBubbleId) return; const text = getSelectedTextFromBubble(currentBubbleId, currentBubbleId.startsWith('exp-'));
+    if (text) window.speakText(text, document.getElementById('targetLanguage').value);
+}
+
+window.explainSelectedText = function() {
+    if (!currentBubbleId) return; const isExp = currentBubbleId.startsWith('exp-');
+    const fullTxt = Array.from(document.getElementById(`bubble-${currentBubbleId}`).querySelectorAll('span')).map(s=>s.textContent).join(' ');
+    window.requestExplanationFromBubble(currentBubbleId, fullTxt, isExp, getSelectedTextFromBubble(currentBubbleId, isExp)); clearSelection();
+}
+
+function addMessageToChat(sender, text, translation = null, targetLangCode = null, isRestore = false) {
+    const msgDiv = document.createElement('div'); msgDiv.className = "flex flex-col space-y-1 mt-4";
+    if (sender === 'user') {
+        msgDiv.innerHTML = `<div class="bg-gradient-to-tr from-blue-600 to-blue-500 text-white rounded-2xl rounded-tr-none p-3.5 max-w-[85%] self-end chat-text-dynamic shadow-md font-medium tracking-wide leading-relaxed">${text}</div>`;
+    } else {
+        if(!isRestore) bubbleCounter++; 
+        const bId = `ai-msg-${bubbleCounter}`; const safeText = encodeURIComponent(text.replace(/[\*\#\`]/g, '')).replace(/'/g, "%27");
+        msgDiv.innerHTML = `<div class="bg-white border border-blue-100 rounded-2xl rounded-tl-none p-4 max-w-[90%] shadow-md shadow-blue-900/5 self-start relative"><div class="flex items-start justify-between gap-2"><p id="bubble-${bId}" class="chat-text-dynamic text-slate-800 break-words leading-relaxed font-medium">${createSpansForText(text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>'), bId)}</p><div class="flex gap-1 ml-2 shrink-0"><button onclick="requestExplanationFromBubble('${bId}', decodeURIComponent('${safeText}'), false)" class="text-emerald-500 w-7 h-7 rounded-full bg-white shadow-sm border border-emerald-100"><i class="fa-solid fa-lightbulb"></i></button><button onclick="speakText(decodeURIComponent('${safeText}'), '${targetLangCode}')" class="text-blue-500 w-7 h-7 rounded-full bg-white shadow-sm border border-blue-100"><i class="fa-solid fa-volume-high"></i></button></div></div>${translation ? `<p class="text-slate-500 mt-2 border-t pt-2 border-slate-100 font-medium" style="font-size: calc(var(--chat-font-size) - 3px);">${translation}</p>` : ''}</div>`;
+    }
+    chatContainer.appendChild(msgDiv); setTimeout(() => chatContainer.scrollTop = chatContainer.scrollHeight, 50);
+    if (!isRestore) { uiChatHistory.push({sender, text, translation, targetLangCode}); sessionStorage.setItem('uiHistory', JSON.stringify(uiChatHistory)); sessionStorage.setItem('bubbleCounter', bubbleCounter.toString()); }
+}
+
+if (uiChatHistory.length > 0) uiChatHistory.forEach(msg => addMessageToChat(msg.sender, msg.text, msg.translation, msg.targetLangCode, true));
+
+window.speakText = function(text, langCode) {
+    if(!text) return;
     const clean = text.replace(/[\*\#\`\~\"\'\(\)\[\]]/g, ' ').trim(); 
     if(!clean) return;
 
     const avatarWrap = document.getElementById('avatarWrap');
     const stopAudioBtn = document.getElementById('stopAudioBtn');
 
-    // 🌟 1. 스마트폰 앱(AAB)에서 접속한 경우: 플러터 네이티브 성우 호출
     if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
         isSpeaking = true;
         if(avatarWrap) { avatarWrap.classList.add('speaking-pulse', 'speaking-bob'); avatarWrap.style.borderColor = "#60a5fa"; }
         if(stopAudioBtn) { stopAudioBtn.disabled = false; stopAudioBtn.classList.replace('text-slate-500', 'text-red-500'); }
         window.updateStatus("말하는 중...");
-
-        // 플러터 쪽에 "소리 내줘!" 라고 신호 보내기
         window.flutter_inappwebview.callHandler('speak', clean, langCode);
-
-        // 앱 성우는 소리가 언제 끝나는지 웹으로 바로 알려주기 힘들기 때문에, 대략 3초 뒤에 입술(애니메이션)을 멈춥니다.
         setTimeout(() => {
             isSpeaking = false;
             if(avatarWrap) { avatarWrap.classList.remove('speaking-pulse', 'speaking-bob'); }
             if(stopAudioBtn) { stopAudioBtn.disabled = true; stopAudioBtn.classList.replace('text-red-500', 'text-slate-500'); }
             window.updateStatus("대기 중");
         }, 3000);
-
-    // 🌟 2. 컴퓨터나 크롬 웹 브라우저에서 접속한 경우: 기존 웹 성우 호출
     } else {
         if(!synthesis) return; synthesis.cancel(); 
         currentUtterance = new SpeechSynthesisUtterance(clean); 
@@ -1810,1109 +1789,310 @@ function resetMic() {
 }
 
 window.stopSpeaking = function() {
-    if (window.flutter_inappwebview) {
-        window.flutter_inappwebview.callHandler('stop'); // 앱 성우 끄기
-    } else {
-        synthesis.cancel(); // 웹 성우 끄기
-    }
+    if (window.flutter_inappwebview) window.flutter_inappwebview.callHandler('stop'); 
+    else synthesis.cancel(); 
 }
 
-        async function handleUserMessage(text) {
-            if(!text) return;
-            if (!window.checkAndBlockAPI()) return;
-        
-            addMessageToChat('user', text);
-            updateStatus("생각하는 중..."); 
-            const avatarWrap = document.getElementById('avatarWrap');
-            if(avatarWrap) avatarWrap.style.borderColor = "#94a3b8";
-            
-            const mode = document.getElementById('appMode').value;
-            const tLang = document.getElementById('targetLanguage');
-            const targetLang = tLang.value, targetName = tLang.options[tLang.selectedIndex].dataset.langName;
-            const inputName = document.getElementById('sttInputLanguage').options[document.getElementById('sttInputLanguage').selectedIndex].dataset.langName;
+async function handleUserMessage(text) {
+    if(!text) return;
+    if (!window.checkAndBlockAPI()) return;
 
-            const expLangCode = document.getElementById('explanationLanguage').value || 'ko-KR';
-            const aiLangNames = { "ko-KR": "Korean", "en-US": "English", "ja-JP": "Japanese", "zh-CN": "Simplified Chinese (Mandarin)", "es-ES": "Spanish", "th-TH": "Thai", "vi-VN": "Vietnamese", "fr-FR": "French", "de-DE": "German", "ru-RU": "Russian" };
-            const exactAiLang = aiLangNames[expLangCode] || expLangCode;
+    addMessageToChat('user', text);
+    updateStatus("생각하는 중..."); 
+    const avatarWrap = document.getElementById('avatarWrap');
+    if(avatarWrap) avatarWrap.style.borderColor = "#94a3b8";
+    
+    const mode = document.getElementById('appMode').value;
+    const tLang = document.getElementById('targetLanguage');
+    const targetLang = tLang.value, targetName = tLang.options[tLang.selectedIndex].dataset.langName;
+    const inputName = document.getElementById('sttInputLanguage').options[document.getElementById('sttInputLanguage').selectedIndex].dataset.langName;
 
-            // 🧠 [장기 기억 주입]
-            const savedMemory = localStorage.getItem('user_compressed_memory') || '';
-            const memoryPrompt = savedMemory ? `\n\n[User's Core Memory: ${savedMemory}]` : '';
-            const criticalRule = `\n\n🚨 CRITICAL RULE: The 'translation' MUST be in ${exactAiLang}.`;
+    const expLangCode = document.getElementById('explanationLanguage').value || 'ko-KR';
+    const aiLangNames = { "ko-KR": "Korean", "en-US": "English", "ja-JP": "Japanese", "zh-CN": "Simplified Chinese (Mandarin)", "es-ES": "Spanish", "th-TH": "Thai", "vi-VN": "Vietnamese", "fr-FR": "French", "de-DE": "German", "ru-RU": "Russian" };
+    const exactAiLang = aiLangNames[expLangCode] || expLangCode;
 
-            // 🎭 [3가지 페르소나 설정 - 티키타카 강화]
-            const personaInstructions = {
-                friend: `You are the user's cheerful best friend (native ${targetName}). Use lots of emojis! Ask questions back to keep the conversation going smoothly. Keep it to 1-2 natural sentences.`,
-                assistant: `You are the user's smart, friendly personal assistant (native ${targetName}). Answer their questions, confirm their requests, and chat actively. Polite, clear, and approachable.`,
-                guide: `You are an engaging travel guide (native ${targetName}). Give great recommendations, answer questions actively, and share local insights.`
-            };
-            const selectedPersona = personaInstructions[window.currentPersona] || personaInstructions['friend'];
+    const savedMemory = localStorage.getItem('user_compressed_memory') || '';
+    const memoryPrompt = savedMemory ? `\n\n[User's Core Memory: ${savedMemory}]` : '';
+    const criticalRule = `\n\n🚨 CRITICAL RULE: The 'translation' MUST be in ${exactAiLang}.`;
 
-            // 📝 [메모장 강제 작성 규칙]
-            const memoRule = `\n🚨 CRITICAL: If the user asks to save, note, or remember a schedule/task, extract it into the "save_memo" key (in ${exactAiLang}). Otherwise, "save_memo" MUST be "".`;
+    const personaInstructions = {
+        friend: `You are the user's cheerful best friend (native ${targetName}). Use lots of emojis! Ask questions back to keep the conversation going smoothly. Keep it to 1-2 natural sentences.`,
+        assistant: `You are the user's smart, friendly personal assistant (native ${targetName}). Answer their questions, confirm their requests, and chat actively. Polite, clear, and approachable.`,
+        guide: `You are an engaging travel guide (native ${targetName}). Give great recommendations, answer questions actively, and share local insights.`
+    };
+    const selectedPersona = personaInstructions[window.currentPersona] || personaInstructions['friend'];
+    const memoRule = `\n🚨 CRITICAL: If the user asks to save, note, or remember a schedule/task, extract it into the "save_memo" key (in ${exactAiLang}). Otherwise, "save_memo" MUST be "".`;
+    const antiParrotRule = `\n🚨 CRITICAL: DO NOT just translate the user's input. You must act as your persona and REPLY to their message contextually. Keep the conversation flowing naturally in ${targetName}.`;
 
-            // 🦜 [앵무새 방지 강력 규칙 추가!]
-            const antiParrotRule = `\n🚨 CRITICAL: DO NOT just translate the user's input. You must act as your persona and REPLY to their message contextually. Keep the conversation flowing naturally in ${targetName}.`;
+    let sysPrompt = mode === 'translate' 
+        ? `You are a strict professional translator. Your ONLY job is to translate the user's input into ${targetName}. DO NOT answer questions, DO NOT continue the conversation, and DO NOT repeat the original text. Respond in JSON: {"foreign_text":"[The translated text in ${targetName}]", "translation":"[The exact meaning in ${exactAiLang}]", "save_memo":""}` + memoryPrompt + criticalRule + memoRule
+        : selectedPersona + antiParrotRule + ` Respond in JSON: {"foreign_text":"Your conversational reply in ${targetName}","translation":"A simple, direct, and natural translation of your 'foreign_text' in ${exactAiLang}. DO NOT add any grammar explanations, notes, or corrections! Just the translation.","save_memo":"..."}` + memoryPrompt + criticalRule + memoRule;
 
-            // 🌟 [수정됨] 통번역 모드와 튜터 모드의 지시문을 완벽하게 분리하고 강화했습니다!
-            let sysPrompt = mode === 'translate' 
-                ? `You are a strict professional translator. Your ONLY job is to translate the user's input into ${targetName}. DO NOT answer questions, DO NOT continue the conversation, and DO NOT repeat the original text. Respond in JSON: {"foreign_text":"[The translated text in ${targetName}]", "translation":"[The exact meaning in ${exactAiLang}]", "save_memo":""}` + memoryPrompt + criticalRule + memoRule
-                : selectedPersona + antiParrotRule + ` Respond in JSON: {"foreign_text":"Your conversational reply in ${targetName}","translation":"A simple, direct, and natural translation of your 'foreign_text' in ${exactAiLang}. DO NOT add any grammar explanations, notes, or corrections! Just the translation.","save_memo":"..."}` + memoryPrompt + criticalRule + memoRule;
-
-            try {
-                let ctx = mode==='tutor' ? [...conversationHistory] : [{role:"system",content:sysPrompt},{role:"user",content:text}];
-                if(mode==='tutor') {
-                    if(ctx.length===0) ctx.push({role:"system",content:sysPrompt});
-                    ctx[0] = {role:"system", content:sysPrompt}; // 매번 프롬프트 최신화
-                    ctx.push({role:"user",content:`[입력:${inputName}] ${text}`});
-                    conversationHistory = ctx; 
-                    sessionStorage.setItem('llmHistory', JSON.stringify(conversationHistory));
-                }
-                
-                let res = await fetchAPI(WORKER_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Device-ID': myDeviceId }, body: JSON.stringify({ model: "deepseek-chat", messages: ctx, response_format: { type: "json_object" } }) });
-                let data = await res.json();
-                let rawContent = data.choices[0].message.content.replace(/```json/g, "").replace(/ সুবিধ/g, "").replace(/```/g, "").trim();
-                const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
-                
-                let parsed;
-                if (jsonMatch) parsed = JSON.parse(jsonMatch[0]); else throw new Error("JSON_NOT_FOUND");
-                
-                window.incrementLocalUsage();
-                
-                if(mode==='tutor') { 
-                    conversationHistory.push({role:"assistant",content:JSON.stringify(parsed)}); 
-                    sessionStorage.setItem('llmHistory', JSON.stringify(conversationHistory)); 
-                    if(typeof window.compressMemory === 'function') window.compressMemory(); // 백그라운드 기억 요약
-                }
-
-                // 🎯 [수정된 코드] 메모장 및 커스텀 알림 처리
-                if(parsed.save_memo && parsed.save_memo.trim() !== "") {
-                    let currentMemos = JSON.parse(localStorage.getItem('ai_auto_memos')) || [];
-                    currentMemos.unshift({ content: parsed.save_memo, timestamp: Date.now() });
-                    localStorage.setItem('ai_auto_memos', JSON.stringify(currentMemos));
-                    
-                    if(typeof window.renderMemos === 'function') window.renderMemos(); 
-
-                    // 🌟 1. 시간이 지정된 경우 (커스텀 알림)
-                    if (parsed.alarm_time && window.flutter_inappwebview) {
-                        let alarmDate = new Date(parsed.alarm_time);
-                        let diffMs = alarmDate.getTime() - Date.now();
-                        
-                        if (diffMs > 0) {
-                            let delayHours = diffMs / (1000 * 60 * 60); // 남은 시간을 '시간' 단위로 변환
-                            window.flutter_inappwebview.callHandler('scheduleLocalPush', {
-                                id: Math.floor(Math.random() * 100000), // 무작위 ID (여러 개 쌓임)
-                                title: "⏰ 튜터의 리마인더",
-                                body: parsed.save_memo,
-                                delayHours: delayHours
-                            });
-                            updateStatus("⏰ 알림과 함께 메모가 저장되었습니다!"); 
-                        } else {
-                            updateStatus("📝 일정 시간이 지나 메모로만 저장되었습니다.");
-                        }
-                    } 
-                    // 🌟 2. 시간이 없는 경우 (조용한 메모)
-                    else {
-                        updateStatus("📝 AI가 메모장에 기록했습니다. (알림 없음)"); 
-                        // -> 플러터로 신호를 보내지 않으므로 알림이 울리지 않음!
-                    }
-                }
-                
-                if(parsed.foreign_text) { 
-                    addMessageToChat('ai', parsed.foreign_text, parsed.translation || parsed.korean_translation, targetLang); 
-                    speakText(parsed.foreign_text, targetLang); 
-                }
-            } catch(e) { console.error(e); updateStatus("AI 서버 통신 에러"); if(avatarWrap) avatarWrap.style.borderColor="#f87171"; }
-        }
-        window.handleUserMessage = handleUserMessage;
-
-        window.requestExplanationGlobal = function() { 
-            let lastAiMsg = "";
-            for(let i = uiChatHistory.length - 1; i >= 0; i--) { if(uiChatHistory[i].sender === 'ai') { lastAiMsg = uiChatHistory[i].text; break; } }
-            if(!lastAiMsg) { alert("해설할 대화가 없습니다."); return; }
-            window.requestExplanationFromBubble(`global`, lastAiMsg, false, lastAiMsg);
-        };
-
-        window.requestExplanationFromBubble = async function(bubbleId, fullText, isExp, selectedText) { 
-            const targetText = selectedText || fullText;
-            if(!targetText) return;
-            if (!window.checkAndBlockAPI()) return;
-
-            const tLang = document.getElementById('targetLanguage');
-            const targetLangName = tLang.options[tLang.selectedIndex].dataset.langName;
-            const expLangCode = document.getElementById('explanationLanguage').value || 'ko-KR';
-            
-            window.updateStatus("AI 튜터가 문법을 분석 중입니다..."); document.getElementById('avatarWrap').style.borderColor = "#f59e0b"; 
-
-            const aiLangNames = { "ko-KR": "Korean", "en-US": "English", "ja-JP": "Japanese", "zh-CN": "Simplified Chinese (Mandarin)", "es-ES": "Spanish", "th-TH": "Thai", "vi-VN": "Vietnamese", "fr-FR": "French", "de-DE": "German", "ru-RU": "Russian" };
-            const exactAiLang = aiLangNames[expLangCode] || expLangCode;
-
-            const systemPrompt = `You are an expert language tutor. 
-            Analyze the given text and follow these STRICT rules:
-            
-            1. EXPLANATION: Explain the core meaning and grammar in 1-2 short sentences. Write this explanation ONLY in ${exactAiLang} (ISO code: ${expLangCode}).
-            2. EXAMPLES HEADER: After the explanation, insert a header phrase equivalent to "💡 You can reply like this:" translated naturally into ${exactAiLang}.
-            3. REPLY EXAMPLES: Provide 2 to 3 natural conversational replies to the text.
-            4. JSON FORMAT: Output ONLY a valid JSON object without markdown formatting.
-
-            Example of the REQUIRED output format:
-            {"translation": "[Short explanation in ${exactAiLang}]\n\n💡 [Translated header phrase in ${exactAiLang}]:\n1. [First reply example]\n2. [Second reply example]"}
-            
-            
-            Respond in JSON: {"translation": "put your short explanation and reply examples here"}`;
-            const userPrompt = `Analyze the following text:\n- Learning Language: ${targetLangName}\n- Context: "${fullText}"\n- Part to explain: "${targetText}"\n\nProvide the meaning, grammatical features, and 1-2 practical examples for the "Part to explain". \nExpected JSON format:\n{"explanation": "Your detailed explanation written entirely in ${exactAiLang} here"}`;
-
-            try {
-                let res = await fetchAPI(WORKER_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Device-ID': myDeviceId }, body: JSON.stringify({ model: "deepseek-chat", messages: [{role: "system", content: systemPrompt}, {role: "user", content: userPrompt}], response_format: { type: "json_object" } }) });
-                let data = await res.json();
-                let rawContent = data.choices[0].message.content.replace(/```json/g, "").replace(/```/g, "").trim();
-                const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
-                let parsed;
-                if (jsonMatch) parsed = JSON.parse(jsonMatch[0]); else throw new Error("JSON_NOT_FOUND");
-                
-                window.incrementLocalUsage();
-                
-                const msgDiv = document.createElement('div'); msgDiv.className = "flex flex-col space-y-1 mt-4"; bubbleCounter++; const bId = `exp-msg-${bubbleCounter}`; 
-                let explanationText = parsed.explanation;
-                if (window.Intl && Intl.Segmenter && (expLangCode.startsWith('ja') || expLangCode.startsWith('zh') || expLangCode.startsWith('th'))) {
-                    const segmenter = new Intl.Segmenter(expLangCode, { granularity: 'word' }); explanationText = Array.from(segmenter.segment(explanationText)).map(seg => seg.segment).join(' ');
-                }
-                const safeExplanation = explanationText.replace(/\n/g, ' <br> ');
-                msgDiv.innerHTML = `<div class="bg-amber-50 border border-amber-200 rounded-2xl rounded-tl-none p-4 max-w-[95%] shadow-md self-start relative"><p class="text-[11px] font-extrabold text-amber-600 mb-2 flex items-center gap-1.5"><i class="fa-solid fa-lightbulb"></i> [집중 해설] ${targetText}</p><p id="bubble-${bId}" class="chat-text-dynamic text-slate-800 break-words leading-relaxed font-medium">${createSpansForText(safeExplanation, bId, true)}</p></div>`;
-                document.getElementById('chatContainer').appendChild(msgDiv); setTimeout(() => document.getElementById('chatContainer').scrollTop = document.getElementById('chatContainer').scrollHeight, 50);
-                window.updateStatus("대기 중"); document.getElementById('avatarWrap').style.borderColor = "#60a5fa"; 
-            } catch(e) { console.error(e); window.updateStatus("해설 통신 에러"); document.getElementById('avatarWrap').style.borderColor = "#f87171"; }
-        };
-
-        function clearChatSession() { conversationHistory=[]; uiChatHistory=[]; sessionStorage.clear(); document.querySelectorAll('#chatContainer > div.flex.flex-col').forEach(el => {
-        if(el.id !== 'welcomeWrapper') el.remove(); }); 
-        }
-
-        // ========== [페르소나 변경 로직 수정] ==========
-        window.currentPersona = localStorage.getItem('ai_persona') || 'friend';
-
-        // 🌟 isInit 이라는 안전장치를 추가했습니다.
-        window.changePersona = function(type, isInit = false) {
-            window.currentPersona = type;
-            localStorage.setItem('ai_persona', type);
-            
-            // 선택된 버튼만 파란색으로 하이라이트 처리
-            ['friend', 'assistant', 'guide'].forEach(p => {
-                const btn = document.getElementById('btn_persona_' + p);
-                if(btn) {
-                    if(p === type) {
-                        btn.className = "shrink-0 px-4 py-1.5 rounded-full border-2 border-blue-500 bg-blue-50 text-blue-700 text-[11px] font-bold transition-all shadow-sm";
-                    } else {
-                        btn.className = "shrink-0 px-4 py-1.5 rounded-full border-2 border-slate-200 bg-white text-slate-500 text-[11px] font-bold transition-all hover:bg-slate-100";
-                    }
-                }
-            });
-            
-            // 🌟 앱이 처음 켜진 게 아닐 때(사용자가 직접 눌렀을 때)만 채팅창을 비웁니다!
-            if(!isInit) {
-                if(typeof clearChatSession === 'function') clearChatSession();
-                window.updateStatus("새로운 페르소나가 적용되었습니다!");
-            }
-        };
-
-        // 앱을 처음 켰을 때, 버튼 색상만 맞추고 채팅창은 지우지 않게 'true' 신호를 보냅니다.
-        setTimeout(() => {
-            if (typeof window.changePersona === 'function') {
-                window.changePersona(window.currentPersona, true);
-            }
-        }, 500);
-        // ========================================================
-
-        window.targetLanguageChanged = function() { 
-            const currentTargetLang = document.getElementById('targetLanguage').value;
-            localStorage.setItem('target_language', currentTargetLang);
-            clearChatSession(); 
-            const expLangCode = document.getElementById('explanationLanguage').value || 'ko-KR';
-            const baseLang = expLangCode.split('-')[0];
-            const dict = UI_DICTIONARY[baseLang] || UI_DICTIONARY["en"];
-
-            window.updateStatus('학습 언어 변경 (대화 초기화됨)'); 
-            
-            const listArea = document.getElementById("alphabetListArea");
-            if(listArea) listArea.innerHTML = `<div id="alpha_empty_text" class="text-center text-slate-400 text-sm mt-10 font-bold">${dict.alpha_empty_text || "위 버튼을 눌러 기초 글자를 가져와 보세요!"}</div>`;
-            const alphaBtn = document.getElementById("generateAlphaBtn");
-            if(alphaBtn) {
-                alphaBtn.innerText = dict.generateAlphaBtn || "✨ 선택한 언어의 AI 파닉스 가져오기"; alphaBtn.disabled = false;
-                alphaBtn.classList.replace('bg-emerald-600', 'bg-slate-900'); alphaBtn.classList.replace('hover:bg-emerald-700', 'hover:bg-black');
-            }
-            
-            // 🌟 4번방 오토 로드 연결
-            if (typeof window.autoLoadAlphabet === 'function') setTimeout(window.autoLoadAlphabet, 200);
-        }
-        window.selectGender = function(g) { tempGender = g; updateGenderUI(g, false); }
-        
-        window.toggleSettingsModal = function(show = true) { 
-            let m = document.getElementById('settingsModal');
-            if (show) {
-                document.getElementById('fontSizeSlider').value = localStorage.getItem('chat_font_size') || 14;
-                tempGender = currentVoiceGender; updateGenderUI(tempGender, false); m.classList.remove('hidden');
-            } else { m.classList.add('hidden'); }
+    try {
+        let ctx = mode==='tutor' ? [...conversationHistory] : [{role:"system",content:sysPrompt},{role:"user",content:text}];
+        if(mode==='tutor') {
+            if(ctx.length===0) ctx.push({role:"system",content:sysPrompt});
+            ctx[0] = {role:"system", content:sysPrompt}; 
+            ctx.push({role:"user",content:`[입력:${inputName}] ${text}`});
+            conversationHistory = ctx; 
+            sessionStorage.setItem('llmHistory', JSON.stringify(conversationHistory));
         }
         
-        window.saveSettings = function() { 
-            localStorage.setItem('chat_font_size', document.getElementById('fontSizeSlider').value); 
-            const oldExpLang = localStorage.getItem('explanation_language');
-            const newExpLang = document.getElementById('explanationLanguage').value;
-            localStorage.setItem('explanation_language', newExpLang);
-            currentVoiceGender = tempGender; localStorage.setItem('voice_gender', currentVoiceGender);
-            document.documentElement.style.setProperty('--chat-font-size', (localStorage.getItem('chat_font_size') || 14) + 'px');
-            window.changeUILanguage(newExpLang); window.updateLangDisplays(); window.toggleSettingsModal(false); 
-            if (oldExpLang !== newExpLang) { clearChatSession(); window.updateStatus("언어 설정이 변경되어 대화가 초기화되었습니다."); }
+        let res = await fetchAPI(WORKER_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Device-ID': myDeviceId }, body: JSON.stringify({ model: "deepseek-chat", messages: ctx, response_format: { type: "json_object" } }) });
+        let data = await res.json();
+        let rawContent = data.choices[0].message.content.replace(/```json/g, "").replace(/```/g, "").trim();
+        const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
+        
+        let parsed;
+        if (jsonMatch) parsed = JSON.parse(jsonMatch[0]); else throw new Error("JSON_NOT_FOUND");
+        
+        window.incrementLocalUsage();
+        
+        if(mode==='tutor') { 
+            conversationHistory.push({role:"assistant",content:JSON.stringify(parsed)}); 
+            sessionStorage.setItem('llmHistory', JSON.stringify(conversationHistory)); 
+            if(typeof window.compressMemory === 'function') window.compressMemory(); 
         }
 
-        const appScreens = [ document.getElementById('screen-main'), document.getElementById('screen-roleplay'), document.getElementById('screen-vocab'), document.getElementById('screen-alphabet') ];
-        let currentScreen = 0; let isMenuScrolling = false; let startX = 0; let startY = 0; let isVerticalScroll = false; 
-
-        window.goToScreen = function(index) {
-            if (index < 0 || index >= appScreens.length) return;
-            currentScreen = index;
-            appScreens.forEach((screen, i) => {
-                if (!screen) return; screen.style.transition = 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)';
-                if (i < currentScreen) screen.style.transform = 'translateX(-30%)';
-                else if (i === currentScreen) screen.style.transform = 'translateX(0%)';
-                else screen.style.transform = 'translateX(100%)';
-            });
-        };
-
-        window.addEventListener('touchstart', (e) => {
-            if (e.target.closest('.overflow-x-auto') || e.target.closest('input')) { isMenuScrolling = true; return; }
-            isMenuScrolling = false; isVerticalScroll = false; startX = e.touches[0].clientX; startY = e.touches[0].clientY; 
-            appScreens.forEach(s => { if(s) s.style.transition = 'none'; });
-        }, { passive: true });
-        window.addEventListener('touchmove', (e) => {
-            if (isMenuScrolling) return; 
-            let moveX = e.touches[0].clientX - startX; let moveY = e.touches[0].clientY - startY; 
-            if (!isVerticalScroll && Math.abs(moveY) > Math.abs(moveX)) isVerticalScroll = true;
-            if (isVerticalScroll) return; 
-            if(appScreens[currentScreen]) appScreens[currentScreen].style.transform = `translateX(${moveX}px)`;
-            if (moveX > 0 && currentScreen > 0 && appScreens[currentScreen - 1]) appScreens[currentScreen - 1].style.transform = `translateX(calc(-30% + ${moveX * 0.3}px))`;
-            if (moveX < 0 && currentScreen < appScreens.length - 1 && appScreens[currentScreen + 1]) appScreens[currentScreen + 1].style.transform = `translateX(calc(100% + ${moveX}px))`;
-        }, { passive: true });
-        window.addEventListener('touchend', (e) => {
-            if (isMenuScrolling || isVerticalScroll) { goToScreen(currentScreen); return; }
-            let moveX = e.changedTouches[0].clientX - startX;
-            if (moveX < -70 && currentScreen < appScreens.length - 1) goToScreen(currentScreen + 1);
-            else if (moveX > 70 && currentScreen > 0) goToScreen(currentScreen - 1); 
-            else goToScreen(currentScreen);
-        }, { passive: true });
-        
-        let savedScripts = JSON.parse(localStorage.getItem('roleplay_scripts')) || [];
-        let roleplayRec = null, isRpListening = false;
-        let activeTestScriptIdx = -1, activeTestLineIdx = -1, isInteractiveTestActive = false;
-
-        document.querySelectorAll('.level-btn').forEach(btn => btn.onclick = (e) => { document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('selected-card')); e.currentTarget.classList.add('selected-card'); });
-        window.setRandomSituation = function(element) { document.querySelectorAll('.sit-card').forEach(c => c.classList.remove('selected-card')); element.classList.add('selected-card'); };
-        document.querySelectorAll('.sit-card').forEach(card => card.onclick = (e) => setRandomSituation(e.currentTarget));
-
-        window.deleteScript = function(index) {
-            if (!confirm("이 대본을 정말 삭제하시겠습니까?")) return;
-            savedScripts.splice(index, 1); localStorage.setItem('roleplay_scripts', JSON.stringify(savedScripts)); window.renderScripts();
-        };
-
-        window.renderScripts = function() {
-            const playerArea = document.getElementById("scriptList"); playerArea.innerHTML = "";
-            const baseLang = (document.getElementById('explanationLanguage').value || 'ko-KR').split('-')[0];
-            const dict = UI_DICTIONARY[baseLang] || UI_DICTIONARY["en"];
-            if(savedScripts.length === 0) return;
+        if(parsed.save_memo && parsed.save_memo.trim() !== "") {
+            let currentMemos = JSON.parse(localStorage.getItem('ai_auto_memos')) || [];
+            let finalMemoText = parsed.save_memo; 
             
-            for (let i = savedScripts.length - 1; i >= 0; i--) {
-                const scriptItem = savedScripts[i];
-                // 🌟 버튼의 아이콘을 바꿀 수 있도록 id="play-btn-${i}" 를 추가했습니다.
-                let html = `<div class="mb-5"><div class="bg-indigo-50 border border-indigo-100 rounded-xl p-3 mb-3 flex items-center justify-between shadow-sm"><p class="text-[11px] font-extrabold text-indigo-700">📚 ${i + 1}: [${scriptItem.level}] ${scriptItem.situation} (${scriptItem.langName})</p><div class="flex gap-1.5 items-center"><button id="play-btn-${i}" onclick="playSpecificScript(${i})" class="w-8 h-8 rounded-full bg-white text-indigo-600 border border-indigo-200 shadow-sm transition-colors duration-200"><i class="fa-solid fa-volume-high text-xs"></i></button><button onclick="startInteractiveTest(${i})" class="w-8 h-8 rounded-full bg-indigo-600 text-white shadow-sm"><i class="fa-solid fa-gamepad text-xs"></i></button><button id="quiz-btn-${i}" onclick="toggleQuizMode(${i})" class="w-8 h-8 rounded-full bg-white text-amber-500 border border-amber-200 shadow-sm"><i class="fa-solid fa-puzzle-piece text-xs"></i></button><div class="w-px h-4 bg-indigo-200 mx-0.5"></div><button onclick="deleteScript(${i})" class="text-slate-400 hover:text-red-500 px-1 transition-colors" title="삭제"><i class="fa-solid fa-xmark text-lg"></i></button></div></div><div class="space-y-3">`;
-                scriptItem.scriptData.forEach((line, lineIdx) => {
-                    const isAi = line.role === 'ai';
-                    html += `<div id="script-${i}-line-${lineIdx}" class="flex gap-3 p-2 rounded-lg border border-transparent transition-all"><div class="w-10 h-10 rounded-full bg-${isAi?'purple':'blue'}-100 flex items-center justify-center text-xl shrink-0">${isAi?'👱‍♀️':'👤'}</div><div class="flex-1"><p class="text-[11px] font-bold text-${isAi?'purple':'blue'}-600 mb-0.5">${isAi? (dict.rp_ai || 'AI') : (dict.rp_user || 'Me')}</p><p id="en-text-${i}-line-${lineIdx}" class="text-sm font-bold text-gray-800 transition-all">${line.en}</p><p class="text-xs text-gray-500 mt-1">${line.ko}</p><div id="feedback-${i}-line-${lineIdx}" class="mt-2 text-[11px] font-bold empty:hidden"></div></div></div>`;
-                });
-                html += `</div></div>`; if(i > 0) html += `<hr class="border-slate-200 border-dashed border-t-2 my-4">`;
-                playerArea.insertAdjacentHTML('beforeend', html);
+            if (parsed.alarm_time && window.flutter_inappwebview) {
+                let alarmDate = new Date(parsed.alarm_time);
+                let diffMs = alarmDate.getTime() - Date.now();
+                if (diffMs > 0) {
+                    finalMemoText = "⏰ [알림] " + parsed.save_memo; 
+                    let delayHours = diffMs / (1000 * 60 * 60); 
+                    window.flutter_inappwebview.callHandler('scheduleLocalPush', { id: Math.floor(Math.random() * 100000), title: "⏰ 튜터의 리마인더", body: parsed.save_memo, delayHours: delayHours });
+                    updateStatus("⏰ 알림과 함께 메모가 저장되었습니다!"); 
+                } else {
+                    finalMemoText = "📝 [메모] " + parsed.save_memo;
+                    updateStatus("📝 일정 시간이 지나 메모로만 저장되었습니다.");
+                }
+            } else {
+                finalMemoText = "📝 [메모] " + parsed.save_memo;
+                updateStatus("📝 AI가 메모장에 기록했습니다. (알림 없음)"); 
             }
-            const statusBoxText = document.getElementById("statusBoxText");
-            if(statusBoxText && dict.rp_save_count) statusBoxText.innerText = dict.rp_save_count.replace('{n}', savedScripts.length);
-        };
 
+            currentMemos.unshift({ content: finalMemoText, timestamp: Date.now() });
+            localStorage.setItem('ai_auto_memos', JSON.stringify(currentMemos));
+            if(typeof window.renderMemos === 'function') window.renderMemos(); 
+        }
+        
+        if(parsed.foreign_text) { 
+            addMessageToChat('ai', parsed.foreign_text, parsed.translation || parsed.korean_translation, targetLang); 
+            speakText(parsed.foreign_text, targetLang); 
+        }
+    } catch(e) { console.error(e); updateStatus("AI 서버 통신 에러"); if(avatarWrap) avatarWrap.style.borderColor="#f87171"; }
+}
+window.handleUserMessage = handleUserMessage;
+
+window.requestExplanationGlobal = function() { 
+    let lastAiMsg = "";
+    for(let i = uiChatHistory.length - 1; i >= 0; i--) { if(uiChatHistory[i].sender === 'ai') { lastAiMsg = uiChatHistory[i].text; break; } }
+    if(!lastAiMsg) { alert("해설할 대화가 없습니다."); return; }
+    window.requestExplanationFromBubble(`global`, lastAiMsg, false, lastAiMsg);
+};
+
+window.requestExplanationFromBubble = async function(bubbleId, fullText, isExp, selectedText) { 
+    const targetText = selectedText || fullText;
+    if(!targetText) return;
+    if (!window.checkAndBlockAPI()) return;
+
+    const tLang = document.getElementById('targetLanguage');
+    const targetLangName = tLang.options[tLang.selectedIndex].dataset.langName;
+    const expLangCode = document.getElementById('explanationLanguage').value || 'ko-KR';
+    
+    window.updateStatus("AI 튜터가 문법을 분석 중입니다..."); document.getElementById('avatarWrap').style.borderColor = "#f59e0b"; 
+
+    const aiLangNames = { "ko-KR": "Korean", "en-US": "English", "ja-JP": "Japanese", "zh-CN": "Simplified Chinese (Mandarin)", "es-ES": "Spanish", "th-TH": "Thai", "vi-VN": "Vietnamese", "fr-FR": "French", "de-DE": "German", "ru-RU": "Russian" };
+    const exactAiLang = aiLangNames[expLangCode] || expLangCode;
+
+    const systemPrompt = `You are an expert language tutor. Analyze the given text and follow these STRICT rules:
+1. EXPLANATION: Explain the core meaning and grammar in 1-2 short sentences. Write this explanation ONLY in ${exactAiLang}.
+2. EXAMPLES HEADER: Insert a header phrase equivalent to "💡 You can reply like this:" in ${exactAiLang}.
+3. REPLY EXAMPLES: Provide 2 to 3 natural conversational replies.
+4. JSON FORMAT: Output ONLY a valid JSON object.
+Respond in JSON: {"translation": "put your short explanation and reply examples here"}`;
+    const userPrompt = `Analyze:\n- Learning Language: ${targetLangName}\n- Context: "${fullText}"\n- Target: "${targetText}"`;
+
+    try {
+        let res = await fetchAPI(WORKER_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Device-ID': myDeviceId }, body: JSON.stringify({ model: "deepseek-chat", messages: [{role: "system", content: systemPrompt}, {role: "user", content: userPrompt}], response_format: { type: "json_object" } }) });
+        let data = await res.json();
+        let rawContent = data.choices[0].message.content.replace(/```json/g, "").replace(/```/g, "").trim();
+        const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
+        let parsed;
+        if (jsonMatch) parsed = JSON.parse(jsonMatch[0]); else throw new Error("JSON_NOT_FOUND");
+        
+        window.incrementLocalUsage();
+        
+        const msgDiv = document.createElement('div'); msgDiv.className = "flex flex-col space-y-1 mt-4"; bubbleCounter++; const bId = `exp-msg-${bubbleCounter}`; 
+        let explanationText = parsed.explanation || parsed.translation;
+        if (window.Intl && Intl.Segmenter && (expLangCode.startsWith('ja') || expLangCode.startsWith('zh') || expLangCode.startsWith('th'))) {
+            const segmenter = new Intl.Segmenter(expLangCode, { granularity: 'word' }); explanationText = Array.from(segmenter.segment(explanationText)).map(seg => seg.segment).join(' ');
+        }
+        const safeExplanation = explanationText.replace(/\n/g, ' <br> ');
+        msgDiv.innerHTML = `<div class="bg-amber-50 border border-amber-200 rounded-2xl rounded-tl-none p-4 max-w-[95%] shadow-md self-start relative"><p class="text-[11px] font-extrabold text-amber-600 mb-2 flex items-center gap-1.5"><i class="fa-solid fa-lightbulb"></i> [집중 해설] ${targetText}</p><p id="bubble-${bId}" class="chat-text-dynamic text-slate-800 break-words leading-relaxed font-medium">${createSpansForText(safeExplanation, bId, true)}</p></div>`;
+        document.getElementById('chatContainer').appendChild(msgDiv); setTimeout(() => document.getElementById('chatContainer').scrollTop = document.getElementById('chatContainer').scrollHeight, 50);
+        window.updateStatus("대기 중"); document.getElementById('avatarWrap').style.borderColor = "#60a5fa"; 
+    } catch(e) { console.error(e); window.updateStatus("해설 통신 에러"); document.getElementById('avatarWrap').style.borderColor = "#f87171"; }
+};
+
+function clearChatSession() { conversationHistory=[]; uiChatHistory=[]; sessionStorage.clear(); document.querySelectorAll('#chatContainer > div.flex.flex-col').forEach(el => { if(el.id !== 'welcomeWrapper') el.remove(); }); }
+
+window.currentPersona = localStorage.getItem('ai_persona') || 'friend';
+window.changePersona = function(type, isInit = false) {
+    window.currentPersona = type; localStorage.setItem('ai_persona', type);
+    ['friend', 'assistant', 'guide'].forEach(p => {
+        const btn = document.getElementById('btn_persona_' + p);
+        if(btn) {
+            // 🌟 [UI 업그레이드] 선택된 버튼은 화려하게 튀어나오고, 선택 안 된 버튼은 깔끔하게 숨죽이도록!
+            btn.className = (p === type) 
+                ? "shrink-0 px-4 py-1.5 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-[11px] font-extrabold shadow-md transform scale-105 transition-all duration-300" 
+                : "shrink-0 px-4 py-1.5 rounded-full border border-slate-200 bg-white text-slate-400 text-[11px] font-bold transition-all duration-300 hover:bg-slate-50 hover:text-slate-600 shadow-sm";
+        }
+    });
+    if(!isInit) { clearChatSession(); window.updateStatus("새로운 페르소나가 적용되었습니다!"); }
+};
+setTimeout(() => { if (typeof window.changePersona === 'function') window.changePersona(window.currentPersona, true); }, 500);
+
+window.targetLanguageChanged = function() { 
+    localStorage.setItem('target_language', document.getElementById('targetLanguage').value);
+    clearChatSession(); 
+    window.updateStatus('학습 언어 변경 (대화 초기화됨)'); 
+    if (typeof window.autoLoadAlphabet === 'function') setTimeout(window.autoLoadAlphabet, 200);
+}
+window.selectGender = function(g) { tempGender = g; updateGenderUI(g, false); }
+window.toggleSettingsModal = function(show = true) { 
+    let m = document.getElementById('settingsModal');
+    if (show) { document.getElementById('fontSizeSlider').value = localStorage.getItem('chat_font_size') || 14; tempGender = currentVoiceGender; updateGenderUI(tempGender, false); m.classList.remove('hidden'); } else { m.classList.add('hidden'); }
+}
+window.saveSettings = function() { 
+    localStorage.setItem('chat_font_size', document.getElementById('fontSizeSlider').value); 
+    const oldExpLang = localStorage.getItem('explanation_language'); const newExpLang = document.getElementById('explanationLanguage').value;
+    localStorage.setItem('explanation_language', newExpLang); currentVoiceGender = tempGender; localStorage.setItem('voice_gender', currentVoiceGender);
+    document.documentElement.style.setProperty('--chat-font-size', (localStorage.getItem('chat_font_size') || 14) + 'px');
+    window.changeUILanguage(newExpLang); window.updateLangDisplays(); window.toggleSettingsModal(false); 
+    if (oldExpLang !== newExpLang) { clearChatSession(); window.updateStatus("언어 설정이 변경되어 대화가 초기화되었습니다."); }
+}
+
+const appScreens = [ document.getElementById('screen-main'), document.getElementById('screen-roleplay'), document.getElementById('screen-vocab'), document.getElementById('screen-alphabet') ];
+let currentScreen = 0; let isMenuScrolling = false; let startX = 0; let startY = 0; let isVerticalScroll = false; 
+
+window.goToScreen = function(index) {
+    if (index < 0 || index >= appScreens.length) return;
+    currentScreen = index;
+    appScreens.forEach((screen, i) => {
+        if (!screen) return; screen.style.transition = 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)';
+        if (i < currentScreen) screen.style.transform = 'translateX(-30%)'; else if (i === currentScreen) screen.style.transform = 'translateX(0%)'; else screen.style.transform = 'translateX(100%)';
+    });
+};
+
+window.addEventListener('touchstart', (e) => {
+    if (e.target.closest('.overflow-x-auto') || e.target.closest('input')) { isMenuScrolling = true; return; }
+    isMenuScrolling = false; isVerticalScroll = false; startX = e.touches[0].clientX; startY = e.touches[0].clientY; 
+    appScreens.forEach(s => { if(s) s.style.transition = 'none'; });
+}, { passive: true });
+window.addEventListener('touchmove', (e) => {
+    if (isMenuScrolling) return; 
+    let moveX = e.touches[0].clientX - startX; let moveY = e.touches[0].clientY - startY; 
+    if (!isVerticalScroll && Math.abs(moveY) > Math.abs(moveX)) isVerticalScroll = true;
+    if (isVerticalScroll) return; 
+    if(appScreens[currentScreen]) appScreens[currentScreen].style.transform = `translateX(${moveX}px)`;
+    if (moveX > 0 && currentScreen > 0 && appScreens[currentScreen - 1]) appScreens[currentScreen - 1].style.transform = `translateX(calc(-30% + ${moveX * 0.3}px))`;
+    if (moveX < 0 && currentScreen < appScreens.length - 1 && appScreens[currentScreen + 1]) appScreens[currentScreen + 1].style.transform = `translateX(calc(100% + ${moveX}px))`;
+}, { passive: true });
+window.addEventListener('touchend', (e) => {
+    if (isMenuScrolling || isVerticalScroll) { goToScreen(currentScreen); return; }
+    let moveX = e.changedTouches[0].clientX - startX;
+    if (moveX < -70 && currentScreen < appScreens.length - 1) goToScreen(currentScreen + 1);
+    else if (moveX > 70 && currentScreen > 0) goToScreen(currentScreen - 1); 
+    else goToScreen(currentScreen);
+}, { passive: true });
+
+let savedScripts = JSON.parse(localStorage.getItem('roleplay_scripts')) || [];
+let roleplayRec = null, isRpListening = false;
+let activeTestScriptIdx = -1, activeTestLineIdx = -1, isInteractiveTestActive = false;
+
+document.querySelectorAll('.level-btn').forEach(btn => btn.onclick = (e) => { document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('selected-card')); e.currentTarget.classList.add('selected-card'); });
+window.setRandomSituation = function(element) { document.querySelectorAll('.sit-card').forEach(c => c.classList.remove('selected-card')); element.classList.add('selected-card'); };
+document.querySelectorAll('.sit-card').forEach(card => card.onclick = (e) => setRandomSituation(e.currentTarget));
+
+window.deleteScript = function(index) { if (!confirm("이 대본을 정말 삭제하시겠습니까?")) return; savedScripts.splice(index, 1); localStorage.setItem('roleplay_scripts', JSON.stringify(savedScripts)); window.renderScripts(); };
+
+window.renderScripts = function() {
+    const playerArea = document.getElementById("scriptList"); playerArea.innerHTML = "";
+    if(savedScripts.length === 0) return;
+    for (let i = savedScripts.length - 1; i >= 0; i--) {
+        const scriptItem = savedScripts[i];
+        let html = `<div class="mb-5"><div class="bg-indigo-50 border border-indigo-100 rounded-xl p-3 mb-3 flex items-center justify-between shadow-sm"><p class="text-[11px] font-extrabold text-indigo-700">📚 ${i + 1}: [${scriptItem.level}] ${scriptItem.situation} (${scriptItem.langName})</p><div class="flex gap-1.5 items-center"><button id="play-btn-${i}" onclick="playSpecificScript(${i})" class="w-8 h-8 rounded-full bg-white text-indigo-600 border border-indigo-200 shadow-sm transition-colors duration-200"><i class="fa-solid fa-volume-high text-xs"></i></button><button onclick="startInteractiveTest(${i})" class="w-8 h-8 rounded-full bg-indigo-600 text-white shadow-sm"><i class="fa-solid fa-gamepad text-xs"></i></button><button id="quiz-btn-${i}" onclick="toggleQuizMode(${i})" class="w-8 h-8 rounded-full bg-white text-amber-500 border border-amber-200 shadow-sm"><i class="fa-solid fa-puzzle-piece text-xs"></i></button><div class="w-px h-4 bg-indigo-200 mx-0.5"></div><button onclick="deleteScript(${i})" class="text-slate-400 hover:text-red-500 px-1 transition-colors" title="삭제"><i class="fa-solid fa-xmark text-lg"></i></button></div></div><div class="space-y-3">`;
+        scriptItem.scriptData.forEach((line, lineIdx) => {
+            const isAi = line.role === 'ai';
+            html += `<div id="script-${i}-line-${lineIdx}" class="flex gap-3 p-2 rounded-lg border border-transparent transition-all"><div class="w-10 h-10 rounded-full bg-${isAi?'purple':'blue'}-100 flex items-center justify-center text-xl shrink-0">${isAi?'👱‍♀️':'👤'}</div><div class="flex-1"><p class="text-[11px] font-bold text-${isAi?'purple':'blue'}-600 mb-0.5">${isAi? 'AI' : 'Me'}</p><p id="en-text-${i}-line-${lineIdx}" class="text-sm font-bold text-gray-800 transition-all">${line.en}</p><p class="text-xs text-gray-500 mt-1">${line.ko}</p><div id="feedback-${i}-line-${lineIdx}" class="mt-2 text-[11px] font-bold empty:hidden"></div></div></div>`;
+        });
+        html += `</div></div>`; if(i > 0) html += `<hr class="border-slate-200 border-dashed border-t-2 my-4">`;
+        playerArea.insertAdjacentHTML('beforeend', html);
+    }
+};
+
+// 🎬 [수정완료] 1. 대본 생성 함수
         window.generateScript = async function() {
             if (savedScripts.length >= 5) { if (!confirm("새로운 대본 생성 시 가장 오래된 1번 대본이 삭제됩니다.\n계속하시겠습니까?")) return; }
             if (typeof window.checkAndBlockAPI === 'function' && !window.checkAndBlockAPI()) return;
 
             const btn = document.getElementById("generateBtn");
             const level = document.querySelector('.level-btn.selected-card').innerText.trim();
-            
-            // 🌟 [복구 완료] 사용자가 텍스트 창에 적은 내용을 최우선으로 가져옵니다!
             const customInput = document.getElementById('rp_custom_input');
             const customSituation = customInput ? customInput.value.trim() : "";
             const selectedCard = document.querySelector('.sit-card.selected-card');
-            
-            // 텍스트 창에 글이 있으면 그걸 쓰고, 없으면 선택된 버튼의 상황을 씁니다.
             const situation = customSituation ? customSituation : (selectedCard ? selectedCard.dataset.situation : '자유 대화');
             const isRandom = (situation === '일상 랜덤');
             
             const targetLangName = document.getElementById('targetLanguage').options[document.getElementById('targetLanguage').selectedIndex].dataset.langName;
-            
             const expLangCode = document.getElementById('explanationLanguage').value || 'ko-KR';
-            const aiLangNames = { "ko-KR": "Korean", "en-US": "English", "ja-JP": "Japanese", "zh-CN": "Simplified Chinese (Mandarin)", "es-ES": "Spanish" };
+            const aiLangNames = { "ko-KR": "Korean", "en-US": "English", "ja-JP": "Japanese", "zh-CN": "Chinese", "es-ES": "Spanish", "th-TH": "Thai", "vi-VN": "Vietnamese", "fr-FR": "French", "de-DE": "German", "ru-RU": "Russian", "ar-SA": "Arabic", "hi-IN": "Hindi" };
             const expLangName = aiLangNames[expLangCode] || expLangCode;
-            
-            const overrideCmd = ` (CRITICAL RULE: Write main dialogue in ${targetLangName} (key: 'en'). Write translation in ${expLangName} (key: 'ko'). You MUST write the translation entirely in ${expLangName}. DO NOT use Korean!)`;
 
-            btn.innerText = "⏳ ..."; btn.disabled = true;
+            btn.disabled = true;
             try {
+                // 🌟 서버로 expLanguage 전송
                 const res = await fetch(`${WORKER_URL}generate-script`, { 
                     method: 'POST', headers: { 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify({ level: level, situation: isRandom ? "랜덤한 일상 대화" : situation, language: targetLangName + overrideCmd, isRandom: isRandom }) 
+                    body: JSON.stringify({ level: level, situation: isRandom ? "random daily life" : situation, language: targetLangName, expLanguage: expLangName, isRandom: isRandom }) 
                 });
                 const data = await res.json(); 
                 if (typeof window.incrementLocalUsage === 'function') window.incrementLocalUsage();
                 if (savedScripts.length >= 5) savedScripts.shift(); 
                 savedScripts.push({ level: level, situation: situation, langName: targetLangName, langCode: document.getElementById('targetLanguage').value, scriptData: data.scriptData });
                 localStorage.setItem('roleplay_scripts', JSON.stringify(savedScripts)); window.renderScripts();
-                
-                // 🌟 대본이 생성되면 텍스트 창을 깔끔하게 비워줍니다.
                 if(customInput) customInput.value = '';
             } catch (err) { alert("대본 생성 실패"); } finally { 
                 const baseLang = (document.getElementById('explanationLanguage').value || 'ko-KR').split('-')[0];
                 btn.innerText = UI_DICTIONARY[baseLang]?.generateBtn || "✨ AI 대본 생성하기"; btn.disabled = false; 
             }
         };
-        document.getElementById("generateBtn").onclick = window.generateScript;
 
-        // 🌟 재생/정지 상태를 기억하는 변수들 추가
-        let activeScriptTimeout = null;
-        let isScriptPlaying = false;
-        let playingScriptIndex = -1;
-
-        window.playSpecificScript = function(index) {
-            isInteractiveTestActive = false; 
-            const currentBtn = document.getElementById(`play-btn-${index}`);
-
-            // 🌟 1. 이미 재생 중인 대본을 다시 누른 경우 (재생 중지 & 아이콘 복구)
-            if (isScriptPlaying && playingScriptIndex === index) {
-                window.speechSynthesis.cancel();
-                clearTimeout(activeScriptTimeout);
-                isScriptPlaying = false;
-                playingScriptIndex = -1;
-                
-                if(currentBtn) {
-                    currentBtn.innerHTML = '<i class="fa-solid fa-volume-high text-xs"></i>';
-                    currentBtn.classList.replace('text-red-500', 'text-indigo-600');
-                    currentBtn.classList.replace('border-red-200', 'border-indigo-200');
-                }
-                return;
-            }
-
-            // 🌟 2. 새로운 대본을 재생하는 경우 (기존에 재생되던 게 있다면 강제 중지)
-            window.speechSynthesis.cancel();
-            clearTimeout(activeScriptTimeout);
-            
-            // 예전에 재생되던 다른 버튼의 아이콘을 원래대로 복구
-            if (playingScriptIndex !== -1) {
-                const oldBtn = document.getElementById(`play-btn-${playingScriptIndex}`);
-                if(oldBtn) {
-                    oldBtn.innerHTML = '<i class="fa-solid fa-volume-high text-xs"></i>';
-                    oldBtn.classList.replace('text-red-500', 'text-indigo-600');
-                    oldBtn.classList.replace('border-red-200', 'border-indigo-200');
-                }
-            }
-
-            isScriptPlaying = true;
-            playingScriptIndex = index;
-            
-            // 🌟 방금 누른 버튼을 '정지(빨간색 네모 ■)' 모양으로 변경
-            if(currentBtn) {
-                currentBtn.innerHTML = '<i class="fa-solid fa-square text-xs"></i>';
-                currentBtn.classList.replace('text-indigo-600', 'text-red-500');
-                currentBtn.classList.replace('border-indigo-200', 'border-red-200');
-            }
-
-            const sd = savedScripts[index].scriptData; 
-            let playIdx = 0;
-            
-            const playNext = () => {
-                // 사용자가 중간에 정지 버튼을 눌렀다면 더 이상 실행하지 않음
-                if (!isScriptPlaying || playingScriptIndex !== index) return;
-                
-                if (playIdx >= sd.length) {
-                    // 대본이 끝까지 다 읽힌 경우 자연스럽게 버튼 원상복구
-                    isScriptPlaying = false;
-                    playingScriptIndex = -1;
-                    if(currentBtn) {
-                        currentBtn.innerHTML = '<i class="fa-solid fa-volume-high text-xs"></i>';
-                        currentBtn.classList.replace('text-red-500', 'text-indigo-600');
-                        currentBtn.classList.replace('border-red-200', 'border-indigo-200');
-                    }
-                    return;
-                }
-                
-                const utt = new SpeechSynthesisUtterance(sd[playIdx].en); 
-                utt.lang = savedScripts[index].langCode;
-                utt.pitch = sd[playIdx].role === 'ai' ? 1.2 : 0.8; 
-                
-                utt.onend = () => { 
-                    if(!isScriptPlaying) return;
-                    playIdx++; 
-                    activeScriptTimeout = setTimeout(playNext, 500); 
-                }; 
-                
-                // 에러가 나도 멈추지 않고 다음 줄로 넘어가게 처리
-                utt.onerror = () => {
-                    if(!isScriptPlaying) return;
-                    playIdx++; 
-                    activeScriptTimeout = setTimeout(playNext, 500);
-                }
-                
-                window.speechSynthesis.speak(utt);
-            }; 
-            playNext();
-        };
-            
-
-        window.toggleQuizMode = function(index) {
-            const btn = document.getElementById(`quiz-btn-${index}`); const isQuizOn = btn.classList.contains('bg-amber-500');
-            if (!isQuizOn) {
-                btn.classList.replace('bg-white', 'bg-amber-500'); btn.classList.replace('text-amber-500', 'text-white');
-                savedScripts[index].scriptData.forEach((line, lineIdx) => {
-                    const words = line.en.split(" "); let blankIndices = [];
-                    while(blankIndices.length < Math.max(1, Math.floor(words.length * 0.3)) && blankIndices.length < words.length) {
-                        let r = Math.floor(Math.random() * words.length); if(!blankIndices.includes(r)) blankIndices.push(r);
-                    }
-                    document.getElementById(`en-text-${index}-line-${lineIdx}`).innerHTML = words.map((w, i) => blankIndices.includes(i) ? `<span class="bg-slate-300 text-transparent rounded px-2 cursor-pointer hover:bg-slate-400 select-none" onclick="this.className='text-blue-600 bg-blue-50 font-extrabold border-blue-200 border rounded px-1'">${w}</span>` : w).join(" ");
-                });
-            } else {
-                btn.classList.replace('bg-amber-500', 'bg-white'); btn.classList.replace('text-white', 'text-amber-500');
-                savedScripts[index].scriptData.forEach((line, lineIdx) => document.getElementById(`en-text-${index}-line-${lineIdx}`).innerHTML = line.en);
-            }
-        };
-
-        window.startInteractiveTest = function(index) {
-            synthesis.cancel(); activeTestScriptIdx = index; activeTestLineIdx = 0; isInteractiveTestActive = true;
-            for(let i=0; i<savedScripts[index].scriptData.length; i++) {
-                const fb = document.getElementById(`feedback-${index}-line-${i}`); if(fb) fb.innerHTML = "";
-                const div = document.getElementById(`script-${index}-line-${i}`); if(div) div.classList.remove('bg-yellow-50', 'border-yellow-200');
-            }
-            window.processNextTestLine();
-        };
-
-        window.processNextTestLine = function() {
-            if (!isInteractiveTestActive) return;
-            const scriptItem = savedScripts[activeTestScriptIdx];
-            if (activeTestLineIdx >= scriptItem.scriptData.length) { isInteractiveTestActive = false; alert("🎉 완료!"); return; }
-            const line = scriptItem.scriptData[activeTestLineIdx]; const lineDiv = document.getElementById(`script-${activeTestScriptIdx}-line-${activeTestLineIdx}`);
-            if(activeTestLineIdx > 0) document.getElementById(`script-${activeTestScriptIdx}-line-${activeTestLineIdx-1}`).classList.remove('bg-yellow-50', 'border-yellow-200');
-            if(lineDiv) { lineDiv.classList.add('bg-yellow-50', 'border-yellow-200'); lineDiv.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
-            if (line.role === 'ai') {
-                const utt = new SpeechSynthesisUtterance(line.en); utt.lang = scriptItem.langCode; utt.pitch = 1.2;
-                utt.onend = () => { activeTestLineIdx++; setTimeout(window.processNextTestLine, 500); }; synthesis.speak(utt);
-            } else {
-                document.getElementById(`feedback-${activeTestScriptIdx}-line-${activeTestLineIdx}`).innerHTML = `<span class="text-red-500 animate-pulse bg-red-50 px-2 py-1 border rounded inline-block"><i class="fa-solid fa-microphone"></i> 🎤</span>`;
-            }
-        };
-
-        if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) roleplayRec = new (window.SpeechRecognition || window.webkitSpeechRecognition)(); 
-
-        window.startShadowing = function() {
-            if (savedScripts.length === 0) return alert("Error");
-            if (!isInteractiveTestActive) return alert("Test First!");
-            const targetItem = savedScripts[activeTestScriptIdx]; const userLine = targetItem.scriptData[activeTestLineIdx];
-            if (userLine.role !== 'user') return alert("AI Turn.");
-            const btn = document.getElementById("roleplayMicBtn"); if (isRpListening) { roleplayRec.stop(); return; }
-            btn.classList.replace("from-blue-600", "from-red-500"); btn.classList.replace("to-blue-500", "to-red-600"); document.getElementById("roleplayMicIcon").classList.replace("fa-microphone", "fa-ear-listen");
-            try { roleplayRec.lang = targetItem.langCode; roleplayRec.start(); isRpListening = true; } catch(e) {}
-            let score = 0, recognizedText = "";
-            roleplayRec.onresult = (e) => {
-                recognizedText = e.results[0][0].transcript.toLowerCase();
-                const targetText = userLine.en.toLowerCase().replace(/[.,!?¿¡]/g, ""); 
-                score = Math.round((targetText.split(" ").filter(w => recognizedText.split(" ").includes(w)).length / targetText.split(" ").length) * 100);
-            };
-            roleplayRec.onend = roleplayRec.onerror = () => { 
-                isRpListening = false; btn.classList.replace("from-red-500", "from-blue-600"); btn.classList.replace("to-red-600", "to-blue-500"); document.getElementById("roleplayMicIcon").classList.replace("fa-ear-listen", "fa-microphone");
-                document.getElementById(`feedback-${activeTestScriptIdx}-line-${activeTestLineIdx}`).innerHTML = `<span class="${score>80?'text-emerald-600 bg-emerald-50':'text-amber-600 bg-amber-50'} px-2 py-1 rounded-md border inline-block mt-1">${score}% (${recognizedText||'Fail'})</span>`;
-                setTimeout(() => { activeTestLineIdx++; window.processNextTestLine(); }, 1500); 
-            };
-        };
-        window.renderScripts();
-
-        let savedVocabs = JSON.parse(localStorage.getItem('vocab_scripts')) || [];
-        let currentVocabSetIdx = -1; let currentVocabWordIdx = 0;
-
-        window.setVocabTheme = function(element) {
-            document.querySelectorAll('.vocab-theme-btn').forEach(btn => { btn.classList.remove('bg-indigo-50', 'border-indigo-500', 'text-indigo-700'); btn.classList.add('bg-white', 'border-slate-200', 'text-slate-500'); });
-            element.classList.remove('bg-white', 'border-slate-200', 'text-slate-500'); element.classList.add('bg-indigo-50', 'border-indigo-500', 'text-indigo-700');
-        };
-
-        window.deleteVocab = function(index) {
-            if (!confirm("이 단어장을 정말 삭제하시겠습니까?")) return;
-            savedVocabs.splice(index, 1); localStorage.setItem('vocab_scripts', JSON.stringify(savedVocabs)); currentVocabSetIdx = -1; window.renderVocabs();
-        };
-
-        window.renderVocabs = function() {
-            const listArea = document.getElementById("vocabListArea"); listArea.innerHTML = "";
-            const baseLang = (document.getElementById('explanationLanguage').value || 'ko-KR').split('-')[0];
-            const dict = UI_DICTIONARY[baseLang] || UI_DICTIONARY["en"];
-            
-            if(savedVocabs.length === 0) {
-                listArea.innerHTML = `<div id="vc_empty_text" class="text-center text-slate-400 text-sm mt-10 font-bold">${dict.vc_empty_text || "위 버튼을 눌러 첫 단어장을 생성해 보세요!"}</div>`;
-                document.getElementById("mainFlashcardArea").classList.add("hidden"); 
-                return;
-            }
-            
-            for (let i = savedVocabs.length - 1; i >= 0; i--) {
-                const set = savedVocabs[i];
-                let html = `<div>
-                    <div class="bg-slate-100 rounded-xl p-2.5 mb-3 flex justify-between items-center">
-                        <p class="text-xs font-extrabold text-slate-600">📚 ${i + 1}: [${set.theme}] (${set.langName})</p>
-                        <button onclick="deleteVocab(${i})" class="text-slate-400 hover:text-red-500 px-2 transition-colors" title="삭제"><i class="fa-solid fa-xmark text-lg"></i></button>
-                    </div>
-                    <div class="grid grid-cols-4 gap-2">`;
-                set.vocabData.forEach((v, vIdx) => {
-                    const isSelected = (currentVocabSetIdx === i && currentVocabWordIdx === vIdx);
-                    const bgClass = isSelected ? 'bg-indigo-500 text-white border-indigo-600' : 'bg-white text-slate-700 border-slate-200 hover:border-indigo-300';
-                    html += `<div onclick="showFlashcard(${i}, ${vIdx})" class="aspect-square rounded-xl border-[1.5px] ${bgClass} flex flex-col items-center justify-center text-center p-1 cursor-pointer transition-all shadow-sm"><p class="text-[11px] font-bold truncate w-full px-1">${v.word}</p><p class="text-[9px] ${isSelected ? 'text-indigo-200' : 'text-slate-400'} truncate w-full px-1">${v.meaning}</p></div>`;
-                });
-                html += `</div></div>`; if(i > 0) html += `<hr class="border-slate-200 border-dashed my-5">`;
-                listArea.insertAdjacentHTML('beforeend', html);
-            }
-            if(currentVocabSetIdx === -1 && savedVocabs.length > 0) window.showFlashcard(savedVocabs.length - 1, 0);
-        };
-
-        window.showFlashcard = function(setIdx, wordIdx) {
-            currentVocabSetIdx = setIdx; currentVocabWordIdx = wordIdx;
-            const v = savedVocabs[setIdx].vocabData[wordIdx];
-            document.getElementById("mainFlashcardArea").classList.remove("hidden");
-            document.getElementById("vocabFlashcard").classList.remove('rotate-y-180'); 
-            document.getElementById("vcCount").innerText = `${savedVocabs[setIdx].theme} (${wordIdx + 1}/10)`;
-            document.getElementById("vcWord").innerText = v.word; document.getElementById("vcPron").innerText = `[${v.pronunciation}]`; document.getElementById("vcPhonetic").innerText = v.phonetic; document.getElementById("vcMeaning").innerText = v.meaning; document.getElementById("vcExEn").innerText = `"${v.example_en}"`; document.getElementById("vcExKo").innerText = v.example_ko;
-            window.renderVocabs(); 
-        };
-
-        window.nextVocab = function() { if(currentVocabSetIdx === -1) return; if(currentVocabWordIdx < savedVocabs[currentVocabSetIdx].vocabData.length - 1) window.showFlashcard(currentVocabSetIdx, currentVocabWordIdx + 1); };
-        window.prevVocab = function() { if(currentVocabSetIdx === -1) return; if(currentVocabWordIdx > 0) window.showFlashcard(currentVocabSetIdx, currentVocabWordIdx - 1); };
-
-        window.playVocabAudio = function() {
-            if(currentVocabSetIdx === -1) return; window.speechSynthesis.cancel();
-            const vocab = savedVocabs[currentVocabSetIdx].vocabData[currentVocabWordIdx];
-            const isBackSide = document.getElementById('vocabFlashcard').classList.contains('rotate-y-180');
-            const utt = new SpeechSynthesisUtterance(isBackSide ? vocab.example_en : vocab.word);
-            utt.lang = savedVocabs[currentVocabSetIdx].langCode; utt.rate = isBackSide ? 0.9 : 1.0; window.speechSynthesis.speak(utt);
-        };
-
-        window.generateVocab = async function() {
-            if (savedVocabs.length >= 5) { if (!confirm("새로운 단어장 생성 시 가장 오래된 단어장이 자동 삭제됩니다.\n계속하시겠습니까?")) return; }
-            if (typeof window.checkAndBlockAPI === 'function' && !window.checkAndBlockAPI()) return;
-
-            const btn = document.getElementById("generateVocabBtn");
-            const theme = document.querySelector('.vocab-theme-btn.bg-indigo-50').innerText.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]|\n/g, '').trim();
-            const targetLangName = document.getElementById('targetLanguage').options[document.getElementById('targetLanguage').selectedIndex].dataset.langName;
-            
-            const expLangCode = document.getElementById('explanationLanguage').value || 'ko-KR';
-            const aiLangNames = { "ko-KR": "Korean", "en-US": "English", "ja-JP": "Japanese", "zh-CN": "Simplified Chinese (Mandarin)", "es-ES": "Spanish" };
-            const expLangName = aiLangNames[expLangCode] || expLangCode;
-            
-            // 🌟 버그 수정 3: 단어장 생성 시에도 절대 한국어를 쓰지 못하게 강제
-            const overrideCmd = ` (CRITICAL RULE: The 'word' and 'example_en' MUST be written in ${targetLangName}. The 'meaning' and 'example_ko' MUST be written entirely in ${expLangName}. DO NOT use Korean!)`;
-
-            let myExistingWords = [];
-            savedVocabs.forEach(set => { if (set.langName === targetLangName) set.vocabData.forEach(v => myExistingWords.push(v.word)); });
-
-            btn.innerText = "⏳ ..."; btn.disabled = true;
-            try {
-                const res = await fetch(`${WORKER_URL}generate-vocab`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ theme: theme, language: targetLangName + overrideCmd, existingWords: myExistingWords }) });
-                const data = await res.json(); 
-                
-                if (typeof window.incrementLocalUsage === 'function') window.incrementLocalUsage();
-
-                let newId = savedVocabs.length > 0 ? savedVocabs[savedVocabs.length - 1].id + 1 : 1;
-                if (savedVocabs.length >= 5) savedVocabs.shift(); 
-                savedVocabs.push({ id: newId, theme: theme, langName: targetLangName, langCode: document.getElementById('targetLanguage').value, vocabData: data.vocabData });
-                localStorage.setItem('vocab_scripts', JSON.stringify(savedVocabs)); 
-                window.showFlashcard(savedVocabs.length - 1, 0);
-
-                // 🌟 자동 학습 복습 알림 (항상 id: 999 고정!)
-                if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
-                    window.flutter_inappwebview.callHandler('scheduleLocalPush', {
-                        id: 999, // 👈 핵심! 이 ID를 고정하면 마지막 학습 기준으로 시간이 계속 초기화됨
-                        title: "📚 학습 복습 시간!",
-                        body: `오늘 공부했던 내용들, 까먹기 전에 한 번 복습해 볼까요?`,
-                        delayHours: 24 
-                    });
-                }
-
-
-            } catch (err) { alert("Fail"); } finally { 
-                const baseLang = (document.getElementById('explanationLanguage').value || 'ko-KR').split('-')[0];
-                btn.innerHTML = UI_DICTIONARY[baseLang]?.generateVocabBtn || "✨ AI 단어장 생성하기"; btn.disabled = false; 
-            }
-        };
-        window.renderVocabs();
-
-        window.loadAlphabetData = async function() {
-            try {
-                const listArea = document.getElementById("alphabetListArea");
-                const btn = document.getElementById("generateAlphaBtn");
-                const tLang = document.getElementById('targetLanguage');
-                const targetLangName = tLang.options[tLang.selectedIndex].dataset.langName;
-                const targetLangCode = tLang.value;
-                
-                const expLangCode = document.getElementById('explanationLanguage').value || 'ko-KR';
-                const aiLangNames = { "ko-KR": "Korean", "en-US": "English", "ja-JP": "Japanese", "zh-CN": "Simplified Chinese (Mandarin)", "es-ES": "Spanish" };
-                const expLangName = aiLangNames[expLangCode] || expLangCode;
-                const baseLang = expLangCode.split('-')[0];
-                const dict = UI_DICTIONARY[baseLang] || UI_DICTIONARY["en"];
-
-                // 🌟 [핵심 1] 모든 버전을 v25로 완벽하게 통일하여 꼬인 데이터 초기화!
-                const cacheKey = 'full_alpha_v27_' + targetLangCode + '_' + expLangCode;
-                let fullData = null;
-                let alphaProgress = {};
-                
-                try {
-                    fullData = JSON.parse(localStorage.getItem(cacheKey));
-                    alphaProgress = JSON.parse(localStorage.getItem('alpha_progress_v27')) || {};
-                } catch(e) { console.warn("캐시 초기화"); }
-                
-                let currentLimit = alphaProgress[cacheKey] || 0;
-
-                if (fullData && currentLimit >= fullData.alphabetData.length) return;
-
-                if (!fullData) {
-                    if (!confirm(`[${targetLangName}]의 전체 기초 발음 데이터를 처음 생성합니다.\n(한 번 생성 후에는 기기에 영구 보존됩니다.)\n진행하시겠습니까?`)) return;
-                    if (typeof window.checkAndBlockAPI === 'function' && !window.checkAndBlockAPI()) return;
-
-                    let specialHint = "";
-                    let letterRule = `'letter' and 'exampleWord' MUST be in [${targetLangName}]`;
-
-                    // 🌟 [핵심 2] 중국어일 때는 무조건 "영어 알파벳(병음)으로 적고, 한국어 절대 쓰지마!" 라고 협박
-                    if (targetLangCode.startsWith('zh')) {
-                        specialHint = "Generate basic Chinese Pinyin (Shengmu/Initials and Yunmu/Finals).";
-                        letterRule = `'letter' MUST be English alphabet for Pinyin (e.g., b, p, m, f, a, o). 'pronunciation' MUST be Pinyin with tone marks. 'exampleWord' MUST be Chinese Hanzi. NO KOREAN HANGUL in 'letter' or 'pronunciation'!`;
-                    } else if (targetLangCode.startsWith('ja')) {
-                        specialHint = "Generate ALL basic Hiragana and Katakana characters.";
-                        letterRule = `'letter' MUST be Japanese. 'pronunciation' MUST be English Romaji.`;
-                    } else if (targetLangCode.startsWith('en')) {
-                        specialHint = "Generate exactly 26 English alphabets (A to Z)."; 
-                    } else if (targetLangCode.startsWith('ko')) {
-                        specialHint = "Generate ALL basic Korean Hangul Consonants and Vowels (자음과 모음).";
-                        letterRule = `'letter' and 'exampleWord' MUST be Korean Hangul. 'pronunciation' MUST be English Romaji.`;
-                    } else {
-                        specialHint = "Generate ALL basic characters/letters for this language.";
-                    }
-
-                    const overrideCmd = ` (CRITICAL MAPPING: 1. ${specialHint} 2. ${letterRule}. 3. 'description' and 'exampleMeaning' MUST be written entirely in [${expLangName}]. 4. Return valid JSON only.)`;
-
-                    btn.innerText = "⏳ 전체 발음 체계를 구성 중입니다..."; btn.disabled = true;
-                    listArea.innerHTML = `<div class="text-center text-slate-400 text-sm mt-10 font-bold"><i class="fa-solid fa-wand-magic-sparkles text-2xl mb-3 text-emerald-400 animate-pulse"></i><br>${dict.alpha_fetching || "로딩 중..."}</div>`;
-
-                    try {
-                        const res = await fetchAPI(`${WORKER_URL}generate-alphabet`, { 
-                            method: 'POST', 
-                            headers: { 'Content-Type': 'application/json', 'X-Device-ID': myDeviceId }, 
-                            body: JSON.stringify({ language: targetLangName + overrideCmd }) 
-                        });
-                        
-                        if (!res) throw new Error("서버 에러");
-                        const data = await res.json(); 
-                        if(!data || !data.alphabetData) throw new Error("데이터 누락");
-
-                        if (typeof window.incrementLocalUsage === 'function') window.incrementLocalUsage();
-
-                        fullData = data;
-                        localStorage.setItem(cacheKey, JSON.stringify(fullData));
-                        currentLimit = 0; 
-                        
-                    } catch (err) { 
-                        console.error("4번방 에러:", err);
-                        listArea.innerHTML = `<div class="text-center text-red-400 text-sm mt-10 font-bold">서버 통신 실패. 버튼을 다시 눌러주세요!</div>`;
-                        btn.innerText = dict.generateAlphaBtn || "✨ 선택한 언어의 AI 파닉스 가져오기"; 
-                        btn.disabled = false;
-                        return;
-                    }
-                } else {
-                    btn.innerText = "⏳ 다음 발음 준비 중..."; 
-                    btn.disabled = true;
-                    await new Promise(resolve => setTimeout(resolve, 300));
-                }
-
-                currentLimit += 20;
-                alphaProgress[cacheKey] = currentLimit;
-                // 여기도 v25로 저장!
-                localStorage.setItem('alpha_progress_v27', JSON.stringify(alphaProgress));
-
-                const isFinished = currentLimit >= fullData.alphabetData.length;
-                const dataToShow = fullData.alphabetData.slice(0, currentLimit);
-                if (typeof window.renderAlphabet === 'function') window.renderAlphabet(dataToShow, fullData.description, targetLangCode);
-
-                if (isFinished) {
-                    btn.innerText = `🎉 모든 발음 학습 완료! (${fullData.alphabetData.length}개)`;
-                    btn.disabled = true;
-                    btn.classList.replace('bg-slate-900', 'bg-emerald-600');
-                    btn.classList.replace('hover:bg-black', 'hover:bg-emerald-700');
-                } else {
-                    btn.innerText = `👇 다음 발음 더 보기 (${dataToShow.length} / ${fullData.alphabetData.length})`;
-                    btn.disabled = false;
-                    btn.classList.replace('bg-emerald-600', 'bg-slate-900');
-                    btn.classList.replace('hover:bg-emerald-700', 'hover:bg-black');
-                }
-            } catch (e) {
-                console.error("오류 방어:", e);
-                const btn = document.getElementById("generateAlphaBtn");
-                if(btn) { btn.innerText = "✨ 오류 발생 (다시 시도)"; btn.disabled = false; }
-            }
-        };
-
-        window.renderAlphabet = function(alphabetData, description, langCode) {
-            const listArea = document.getElementById("alphabetListArea"); 
-            let html = "";
-            
-            if(description) html += `<div class="bg-emerald-50 rounded-2xl p-4 border border-emerald-100 mb-5 shadow-sm"><p class="text-[13px] text-emerald-800 font-bold leading-relaxed whitespace-pre-wrap"><i class="fa-solid fa-circle-info mr-1"></i> ${description}</p></div>`;
-            
-            const grouped = alphabetData.reduce((acc, curr) => { 
-                if (!acc[curr.category]) acc[curr.category] = []; 
-                acc[curr.category].push(curr); 
-                return acc; 
-            }, {});
-
-            for (const [category, letters] of Object.entries(grouped)) {
-                html += `<div class="mb-6"><h3 class="text-sm font-extrabold text-emerald-700 mb-3 border-b border-emerald-100 pb-1.5 flex items-center gap-1.5"><i class="fa-solid fa-leaf text-emerald-400 text-xs"></i> ${category}</h3><div class="grid grid-cols-3 gap-2">`;
-                letters.forEach(item => {
-                    const safeLetter = item.letter ? item.letter.replace(/'/g, "\\'") : "";
-                    const safeWord = item.exampleWord ? item.exampleWord.replace(/'/g, "\\'") : "";
-                    html += `<button onclick="playAlphabetAudio('${safeLetter}. ${safeWord}', '${langCode}')" class="bg-white border-[2px] border-slate-100 rounded-2xl flex flex-col items-center justify-center p-2.5 shadow-sm hover:border-emerald-400 hover:bg-emerald-50 hover:shadow-md transition-all group relative"><span class="absolute top-2 left-2 text-sm drop-shadow-sm">${item.emoji || ''}</span><span class="text-3xl font-black text-slate-800 group-hover:text-emerald-600 transition-colors mt-2 mb-1">${item.letter}</span><span class="text-[10px] text-slate-400 font-bold bg-slate-100 px-1.5 py-0.5 rounded-md group-hover:bg-white transition-colors mb-2">${item.pronunciation}</span><div class="w-full bg-slate-50 rounded-lg py-1.5 group-hover:bg-emerald-100/50 transition-colors"><p class="text-[11px] font-extrabold text-slate-700 truncate px-1">${item.exampleWord || ''}</p><p class="text-[9px] text-slate-500 truncate px-1">${item.exampleMeaning || ''}</p></div></button>`;
-                });
-                html += `</div></div>`;
-            }
-            listArea.innerHTML = html;
-        };
-
-        window.playAlphabetAudio = function(textToSpeak, langCode) { 
-            window.speechSynthesis.cancel(); 
-            setTimeout(() => {
-                const utt = new SpeechSynthesisUtterance(textToSpeak); 
-                utt.lang = langCode; 
-                utt.pitch = 1.1; 
-                utt.rate = 0.85; 
-                window.speechSynthesis.speak(utt); 
-            }, 50);
-        };
-
-        // 🌟 버그 수정 4: 4번방(파닉스) 데이터가 이미 있으면 자동으로 화면에 스르륵 띄워주기
-        window.autoLoadAlphabet = function() {
-            const tLang = document.getElementById('targetLanguage');
-            if(!tLang) return;
-            const targetLangCode = tLang.value;
-            const expLangCode = document.getElementById('explanationLanguage').value || 'ko-KR';
-            
-            // 🌟 [핵심] 불러올 때도 똑같이 v25 상자를 열어보도록 수정!
-            const cacheKey = 'full_alpha_v27_' + targetLangCode + '_' + expLangCode;
-            const cachedData = localStorage.getItem(cacheKey);
-            const btn = document.getElementById("generateAlphaBtn");
-
-            if (cachedData && typeof window.renderAlphabet === 'function') {
-                const fullData = JSON.parse(cachedData);
-                let alphaProgress = JSON.parse(localStorage.getItem('alpha_progress_v27')) || {};
-                let currentLimit = alphaProgress[cacheKey] || fullData.alphabetData.length;
-                if(currentLimit === 0) currentLimit = fullData.alphabetData.length;
-                
-                window.renderAlphabet(fullData.alphabetData.slice(0, currentLimit), fullData.description, targetLangCode);
-                
-                if (btn) {
-                    btn.innerText = `🎉 불러오기 완료! (${fullData.alphabetData.length}개)`;
-                    btn.disabled = true;
-                    btn.classList.replace('bg-slate-900', 'bg-emerald-600');
-                    btn.classList.replace('hover:bg-black', 'hover:bg-emerald-700');
-                }
-            }
-        };
-
-        document.addEventListener('DOMContentLoaded', () => {
-            setTimeout(() => {
-                const savedExpLang = localStorage.getItem('explanation_language');
-                if (savedExpLang) {
-                    const langSelect = document.getElementById('explanationLanguage');
-                    if (langSelect) langSelect.value = savedExpLang;
-                    if (typeof window.changeUILanguage === 'function') window.changeUILanguage(savedExpLang);
-                }
-
-                const savedFontSize = localStorage.getItem('chat_font_size');
-                if (savedFontSize) {
-                    document.documentElement.style.setProperty('--chat-font-size', savedFontSize + 'px');
-                    const fontSlider = document.getElementById('fontSizeSlider');
-                    if (fontSlider) fontSlider.value = savedFontSize;
-                }
-
-                const savedVoiceGender = localStorage.getItem('voice_gender');
-                if (savedVoiceGender) {
-                    if (typeof currentVoiceGender !== 'undefined') currentVoiceGender = savedVoiceGender;
-                    const genderSelect = document.getElementById('voiceGender');
-                    if (genderSelect) genderSelect.value = savedVoiceGender;
-                }
-
-                const savedTargetLang = localStorage.getItem('target_language');
-                if (savedTargetLang) {
-                    const targetSelect = document.getElementById('targetLanguage');
-                    if (targetSelect) targetSelect.value = savedTargetLang;
-                }
-
-                const sttSelect = document.getElementById('sttInputLanguage');
-                if (sttSelect) {
-                    const savedSttLang = localStorage.getItem('stt_input_language');
-                    if (savedSttLang) sttSelect.value = savedSttLang;
-                    
-                    sttSelect.onchange = function() {
-                        localStorage.setItem('stt_input_language', this.value);
-                        if (typeof window.updateLangDisplays === 'function') window.updateLangDisplays();
-                    };
-                }
-
-                if (typeof window.updateLangDisplays === 'function') window.updateLangDisplays();
-                
-                // 앱이 처음 켜질 때 자동으로 데이터 불러오기 실행
-                if (typeof window.autoLoadAlphabet === 'function') {
-                    window.autoLoadAlphabet();
-                }
-
-            }, 100); 
-        });
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const sttSelect = document.getElementById('sttInputLanguage');
-            if (!sttSelect) return;
-
-            const applySavedSttLang = () => {
-                const savedLang = localStorage.getItem('stt_input_language');
-                if (savedLang) {
-                    sttSelect.value = savedLang;
-                }
-            };
-            
-            applySavedSttLang();
-            setTimeout(applySavedSttLang, 150);
-
-            sttSelect.addEventListener('change', function() {
-                localStorage.setItem('stt_input_language', this.value);
-            });
-        });
-        // 🧠 [장기 기억 시스템] 대화가 길어지면 핵심만 100자로 압축하고 과거 기록을 지워 토큰을 절약함
-        window.compressMemory = async function() {
-            // 대화가 8번(사용자 4번, AI 4번) 이상 쌓이지 않았으면 아직 압축하지 않음
-            if (conversationHistory.length < 8) return; 
-
-            const savedMem = localStorage.getItem('user_compressed_memory') || '없음';
-            const chatLog = JSON.stringify(conversationHistory);
-            
-            // AI에게 내리는 특명: "기존 메모와 방금 대화를 보고, 유저의 특징만 100자 이내로 갱신해!"
-            const sysPrompt = `당신은 기억 압축기입니다. 기존 기억과 새로운 대화 기록을 분석하여, 사용자의 직업, 취미, 관심사, 성향, 언어적 약점 등 핵심 정보만 추출하세요. 반드시 한국어로 100자 이내로 요약하여 JSON 형식으로 응답하세요: {"memory": "..."}`;
-
-            try {
-                let res = await fetchAPI(WORKER_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-Device-ID': myDeviceId },
-                    body: JSON.stringify({ 
-                        model: "deepseek-chat", 
-                        messages: [{role: "system", content: sysPrompt}, {role: "user", content: `기존 기억: ${savedMem}\n새 대화: ${chatLog}`}], 
-                        response_format: { type: "json_object" } 
-                    })
-                });
-                
-                let data = await res.json();
-                let rawContent = data.choices[0].message.content.replace(/```json/g, "").replace(/```/g, "").trim();
-                let parsed = JSON.parse(rawContent.match(/\{[\s\S]*\}/)[0]);
-                
-                if (parsed.memory) {
-                    // 1. 요약된 100자 메모를 기기에 영구 저장
-                    localStorage.setItem('user_compressed_memory', parsed.memory);
-                    
-                    // 2. 🌟 토큰(비용) 절약의 핵심: 기억을 메모지에 적었으니, 길었던 옛날 대화는 싹둑 자르고 최근 4마디(단기 기억)만 남김!
-                    conversationHistory = conversationHistory.slice(-4);
-                    sessionStorage.setItem('llmHistory', JSON.stringify(conversationHistory));
-                }
-            } catch(e) { 
-                console.log("기억 압축 중 오류 발생 (대화에는 지장 없음)"); 
-            }
-            
-        };
-
-        // ========== 📝 AI 자동 메모장 기능 (다국어 적용 완료) ==========
-        let savedAIMemos = JSON.parse(localStorage.getItem('ai_auto_memos')) || [];
-
-        window.toggleMemoModal = function(show) {
-            const modal = document.getElementById('memoModal');
-            if (show) { window.renderMemos(); modal.classList.remove('hidden'); } 
-            else modal.classList.add('hidden');
-        };
-
-        window.renderMemos = function() {
-            // 🌟 버그 수정: 메모장을 그릴 때마다 로컬 스토리지에서 '최신 메모'를 다시 불러오도록 이 줄을 추가했습니다!
-            savedAIMemos = JSON.parse(localStorage.getItem('ai_auto_memos')) || [];
-            
-            const area = document.getElementById('memoListArea');
-            const badge = document.getElementById('memoCountBadge');
-            
-            // 사용자 언어 가져오기
-            const baseLang = (document.getElementById('explanationLanguage').value || 'ko-KR').split('-')[0];
-            const dict = UI_DICTIONARY[baseLang] || UI_DICTIONARY["en"];
-            
-            area.innerHTML = '';
-            
-            if (savedAIMemos.length === 0) {
-                // 빈 메모장 안내 문구
-                area.innerHTML = `<div class="text-center text-slate-400 text-xs font-bold mt-10">${dict.ui_memo_empty || "아직 작성된 메모가 없습니다.<br>채팅으로 AI에게 일정을 메모해 달라고 해보세요!"}</div>`;
-                if(badge) badge.classList.add('hidden');
-                return;
-            }
-
-            if(badge) {
-                badge.innerText = savedAIMemos.length;
-                badge.classList.remove('hidden');
-            }
-
-            savedAIMemos.forEach((memo, i) => {
-                const dateStr = new Date(memo.timestamp).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
-                area.insertAdjacentHTML('beforeend', `
-                    <div class="bg-white p-3 rounded-xl border border-amber-200 shadow-sm relative pr-8">
-                        <button onclick="deleteMemo(${i})" class="absolute top-3 right-3 text-slate-300 hover:text-red-400 transition-colors"><i class="fa-solid fa-trash-can"></i></button>
-                        <p class="text-[10px] font-bold text-amber-500 mb-1">${dateStr}</p>
-                        <p class="text-sm font-bold text-slate-700 leading-relaxed">${memo.content}</p>
-                    </div>
-                `);
-            });
-        };
-
-        window.deleteMemo = function(index) {
-            savedAIMemos.splice(index, 1);
-            localStorage.setItem('ai_auto_memos', JSON.stringify(savedAIMemos));
-            window.renderMemos();
-        };
-
-        window.clearAllMemos = function() {
-            const baseLang = (document.getElementById('explanationLanguage').value || 'ko-KR').split('-')[0];
-            const confirmMsg = UI_DICTIONARY[baseLang]?.ui_memo_clear || "모든 메모를 지우시겠습니까?";
-            
-            if(!confirm(confirmMsg)) return;
-            savedAIMemos = [];
-            localStorage.setItem('ai_auto_memos', JSON.stringify(savedAIMemos));
-            window.renderMemos();
-        };
-        
-        // 앱 처음 켰을 때 알림 뱃지 띄우기
-        setTimeout(window.renderMemos, 500);
-        // ==========================================================
-
-        // ========== 🌟 페르소나 & 메모장 버튼 전용 다국어 업데이트 함수 ==========
-        window.updateExtraUI = function() {
-            const expSelect = document.getElementById('explanationLanguage');
-            if (!expSelect) return;
-            
-            const baseLang = (expSelect.value || 'ko-KR').split('-')[0];
-            const dict = UI_DICTIONARY[baseLang] || UI_DICTIONARY["en"];
-            
-            if(document.getElementById('ui_persona_friend')) document.getElementById('ui_persona_friend').innerText = dict.ui_persona_friend || "친근한 친구";
-            if(document.getElementById('ui_persona_assistant')) document.getElementById('ui_persona_assistant').innerText = dict.ui_persona_assistant || "개인 비서";
-            if(document.getElementById('ui_persona_guide')) document.getElementById('ui_persona_guide').innerText = dict.ui_persona_guide || "여행 가이드";
-            if(document.getElementById('ui_memo_text')) document.getElementById('ui_memo_text').innerText = dict.ui_memo_text || "메모장";
-            if(document.getElementById('ui_memo_title')) document.getElementById('ui_memo_title').innerText = dict.ui_memo_title || "AI 비서의 메모장";
-            if(document.getElementById('ui_memo_clear')) document.getElementById('ui_memo_clear').innerText = dict.ui_memo_clear || "모든 메모 지우기";
-            
-            if(typeof window.renderMemos === 'function') window.renderMemos();
-        };
-
-        // 1. 앱을 처음 켰을 때 한 번 싹 바꿔줌
-        setTimeout(window.updateExtraUI, 500);
-
-        // 2. 설정에서 '사용자 언어'를 바꿀 때마다 자동으로 알아서 바꿔줌
-        const langSelector = document.getElementById('explanationLanguage');
-        if (langSelector) {
-            langSelector.addEventListener('change', window.updateExtraUI);
-        }
-        // =======================================================================
-
-        // ✂️ 문장을 단어별로 쪼개서 클릭 가능하게 만들어주는 마법 가위
-        window.createSpansForText = function(text, bId) {
-            // 문장을 띄어쓰기 기준으로 나눕니다.
-            return text.split(' ').map(word => {
-                // 빈칸이면 그냥 패스
-                if (!word.trim()) return word;
-                
-                // 단어 하나하나에 형광펜 효과(hover)와 클릭(onclick) 기능을 달아줍니다!
-                // (클릭 시 requestExplanationFromBubble 함수를 실행하여 해설을 요청합니다)
-                return `<span class="inline-block cursor-pointer hover:bg-yellow-200 hover:text-blue-800 rounded px-[2px] transition-colors duration-200" onclick="requestExplanationFromBubble('${bId}', this.innerText, true); event.stopPropagation();">${word}</span>`;
-            }).join(' ');
-        };
-
-
-        // =================================================================
-// 🌟 [앱 환경 마이크 & 소리 완벽 복구 패치] 
-// =================================================================
-
-// 1. 사라졌던 플러터 마이크 '귀' 복구
-window.onSpeechResult = function(text) {
-    resetMic();
-    if(text) handleUserMessage(text);
-};
-
-// 2. 단어장 스피커 소리 앱 성우로 연결
-window.playVocabAudio = function() {
-    if(currentVocabSetIdx === -1) return; 
-    const vocab = savedVocabs[currentVocabSetIdx].vocabData[currentVocabWordIdx];
-    const isBackSide = document.getElementById('vocabFlashcard').classList.contains('rotate-y-180');
-    const textToRead = isBackSide ? vocab.example_en : vocab.word;
-    
-    if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
-        window.flutter_inappwebview.callHandler('speak', textToRead, savedVocabs[currentVocabSetIdx].langCode);
-    } else {
-        window.speechSynthesis.cancel();
-        const utt = new SpeechSynthesisUtterance(textToRead);
-        utt.lang = savedVocabs[currentVocabSetIdx].langCode; 
-        utt.rate = isBackSide ? 0.9 : 1.0; 
-        window.speechSynthesis.speak(utt);
-    }
-};
-
-// 3. 파닉스(기초 글자) 스피커 소리 앱 성우로 연결
-window.playAlphabetAudio = function(textToSpeak, langCode) { 
-    if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
-        window.flutter_inappwebview.callHandler('speak', textToSpeak, langCode);
-    } else {
-        window.speechSynthesis.cancel(); 
-        setTimeout(() => {
-            const utt = new SpeechSynthesisUtterance(textToSpeak); 
-            utt.lang = langCode; utt.pitch = 1.1; utt.rate = 0.85; 
-            window.speechSynthesis.speak(utt); 
-        }, 50);
-    }
-};
-
-// 4. 롤플레잉 대본 재생 및 게임 소리 앱 성우로 연결
+let activeScriptTimeout = null; let isScriptPlaying = false; let playingScriptIndex = -1;
 window.playSpecificScript = function(index) {
-    isInteractiveTestActive = false; 
-    const currentBtn = document.getElementById(`play-btn-${index}`);
-    
-    // 이미 재생 중이면 멈춤
+    isInteractiveTestActive = false; const currentBtn = document.getElementById(`play-btn-${index}`);
     if (isScriptPlaying && playingScriptIndex === index) {
-        if(window.flutter_inappwebview) window.flutter_inappwebview.callHandler('stop');
-        else window.speechSynthesis.cancel();
-        clearTimeout(activeScriptTimeout);
-        isScriptPlaying = false; playingScriptIndex = -1;
+        if(window.flutter_inappwebview) window.flutter_inappwebview.callHandler('stop'); else window.speechSynthesis.cancel();
+        clearTimeout(activeScriptTimeout); isScriptPlaying = false; playingScriptIndex = -1;
         if(currentBtn) { currentBtn.innerHTML = '<i class="fa-solid fa-volume-high text-xs"></i>'; currentBtn.classList.replace('text-red-500', 'text-indigo-600'); currentBtn.classList.replace('border-red-200', 'border-indigo-200'); }
         return;
     }
-
-    if(window.flutter_inappwebview) window.flutter_inappwebview.callHandler('stop');
-    else window.speechSynthesis.cancel();
+    if(window.flutter_inappwebview) window.flutter_inappwebview.callHandler('stop'); else window.speechSynthesis.cancel();
     clearTimeout(activeScriptTimeout);
     
     if (playingScriptIndex !== -1) {
         const oldBtn = document.getElementById(`play-btn-${playingScriptIndex}`);
         if(oldBtn) { oldBtn.innerHTML = '<i class="fa-solid fa-volume-high text-xs"></i>'; oldBtn.classList.replace('text-red-500', 'text-indigo-600'); oldBtn.classList.replace('border-red-200', 'border-indigo-200'); }
     }
-
     isScriptPlaying = true; playingScriptIndex = index;
     if(currentBtn) { currentBtn.innerHTML = '<i class="fa-solid fa-square text-xs"></i>'; currentBtn.classList.replace('text-indigo-600', 'text-red-500'); currentBtn.classList.replace('border-indigo-200', 'border-red-200'); }
 
-    const sd = savedScripts[index].scriptData; 
-    let playIdx = 0;
-    
+    const sd = savedScripts[index].scriptData; let playIdx = 0;
     const playNext = () => {
         if (!isScriptPlaying || playingScriptIndex !== index) return;
         if (playIdx >= sd.length) {
@@ -2920,33 +2100,45 @@ window.playSpecificScript = function(index) {
             if(currentBtn) { currentBtn.innerHTML = '<i class="fa-solid fa-volume-high text-xs"></i>'; currentBtn.classList.replace('text-red-500', 'text-indigo-600'); currentBtn.classList.replace('border-red-200', 'border-indigo-200'); }
             return;
         }
-        
         const textToRead = sd[playIdx].en;
+        // 🌟 [핵심] 역할에 따라 Pitch(음정) 세팅 (AI: 1.2, 나: 0.8)
+        const pitch = (sd[playIdx].role.toLowerCase() === 'ai') ? 1.2 : 0.8;
+        
         if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
-            window.flutter_inappwebview.callHandler('speak', textToRead, savedScripts[index].langCode);
-            const duration = (textToRead.length * 80) + 1200; // 글자수에 비례하여 재생 시간 자동 계산
-            activeScriptTimeout = setTimeout(() => {
-                if(!isScriptPlaying) return;
-                playIdx++; playNext();
-            }, duration);
+            // 🌟 [핵심] .then()을 써서 성우가 말을 완전히 끝내면 다음 줄로 넘어가도록 설계!
+            window.flutter_inappwebview.callHandler('speak', textToRead, savedScripts[index].langCode, pitch).then(() => {
+                if(!isScriptPlaying) return; 
+                playIdx++; 
+                playNext();
+            });
         } else {
             const utt = new SpeechSynthesisUtterance(textToRead); 
-            utt.lang = savedScripts[index].langCode;
-            utt.pitch = sd[playIdx].role === 'ai' ? 1.2 : 0.8; 
-            utt.onend = utt.onerror = () => { 
-                if(!isScriptPlaying) return;
-                playIdx++; activeScriptTimeout = setTimeout(playNext, 500); 
-            }; 
+            utt.lang = savedScripts[index].langCode; utt.pitch = pitch; 
+            utt.onend = utt.onerror = () => { if(!isScriptPlaying) return; playIdx++; activeScriptTimeout = setTimeout(playNext, 500); }; 
             window.speechSynthesis.speak(utt);
         }
-    }; 
-    playNext();
+    }; playNext();
+};
+            
+window.toggleQuizMode = function(index) {
+    const btn = document.getElementById(`quiz-btn-${index}`); const isQuizOn = btn.classList.contains('bg-amber-500');
+    if (!isQuizOn) {
+        btn.classList.replace('bg-white', 'bg-amber-500'); btn.classList.replace('text-amber-500', 'text-white');
+        savedScripts[index].scriptData.forEach((line, lineIdx) => {
+            const words = line.en.split(" "); let blankIndices = [];
+            while(blankIndices.length < Math.max(1, Math.floor(words.length * 0.3)) && blankIndices.length < words.length) {
+                let r = Math.floor(Math.random() * words.length); if(!blankIndices.includes(r)) blankIndices.push(r);
+            }
+            document.getElementById(`en-text-${index}-line-${lineIdx}`).innerHTML = words.map((w, i) => blankIndices.includes(i) ? `<span class="bg-slate-300 text-transparent rounded px-2 cursor-pointer hover:bg-slate-400 select-none" onclick="this.className='text-blue-600 bg-blue-50 font-extrabold border-blue-200 border rounded px-1'">${w}</span>` : w).join(" ");
+        });
+    } else {
+        btn.classList.replace('bg-amber-500', 'bg-white'); btn.classList.replace('text-white', 'text-amber-500');
+        savedScripts[index].scriptData.forEach((line, lineIdx) => document.getElementById(`en-text-${index}-line-${lineIdx}`).innerHTML = line.en);
+    }
 };
 
 window.startInteractiveTest = function(index) {
-    if(window.flutter_inappwebview) window.flutter_inappwebview.callHandler('stop');
-    else window.speechSynthesis.cancel(); 
-    
+    if(window.flutter_inappwebview) window.flutter_inappwebview.callHandler('stop'); else window.speechSynthesis.cancel(); 
     activeTestScriptIdx = index; activeTestLineIdx = 0; isInteractiveTestActive = true;
     for(let i=0; i<savedScripts[index].scriptData.length; i++) {
         const fb = document.getElementById(`feedback-${index}-line-${i}`); if(fb) fb.innerHTML = "";
@@ -2965,11 +2157,14 @@ window.processNextTestLine = function() {
     if(activeTestLineIdx > 0) document.getElementById(`script-${activeTestScriptIdx}-line-${activeTestLineIdx-1}`).classList.remove('bg-yellow-50', 'border-yellow-200');
     if(lineDiv) { lineDiv.classList.add('bg-yellow-50', 'border-yellow-200'); lineDiv.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
     
-    if (line.role === 'ai') {
+    // 🌟 [핵심] 대소문자 구분 없이 소문자 변환하여 확인
+    if (line.role.toLowerCase() === 'ai') {
         if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
-            window.flutter_inappwebview.callHandler('speak', line.en, scriptItem.langCode);
-            const duration = (line.en.length * 80) + 1200;
-            setTimeout(() => { activeTestLineIdx++; window.processNextTestLine(); }, duration);
+            // 🌟 [핵심] .then()으로 말을 완벽히 끝낸 후에 다음 줄로!
+            window.flutter_inappwebview.callHandler('speak', line.en, scriptItem.langCode, 1.2).then(() => {
+                activeTestLineIdx++; 
+                window.processNextTestLine();
+            });
         } else {
             const utt = new SpeechSynthesisUtterance(line.en); utt.lang = scriptItem.langCode; utt.pitch = 1.2;
             utt.onend = () => { activeTestLineIdx++; setTimeout(window.processNextTestLine, 500); }; 
@@ -2980,30 +2175,342 @@ window.processNextTestLine = function() {
     }
 };
 
-// 🌟 [1번방 마이크 최종 해결 패치] 2번방과 똑같은 마이크로 강제 연결!
-// =================================================================
-window.toggleListening = function() {
-    const lang = document.getElementById('sttInputLanguage').value;
+if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+    roleplayRec = new (window.SpeechRecognition || window.webkitSpeechRecognition)(); 
+    roleplayRec.continuous = false; roleplayRec.interimResults = false;
+}
 
-    // 앱(플러터) 전용 마이크로 연결하던 썩은 다리를 끊고, 
-    // 방금 잘 작동하는 것을 확인한 2번방(웹) 마이크 엔진으로 100% 통일합니다!
-    if(!recognition) {
-        window.updateStatus("마이크를 사용할 수 없습니다.");
-        return;
+window.startShadowing = function() {
+    if (savedScripts.length === 0) return alert("대본이 없습니다.");
+    if (!isInteractiveTestActive) return alert("실전 대화 게임 모드를 먼저 실행하세요.");
+    const targetItem = savedScripts[activeTestScriptIdx]; const userLine = targetItem.scriptData[activeTestLineIdx];
+    if (userLine.role !== 'user') return alert("아직 AI의 턴입니다.");
+    const btn = document.getElementById("roleplayMicBtn"); 
+    if(!roleplayRec) { alert("마이크를 지원하지 않습니다."); return; }
+    if (isRpListening) { roleplayRec.stop(); return; }
+    btn.classList.replace("from-blue-600", "from-red-500"); btn.classList.replace("to-blue-500", "to-red-600"); document.getElementById("roleplayMicIcon").classList.replace("fa-microphone", "fa-ear-listen");
+    try { roleplayRec.lang = targetItem.langCode; roleplayRec.start(); isRpListening = true; } catch(e) {}
+    let score = 0, recognizedText = "";
+    roleplayRec.onresult = (e) => {
+        recognizedText = e.results[0][0].transcript.toLowerCase();
+        const targetText = userLine.en.toLowerCase().replace(/[.,!?¿¡]/g, ""); 
+        score = Math.round((targetText.split(" ").filter(w => recognizedText.split(" ").includes(w)).length / targetText.split(" ").length) * 100);
+    };
+    roleplayRec.onend = roleplayRec.onerror = () => { 
+        isRpListening = false; btn.classList.replace("from-red-500", "from-blue-600"); btn.classList.replace("to-red-600", "to-blue-500"); document.getElementById("roleplayMicIcon").classList.replace("fa-ear-listen", "fa-microphone");
+        document.getElementById(`feedback-${activeTestScriptIdx}-line-${activeTestLineIdx}`).innerHTML = `<span class="${score>80?'text-emerald-600 bg-emerald-50':'text-amber-600 bg-amber-50'} px-2 py-1 rounded-md border inline-block mt-1">${score}% (${recognizedText||'Fail'})</span>`;
+        setTimeout(() => { activeTestLineIdx++; window.processNextTestLine(); }, 1500); 
+    };
+};
+window.renderScripts();
+
+let savedVocabs = JSON.parse(localStorage.getItem('vocab_scripts')) || [];
+let currentVocabSetIdx = -1; let currentVocabWordIdx = 0;
+
+window.setVocabTheme = function(element) {
+    document.querySelectorAll('.vocab-theme-btn').forEach(btn => { btn.classList.remove('bg-indigo-50', 'border-indigo-500', 'text-indigo-700'); btn.classList.add('bg-white', 'border-slate-200', 'text-slate-500'); });
+    element.classList.remove('bg-white', 'border-slate-200', 'text-slate-500'); element.classList.add('bg-indigo-50', 'border-indigo-500', 'text-indigo-700');
+};
+
+window.deleteVocab = function(index) {
+    if (!confirm("이 단어장을 삭제하시겠습니까?")) return;
+    savedVocabs.splice(index, 1); localStorage.setItem('vocab_scripts', JSON.stringify(savedVocabs)); currentVocabSetIdx = -1; window.renderVocabs();
+};
+
+window.renderVocabs = function() {
+    const listArea = document.getElementById("vocabListArea"); listArea.innerHTML = "";
+    if(savedVocabs.length === 0) { document.getElementById("mainFlashcardArea").classList.add("hidden"); return; }
+    
+    for (let i = savedVocabs.length - 1; i >= 0; i--) {
+        const set = savedVocabs[i];
+        let html = `<div><div class="bg-slate-100 rounded-xl p-2.5 mb-3 flex justify-between items-center"><p class="text-xs font-extrabold text-slate-600">📚 ${i + 1}: [${set.theme}] (${set.langName})</p><button onclick="deleteVocab(${i})" class="text-slate-400 hover:text-red-500 px-2 transition-colors" title="삭제"><i class="fa-solid fa-xmark text-lg"></i></button></div><div class="grid grid-cols-4 gap-2">`;
+        set.vocabData.forEach((v, vIdx) => {
+            const isSelected = (currentVocabSetIdx === i && currentVocabWordIdx === vIdx);
+            const bgClass = isSelected ? 'bg-indigo-500 text-white border-indigo-600' : 'bg-white text-slate-700 border-slate-200 hover:border-indigo-300';
+            html += `<div onclick="showFlashcard(${i}, ${vIdx})" class="aspect-square rounded-xl border-[1.5px] ${bgClass} flex flex-col items-center justify-center text-center p-1 cursor-pointer transition-all shadow-sm"><p class="text-[11px] font-bold truncate w-full px-1">${v.word}</p><p class="text-[9px] ${isSelected ? 'text-indigo-200' : 'text-slate-400'} truncate w-full px-1">${v.meaning}</p></div>`;
+        });
+        html += `</div></div>`; if(i > 0) html += `<hr class="border-slate-200 border-dashed my-5">`;
+        listArea.insertAdjacentHTML('beforeend', html);
     }
+    if(currentVocabSetIdx === -1 && savedVocabs.length > 0) window.showFlashcard(savedVocabs.length - 1, 0);
+};
 
-    if(isListening) {
-        recognition.stop();
+window.showFlashcard = function(setIdx, wordIdx) {
+    currentVocabSetIdx = setIdx; currentVocabWordIdx = wordIdx;
+    const v = savedVocabs[setIdx].vocabData[wordIdx];
+    document.getElementById("mainFlashcardArea").classList.remove("hidden"); document.getElementById("vocabFlashcard").classList.remove('rotate-y-180'); 
+    document.getElementById("vcCount").innerText = `${savedVocabs[setIdx].theme} (${wordIdx + 1}/10)`; document.getElementById("vcWord").innerText = v.word; document.getElementById("vcPron").innerText = `[${v.pronunciation}]`; document.getElementById("vcPhonetic").innerText = v.phonetic; document.getElementById("vcMeaning").innerText = v.meaning; document.getElementById("vcExEn").innerText = `"${v.example_en}"`; document.getElementById("vcExKo").innerText = v.example_ko;
+    window.renderVocabs(); 
+};
+
+window.nextVocab = function() { if(currentVocabSetIdx === -1) return; if(currentVocabWordIdx < savedVocabs[currentVocabSetIdx].vocabData.length - 1) window.showFlashcard(currentVocabSetIdx, currentVocabWordIdx + 1); };
+window.prevVocab = function() { if(currentVocabSetIdx === -1) return; if(currentVocabWordIdx > 0) window.showFlashcard(currentVocabSetIdx, currentVocabWordIdx - 1); };
+
+window.playVocabAudio = function() {
+    if(currentVocabSetIdx === -1) return; 
+    const vocab = savedVocabs[currentVocabSetIdx].vocabData[currentVocabWordIdx];
+    const isBackSide = document.getElementById('vocabFlashcard').classList.contains('rotate-y-180');
+    const textToRead = isBackSide ? vocab.example_en : vocab.word;
+    
+    if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
+        window.flutter_inappwebview.callHandler('speak', textToRead, savedVocabs[currentVocabSetIdx].langCode);
     } else {
-        recognition.lang = lang;
-        try {
-            recognition.start();
-        } catch(e) {
-            window.updateStatus("마이크 시작 오류");
-        }
+        window.speechSynthesis.cancel();
+        const utt = new SpeechSynthesisUtterance(textToRead);
+        utt.lang = savedVocabs[currentVocabSetIdx].langCode; utt.rate = isBackSide ? 0.9 : 1.0; 
+        window.speechSynthesis.speak(utt);
     }
 };
-// =================================================================
+
+// 📝 [수정완료] 2. 단어장 생성 함수
+        window.generateVocab = async function() {
+            if (savedVocabs.length >= 5) { if (!confirm("새로운 단어장 생성 시 가장 오래된 단어장이 자동 삭제됩니다.\n계속하시겠습니까?")) return; }
+            if (typeof window.checkAndBlockAPI === 'function' && !window.checkAndBlockAPI()) return;
+
+            const btn = document.getElementById("generateVocabBtn");
+            const theme = document.querySelector('.vocab-theme-btn.bg-indigo-50').innerText.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]|\n/g, '').trim();
+            const targetLangName = document.getElementById('targetLanguage').options[document.getElementById('targetLanguage').selectedIndex].dataset.langName;
+            const expLangCode = document.getElementById('explanationLanguage').value || 'ko-KR';
+            const aiLangNames = { "ko-KR": "Korean", "en-US": "English", "ja-JP": "Japanese", "zh-CN": "Chinese", "es-ES": "Spanish", "th-TH": "Thai", "vi-VN": "Vietnamese", "fr-FR": "French", "de-DE": "German", "ru-RU": "Russian", "ar-SA": "Arabic", "hi-IN": "Hindi" };
+            const expLangName = aiLangNames[expLangCode] || expLangCode;
+
+            let myExistingWords = [];
+            savedVocabs.forEach(set => { if (set.langName === targetLangName) set.vocabData.forEach(v => myExistingWords.push(v.word)); });
+
+            btn.innerText = "⏳ ..."; btn.disabled = true;
+            try {
+                // 🌟 서버로 expLanguage 전송
+                const res = await fetch(`${WORKER_URL}generate-vocab`, { 
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ theme: theme, language: targetLangName, expLanguage: expLangName, existingWords: myExistingWords }) 
+                });
+                const data = await res.json(); 
+                if (typeof window.incrementLocalUsage === 'function') window.incrementLocalUsage();
+
+                let newId = savedVocabs.length > 0 ? savedVocabs[savedVocabs.length - 1].id + 1 : 1;
+                if (savedVocabs.length >= 5) savedVocabs.shift(); 
+                savedVocabs.push({ id: newId, theme: theme, langName: targetLangName, langCode: document.getElementById('targetLanguage').value, vocabData: data.vocabData });
+                localStorage.setItem('vocab_scripts', JSON.stringify(savedVocabs)); 
+                window.showFlashcard(savedVocabs.length - 1, 0);
+
+                if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
+                    window.flutter_inappwebview.callHandler('scheduleLocalPush', { id: 999, title: "📚 학습 복습 시간!", body: `오늘 공부했던 내용들, 까먹기 전에 한 번 복습해 볼까요?`, delayHours: 24 });
+                }
+            } catch (err) { alert("Fail"); } finally { 
+                const baseLang = (document.getElementById('explanationLanguage').value || 'ko-KR').split('-')[0];
+                btn.innerHTML = UI_DICTIONARY[baseLang]?.generateVocabBtn || "✨ AI 단어장 생성하기"; btn.disabled = false; 
+            }
+        };
+window.renderVocabs();
+
+// 🔤 [수정완료] 3. 자음/모음(파닉스) 생성 함수
+        window.loadAlphabetData = async function() {
+            try {
+                const listArea = document.getElementById("alphabetListArea");
+                const btn = document.getElementById("generateAlphaBtn");
+                const tLang = document.getElementById('targetLanguage');
+                const targetLangName = tLang.options[tLang.selectedIndex].dataset.langName;
+                const targetLangCode = tLang.value;
+                const expLangCode = document.getElementById('explanationLanguage').value || 'ko-KR';
+                const aiLangNames = { "ko-KR": "Korean", "en-US": "English", "ja-JP": "Japanese", "zh-CN": "Chinese", "es-ES": "Spanish", "th-TH": "Thai", "vi-VN": "Vietnamese", "fr-FR": "French", "de-DE": "German", "ru-RU": "Russian", "ar-SA": "Arabic", "hi-IN": "Hindi" };
+                const expLangName = aiLangNames[expLangCode] || expLangCode;
+                const baseLang = expLangCode.split('-')[0];
+                const dict = UI_DICTIONARY[baseLang] || UI_DICTIONARY["en"];
+
+                const cacheKey = 'full_alpha_v28_' + targetLangCode + '_' + expLangCode;
+                let fullData = null; let alphaProgress = {};
+                try { fullData = JSON.parse(localStorage.getItem(cacheKey)); alphaProgress = JSON.parse(localStorage.getItem('alpha_progress_v28')) || {}; } catch(e) {}
+                
+                let currentLimit = alphaProgress[cacheKey] || 0;
+                if (fullData && currentLimit >= fullData.alphabetData.length) return;
+
+                if (!fullData) {
+                    if (!confirm(`[${targetLangName}]의 전체 기초 발음 데이터를 처음 생성합니다.\n진행하시겠습니까?`)) return;
+                    if (typeof window.checkAndBlockAPI === 'function' && !window.checkAndBlockAPI()) return;
+
+                    // 🌟 언어별 특수 세팅 (병음, 히라가나 등) 안전하게 유지
+                    let specialHint = "";
+                    let letterRule = `'letter' and 'exampleWord' MUST be in [${targetLangName}].`;
+                    if (targetLangCode.startsWith('zh')) {
+                        specialHint = "Generate basic Chinese Pinyin (Shengmu/Initials and Yunmu/Finals).";
+                        letterRule = `'letter' MUST be English alphabet for Pinyin (e.g., b, p, m, f, a, o). 'pronunciation' MUST be Pinyin with tone marks. 'exampleWord' MUST be Chinese Hanzi.`;
+                    } else if (targetLangCode.startsWith('ja')) {
+                        specialHint = "Generate ALL basic Hiragana and Katakana characters.";
+                        letterRule = `'letter' MUST be Japanese. 'pronunciation' MUST be English Romaji.`;
+                    } else if (targetLangCode.startsWith('en')) {
+                        specialHint = "Generate exactly 26 English alphabets (A to Z)."; 
+                    } else if (targetLangCode.startsWith('ko')) {
+                        specialHint = "Generate ALL basic Korean Hangul Consonants and Vowels (자음과 모음).";
+                        letterRule = `'letter' and 'exampleWord' MUST be Korean Hangul. 'pronunciation' MUST be English Romaji.`;
+                    } else {
+                        specialHint = "Generate ALL basic characters/letters for this language.";
+                    }
+
+                    btn.innerText = "⏳ 전체 발음 체계를 구성 중입니다..."; btn.disabled = true;
+                    listArea.innerHTML = `<div class="text-center text-slate-400 text-sm mt-10 font-bold"><i class="fa-solid fa-wand-magic-sparkles text-2xl mb-3 text-emerald-400 animate-pulse"></i><br>${dict.alpha_fetching || "로딩 중..."}</div>`;
+
+                    try {
+                        // 🌟 서버로 expLanguage와 extraHint 전송
+                        const res = await fetchAPI(`${WORKER_URL}generate-alphabet`, { 
+                            method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Device-ID': myDeviceId }, 
+                            body: JSON.stringify({ language: targetLangName, expLanguage: expLangName, extraHint: `${specialHint} ${letterRule}` }) 
+                        });
+                        if (!res) throw new Error("서버 에러");
+                        const data = await res.json(); 
+                        if(!data || !data.alphabetData) throw new Error("데이터 누락");
+                        if (typeof window.incrementLocalUsage === 'function') window.incrementLocalUsage();
+
+                        fullData = data; localStorage.setItem(cacheKey, JSON.stringify(fullData)); currentLimit = 0; 
+                    } catch (err) { 
+                        listArea.innerHTML = `<div class="text-center text-red-400 text-sm mt-10 font-bold">서버 통신 실패. 버튼을 다시 눌러주세요!</div>`;
+                        btn.innerText = dict.generateAlphaBtn || "✨ 선택한 언어의 AI 파닉스 가져오기"; btn.disabled = false; return;
+                    }
+                } else {
+                    btn.innerText = "⏳ 다음 발음 준비 중..."; btn.disabled = true;
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                }
+
+                currentLimit += 20; alphaProgress[cacheKey] = currentLimit;
+                localStorage.setItem('alpha_progress_v28', JSON.stringify(alphaProgress));
+
+                const isFinished = currentLimit >= fullData.alphabetData.length;
+                const dataToShow = fullData.alphabetData.slice(0, currentLimit);
+                if (typeof window.renderAlphabet === 'function') window.renderAlphabet(dataToShow, fullData.description, targetLangCode);
+
+                if (isFinished) {
+                    btn.innerText = `🎉 모든 발음 학습 완료! (${fullData.alphabetData.length}개)`; btn.disabled = true;
+                    btn.classList.replace('bg-slate-900', 'bg-emerald-600'); btn.classList.replace('hover:bg-black', 'hover:bg-emerald-700');
+                } else {
+                    btn.innerText = `👇 다음 발음 더 보기 (${dataToShow.length} / ${fullData.alphabetData.length})`; btn.disabled = false;
+                    btn.classList.replace('bg-emerald-600', 'bg-slate-900'); btn.classList.replace('hover:bg-emerald-700', 'hover:bg-black');
+                }
+            } catch (e) { const btn = document.getElementById("generateAlphaBtn"); if(btn) { btn.innerText = "✨ 오류 발생 (다시 시도)"; btn.disabled = false; } }
+        };
+
+window.renderAlphabet = function(alphabetData, description, langCode) {
+    const listArea = document.getElementById("alphabetListArea"); let html = "";
+    if(description) html += `<div class="bg-emerald-50 rounded-2xl p-4 border border-emerald-100 mb-5 shadow-sm"><p class="text-[13px] text-emerald-800 font-bold leading-relaxed whitespace-pre-wrap"><i class="fa-solid fa-circle-info mr-1"></i> ${description}</p></div>`;
+    const grouped = alphabetData.reduce((acc, curr) => { if (!acc[curr.category]) acc[curr.category] = []; acc[curr.category].push(curr); return acc; }, {});
+    for (const [category, letters] of Object.entries(grouped)) {
+        html += `<div class="mb-6"><h3 class="text-sm font-extrabold text-emerald-700 mb-3 border-b border-emerald-100 pb-1.5 flex items-center gap-1.5"><i class="fa-solid fa-leaf text-emerald-400 text-xs"></i> ${category}</h3><div class="grid grid-cols-3 gap-2">`;
+        letters.forEach(item => {
+            const safeLetter = item.letter ? item.letter.replace(/'/g, "\\'") : ""; const safeWord = item.exampleWord ? item.exampleWord.replace(/'/g, "\\'") : "";
+            html += `<button onclick="playAlphabetAudio('${safeLetter}. ${safeWord}', '${langCode}')" class="bg-white border-[2px] border-slate-100 rounded-2xl flex flex-col items-center justify-center p-2.5 shadow-sm hover:border-emerald-400 hover:bg-emerald-50 hover:shadow-md transition-all group relative"><span class="absolute top-2 left-2 text-sm drop-shadow-sm">${item.emoji || ''}</span><span class="text-3xl font-black text-slate-800 group-hover:text-emerald-600 transition-colors mt-2 mb-1">${item.letter}</span><span class="text-[10px] text-slate-400 font-bold bg-slate-100 px-1.5 py-0.5 rounded-md group-hover:bg-white transition-colors mb-2">${item.pronunciation}</span><div class="w-full bg-slate-50 rounded-lg py-1.5 group-hover:bg-emerald-100/50 transition-colors"><p class="text-[11px] font-extrabold text-slate-700 truncate px-1">${item.exampleWord || ''}</p><p class="text-[9px] text-slate-500 truncate px-1">${item.exampleMeaning || ''}</p></div></button>`;
+        });
+        html += `</div></div>`;
+    }
+    listArea.innerHTML = html;
+};
+
+window.playAlphabetAudio = function(textToSpeak, langCode) { 
+    if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
+        window.flutter_inappwebview.callHandler('speak', textToSpeak, langCode);
+    } else {
+        window.speechSynthesis.cancel(); 
+        setTimeout(() => { const utt = new SpeechSynthesisUtterance(textToSpeak); utt.lang = langCode; utt.pitch = 1.1; utt.rate = 0.85; window.speechSynthesis.speak(utt); }, 50);
+    }
+};
+
+window.autoLoadAlphabet = function() {
+    const tLang = document.getElementById('targetLanguage'); if(!tLang) return;
+    const targetLangCode = tLang.value; const expLangCode = document.getElementById('explanationLanguage').value || 'ko-KR';
+    const cacheKey = 'full_alpha_v28_' + targetLangCode + '_' + expLangCode;
+    const cachedData = localStorage.getItem(cacheKey); const btn = document.getElementById("generateAlphaBtn");
+
+    if (cachedData && typeof window.renderAlphabet === 'function') {
+        const fullData = JSON.parse(cachedData); let alphaProgress = JSON.parse(localStorage.getItem('alpha_progress_v28')) || {};
+        let currentLimit = alphaProgress[cacheKey] || fullData.alphabetData.length;
+        if(currentLimit === 0) currentLimit = fullData.alphabetData.length;
+        window.renderAlphabet(fullData.alphabetData.slice(0, currentLimit), fullData.description, targetLangCode);
+        if (btn) { btn.innerText = `🎉 불러오기 완료! (${fullData.alphabetData.length}개)`; btn.disabled = true; btn.classList.replace('bg-slate-900', 'bg-emerald-600'); }
+    }
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        const savedExpLang = localStorage.getItem('explanation_language');
+        if (savedExpLang) {
+            const langSelect = document.getElementById('explanationLanguage');
+            if (langSelect) langSelect.value = savedExpLang;
+            if (typeof window.changeUILanguage === 'function') window.changeUILanguage(savedExpLang);
+        }
+        const savedFontSize = localStorage.getItem('chat_font_size');
+        if (savedFontSize) {
+            document.documentElement.style.setProperty('--chat-font-size', savedFontSize + 'px');
+            const fontSlider = document.getElementById('fontSizeSlider');
+            if (fontSlider) fontSlider.value = savedFontSize;
+        }
+        const savedTargetLang = localStorage.getItem('target_language');
+        if (savedTargetLang) {
+            const targetSelect = document.getElementById('targetLanguage');
+            if (targetSelect) targetSelect.value = savedTargetLang;
+        }
+        const sttSelect = document.getElementById('sttInputLanguage');
+        if (sttSelect) {
+            const savedSttLang = localStorage.getItem('stt_input_language');
+            if (savedSttLang) sttSelect.value = savedSttLang;
+            sttSelect.onchange = function() { localStorage.setItem('stt_input_language', this.value); if (typeof window.updateLangDisplays === 'function') window.updateLangDisplays(); };
+        }
+        if (typeof window.updateLangDisplays === 'function') window.updateLangDisplays();
+        if (typeof window.autoLoadAlphabet === 'function') window.autoLoadAlphabet();
+    }, 100); 
+});
+
+window.compressMemory = async function() {
+    if (conversationHistory.length < 8) return; 
+    const savedMem = localStorage.getItem('user_compressed_memory') || '없음';
+    const chatLog = JSON.stringify(conversationHistory);
+    const sysPrompt = `당신은 기억 압축기입니다. 사용자의 특징만 100자 이내로 갱신하여 JSON 형식으로 응답: {"memory": "..."}`;
+    try {
+        let res = await fetchAPI(WORKER_URL, {
+            method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Device-ID': myDeviceId },
+            body: JSON.stringify({ model: "deepseek-chat", messages: [{role: "system", content: sysPrompt}, {role: "user", content: `기존:${savedMem}\n새 대화:${chatLog}`}], response_format: { type: "json_object" } })
+        });
+        let data = await res.json();
+        let rawContent = data.choices[0].message.content.replace(/```json/g, "").replace(/```/g, "").trim();
+        let parsed = JSON.parse(rawContent.match(/\{[\s\S]*\}/)[0]);
+        if (parsed.memory) {
+            localStorage.setItem('user_compressed_memory', parsed.memory);
+            conversationHistory = conversationHistory.slice(-4);
+            sessionStorage.setItem('llmHistory', JSON.stringify(conversationHistory));
+        }
+    } catch(e) {}
+};
+
+let savedAIMemos = JSON.parse(localStorage.getItem('ai_auto_memos')) || [];
+window.toggleMemoModal = function(show) {
+    const modal = document.getElementById('memoModal');
+    if (show) { window.renderMemos(); modal.classList.remove('hidden'); } else modal.classList.add('hidden');
+};
+
+window.renderMemos = function() {
+    savedAIMemos = JSON.parse(localStorage.getItem('ai_auto_memos')) || [];
+    const area = document.getElementById('memoListArea'); const badge = document.getElementById('memoCountBadge');
+    area.innerHTML = '';
+    if (savedAIMemos.length === 0) {
+        area.innerHTML = `<div class="text-center text-slate-400 text-xs font-bold mt-10">메모가 없습니다.</div>`;
+        if(badge) badge.classList.add('hidden'); return;
+    }
+    if(badge) { badge.innerText = savedAIMemos.length; badge.classList.remove('hidden'); }
+    savedAIMemos.forEach((memo, i) => {
+        const dateStr = new Date(memo.timestamp).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
+        area.insertAdjacentHTML('beforeend', `<div class="bg-white p-3 rounded-xl border border-amber-200 shadow-sm relative pr-8"><button onclick="deleteMemo(${i})" class="absolute top-3 right-3 text-slate-300 hover:text-red-400 transition-colors"><i class="fa-solid fa-trash-can"></i></button><p class="text-[10px] font-bold text-amber-500 mb-1">${dateStr}</p><p class="text-sm font-bold text-slate-700 leading-relaxed">${memo.content}</p></div>`);
+    });
+};
+
+window.deleteMemo = function(index) { savedAIMemos.splice(index, 1); localStorage.setItem('ai_auto_memos', JSON.stringify(savedAIMemos)); window.renderMemos(); };
+window.clearAllMemos = function() { if(!confirm("모든 메모를 지우시겠습니까?")) return; savedAIMemos = []; localStorage.setItem('ai_auto_memos', JSON.stringify(savedAIMemos)); window.renderMemos(); };
+setTimeout(window.renderMemos, 500);
+
+window.updateExtraUI = function() {
+    if(document.getElementById('ui_persona_friend')) document.getElementById('ui_persona_friend').innerText = "친근한 친구";
+    if(document.getElementById('ui_persona_assistant')) document.getElementById('ui_persona_assistant').innerText = "개인 비서";
+    if(document.getElementById('ui_persona_guide')) document.getElementById('ui_persona_guide').innerText = "여행 가이드";
+    if(typeof window.renderMemos === 'function') window.renderMemos();
+};
+setTimeout(window.updateExtraUI, 500);
+const langSelector = document.getElementById('explanationLanguage');
+if (langSelector) langSelector.addEventListener('change', window.updateExtraUI);
 
 
 
