@@ -374,18 +374,40 @@
             </div>
         </div>
 
-        <div id="screen-vocab" class="absolute top-0 left-0 w-full h-full flex flex-col z-30 bg-[#f8fafc] overflow-hidden sm:rounded-3xl" style="transform: translateX(100%); box-shadow: -10px 0 25px rgba(0,0,0,0.1); transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);">
-            <div class="flex-none bg-white pt-14 border-b border-gray-100 p-4 flex items-center justify-between z-10 shadow-sm relative gap-2">
-                <button onclick="goHome('screen-vocab')" class="w-8 h-8 flex items-center justify-center text-slate-500 hover:bg-slate-100 rounded-full shrink-0 transition"><i class="fa-solid fa-chevron-left text-lg"></i></button>
-                <h1 id="header_room3" class="text-lg font-bold text-gray-800 truncate flex-1 min-w-0">📝 나만의 단어장</h1>
-                <div class="flex items-center shrink-0 gap-2"> 
-                    <div id="usageBadge3"></div> 
-                    <button class="bg-blue-50 text-blue-600 text-[11px] font-bold rounded-lg border border-blue-200 px-2.5 py-1.5 flex items-center gap-1.5 outline-none hover:bg-blue-100 transition-colors shadow-sm max-w-[110px]" onclick="openCustomLangPicker('targetLanguage')">
-                        <span id="disp-vocabLanguage" class="truncate">🇺🇸 영어</span> 
-                        <i class="fa-solid fa-chevron-down text-[9px] opacity-70 shrink-0"></i>
-                    </button>
+        <div id="vocabScrollArea" class="flex-1 overflow-y-auto p-4 space-y-6 no-scrollbar pb-24 perspective-1000">
+
+                <div id="vcWelcomeWrapper" class="flex flex-col space-y-1 mb-5">
+    <div class="bg-white border border-indigo-100 rounded-2xl rounded-tl-none p-4 max-w-[95%] shadow-md shadow-indigo-900/5 self-start">
+        <p class="text-[13px] text-slate-800 font-extrabold mb-3 border-b border-slate-100 pb-2 flex items-center gap-2"><i class="fa-solid fa-book-open text-indigo-500"></i> <span id="vc_welcome_title">나만의 단어장 활용법</span></p>
+        <div class="space-y-3 text-xs text-slate-600 leading-relaxed">
+            
+            <div class="flex items-start gap-2">
+                <div class="w-6 h-6 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 mt-0.5 border border-indigo-100"><i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i></div>
+                <div>
+                    <p id="vc_welcome_f1_title" class="font-bold text-slate-800 mb-0.5">AI 맞춤 단어 생성</p>
+                    <p id="vc_welcome_f1_desc" class="text-slate-500">상단의 테마를 선택하고 생성 버튼을 누르면, AI가 현재 학습 언어에 맞는 필수 단어 10개를 즉시 만들어 줍니다.</p>
                 </div>
             </div>
+
+            <div class="flex items-start gap-2">
+                <div class="w-6 h-6 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 mt-0.5 border border-amber-100"><i class="fa-solid fa-arrows-rotate text-[10px]"></i></div>
+                <div>
+                    <p id="vc_welcome_f2_title" class="font-bold text-slate-800 mb-0.5">플래시카드 암기 학습</p>
+                    <p id="vc_welcome_f2_desc" class="text-slate-500">단어 카드를 터치하여 카드를 뒤집어가며 뜻과 실전 예문을 확인하고 효과적으로 암기해 보세요.</p>
+                </div>
+            </div>
+
+            <div class="flex items-start gap-2">
+                <div class="w-6 h-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 mt-0.5 border border-blue-100"><i class="fa-solid fa-volume-high text-[10px]"></i></div>
+                <div>
+                    <p id="vc_welcome_f3_title" class="font-bold text-slate-800 mb-0.5">원어민 발음 듣기</p>
+                    <p id="vc_welcome_f3_desc" class="text-slate-500">하단의 원어민 듣기 버튼을 눌러 정확한 현지 발음과 억양을 확인하며 학습 효과를 높이세요.</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
 
             <div class="flex-none bg-white px-4 py-3 border-b border-gray-100 shadow-sm z-10">
                 <div class="flex gap-2 overflow-x-auto no-scrollbar pb-2">
