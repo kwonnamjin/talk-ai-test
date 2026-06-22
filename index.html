@@ -1812,9 +1812,13 @@
 
         if (uiChatHistory.length > 0) uiChatHistory.forEach(msg => addMessageToChat(msg.sender, msg.text, msg.translation, msg.targetLangCode, true));
 
+        // 🌟 1. 프리토킹: 화면엔 이모지가 보이지만, 읽을 때는 이모지 필터링!
         window.speakText = function(text, langCode) {
             if(!text) return;
-            const clean = text.replace(/[\*\#\`\~\"\'\(\)\[\]]/g, ' ').trim(); 
+            // 👇 정규식을 이용해 이모지만 완벽하게 걸러냅니다
+            const clean = text.replace(/[\*\#\`\~\"\'\(\)\[\]]/g, ' ')
+                              .replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '')
+                              .trim(); 
             if(!clean) return;
 
             const avatarWrap = document.getElementById('avatarWrap');
@@ -2143,6 +2147,7 @@ Respond EXACTLY in this JSON format:
             }
         };
 
+        // 🌟 2. 롤플레잉 전체 듣기: 대본 읽을 때 이모지 안 읽음!
         let activeScriptTimeout = null; let isScriptPlaying = false; let playingScriptIndex = -1;
         window.playSpecificScript = function(index) {
             isInteractiveTestActive = false; const currentBtn = document.getElementById(`play-btn-${index}`);
@@ -2165,17 +2170,18 @@ Respond EXACTLY in this JSON format:
             const sd = savedScripts[index].scriptData; let playIdx = 0;
             const playNext = () => {
                 if (!isScriptPlaying || playingScriptIndex !== index) return;
-                // 👇 대본을 끝까지 다 읽었을 때!
                 if (playIdx >= sd.length) {
                     isScriptPlaying = false; playingScriptIndex = -1;
                     if(currentBtn) { currentBtn.innerHTML = '<i class="fa-solid fa-volume-high text-xs"></i>'; currentBtn.classList.replace('text-red-500', 'text-indigo-600'); currentBtn.classList.replace('border-red-200', 'border-indigo-200'); }
                     
-                    // 🌟 끝까지 다 들었을 때 퀘스트 1회 달성 센서 발동!
                     window.addStudyMission('script'); 
                     window.updateStatus("✅ 대본 듣기 완료! (퀘스트 카운트 됨)");
                     return;
                 }
-                const textToRead = sd[playIdx].en;
+                
+                // 👇 여기서 이모지를 싹 걸러냅니다!
+                const rawText = sd[playIdx].en;
+                const textToRead = rawText.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '').trim();
                 const pitch = (sd[playIdx].role.toLowerCase() === 'ai') ? 1.2 : 0.8;
                 
                 if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
@@ -2220,6 +2226,7 @@ Respond EXACTLY in this JSON format:
             window.processNextTestLine();
         };
 
+       // 🌟 3. 롤플레잉 실전 섀도잉: AI가 말할 때 이모지 묵음 처리!
         window.processNextTestLine = function() {
             if (!isInteractiveTestActive) return;
             const scriptItem = savedScripts[activeTestScriptIdx];
@@ -2231,13 +2238,16 @@ Respond EXACTLY in this JSON format:
             if(lineDiv) { lineDiv.classList.add('bg-yellow-50', 'border-yellow-200'); lineDiv.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
             
             if (line.role.toLowerCase() === 'ai') {
+                // 👇 섀도잉 게임 중에도 이모지 제거 적용
+                const textToRead = line.en.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '').trim();
+                
                 if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
-                    window.flutter_inappwebview.callHandler('speak', line.en, scriptItem.langCode, 1.2).then(() => {
+                    window.flutter_inappwebview.callHandler('speak', textToRead, scriptItem.langCode, 1.2).then(() => {
                         activeTestLineIdx++; 
                         window.processNextTestLine();
                     });
                 } else {
-                    const utt = new SpeechSynthesisUtterance(line.en); utt.lang = scriptItem.langCode; utt.pitch = 1.2;
+                    const utt = new SpeechSynthesisUtterance(textToRead); utt.lang = scriptItem.langCode; utt.pitch = 1.2;
                     utt.onend = () => { activeTestLineIdx++; setTimeout(window.processNextTestLine, 500); }; 
                     window.speechSynthesis.speak(utt);
                 }
