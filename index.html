@@ -1976,12 +1976,17 @@
             const aiLangNames = { "ko-KR": "Korean", "en-US": "English", "ja-JP": "Japanese", "zh-CN": "Simplified Chinese (Mandarin)", "es-ES": "Spanish", "th-TH": "Thai", "vi-VN": "Vietnamese", "fr-FR": "French", "de-DE": "German", "ru-RU": "Russian" };
             const exactAiLang = aiLangNames[expLangCode] || expLangCode;
 
-            const systemPrompt = `You are an expert language tutor. Analyze the given text and follow these STRICT rules:
-        1. EXPLANATION: Explain the core meaning and grammar in 1-2 short sentences. Write this explanation ONLY in ${exactAiLang}.
-        2. EXAMPLES HEADER: Insert a header phrase equivalent to "💡 You can reply like this:" in ${exactAiLang}.
-        3. REPLY EXAMPLES: Provide 2 to 3 natural conversational replies.
-        4. JSON FORMAT: Output ONLY a valid JSON object.
-        Respond in JSON: {"translation": "put your short explanation and reply examples here"}`;
+            // 🌟 [핵심] AI가 답변 예시와 해석을 절대 빼먹지 못하도록 멱살 잡는 강력한 프롬프트!
+            const systemPrompt = `You are an expert language tutor. Analyze the given text and provide a helpful tutoring response.
+STRICT RULES:
+1. Briefly explain the core meaning and grammar of the text ONLY in ${exactAiLang}.
+2. Provide 2 to 3 natural conversational replies in ${targetLangName} that the user could say back to the AI.
+3. Provide the exact translation of each reply example in ${exactAiLang}.
+4. Output ONLY a JSON object with the key "explanation". Use '\\n' for line breaks.
+
+Respond EXACTLY in this JSON format:
+{"explanation": "[Grammar & Meaning in ${exactAiLang}]\\n\\n💡 [Header in ${exactAiLang}, e.g., '이렇게 대답해 보세요:']\\n1. [Reply in ${targetLangName}] - [Meaning in ${exactAiLang}]\\n2. [Reply in ${targetLangName}] - [Meaning in ${exactAiLang}]"}`;
+            
             const userPrompt = `Analyze:\n- Learning Language: ${targetLangName}\n- Context: "${fullText}"\n- Target: "${targetText}"`;
 
             try {
