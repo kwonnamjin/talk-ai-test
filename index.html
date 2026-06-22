@@ -45,18 +45,19 @@
     <div class="w-full max-w-md h-full sm:h-[850px] max-h-full sm:rounded-3xl shadow-2xl overflow-hidden relative mx-auto bg-slate-900">
         
         <!-- 🌟 1. 공통 상단 헤더 (모든 화면 위에 떠 있음) -->
-        <header class="absolute top-0 left-0 right-0 h-14 bg-white/90 backdrop-blur-md border-b border-slate-100 z-[60] flex items-center justify-between px-4 sm:rounded-t-3xl shadow-sm">
-            <h1 class="text-lg font-extrabold text-slate-800 tracking-tight">AI Tutor</h1>
+        <header class="absolute top-0 left-0 right-0 h-14 bg-gradient-to-r from-indigo-600 via-blue-500 to-blue-400 backdrop-blur-md border-b border-white/20 z-[60] flex items-center justify-between px-4 sm:rounded-t-3xl shadow-md">
             
-            <!-- 🌟 우측 뱃지 영역 (번개 뱃지 + 출석 뱃지 나란히 배치) -->
+            <div class="flex flex-col justify-center">
+                <h1 class="text-lg font-black text-white tracking-tight drop-shadow-sm leading-none">TALK AI</h1>
+                <p class="text-[8px] text-blue-100 uppercase tracking-widest font-bold mt-1 drop-shadow-sm opacity-90">Smart Language Partner</p>
+            </div>
+            
             <div class="flex items-center gap-2">
-                <!-- 요금제 & 번개 잔여량 뱃지 (이리 이사 옴!) -->
                 <div id="usageBadge"></div>
                 
-                <!-- 출석 뱃지 -->
-                <button onclick="openStreakModal()" class="flex items-center gap-1.5 bg-gradient-to-r from-orange-500 to-red-500 px-3 py-1.5 rounded-full shadow-md transform transition hover:scale-105">
+                <button onclick="openStreakModal()" class="flex items-center gap-1.5 bg-gradient-to-r from-orange-500 to-red-500 px-3 py-1.5 rounded-full shadow-[0_2px_10px_rgba(249,115,22,0.3)] border border-white/20 transform transition hover:scale-105">
                     <span class="text-white text-xs"><i class="fa-solid fa-fire"></i></span>
-                    <span id="header-streak-count" class="text-white text-xs font-bold tracking-wide">0일 연속</span>
+                    <span id="header-streak-count" class="text-white text-[11px] font-bold tracking-wide">0일 연속</span>
                 </button>
             </div>
 
@@ -65,19 +66,31 @@
         </header>
 
         <div id="streak-modal" class="fixed inset-0 bg-slate-900/60 z-[100] hidden flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
-            <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl relative">
-                <button onclick="document.getElementById('streak-modal').classList.add('hidden')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 transition"><i class="fa-solid fa-xmark"></i></button>
-                <div class="text-center mt-2 mb-6">
+            <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl relative transform transition-all scale-100">
+                <button onclick="closeStreakModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 transition"><i class="fa-solid fa-xmark"></i></button>
+                <div class="text-center mt-2 mb-5">
                     <div class="text-5xl mb-3 animate-bounce">🔥</div>
-                    <h2 class="text-xl font-extrabold text-slate-800">현재 <span class="text-red-500">3</span>일 연속 학습 중!</h2>
-                    <p class="text-sm text-slate-500 mt-2 bg-slate-100 inline-block px-3 py-1 rounded-full">오늘의 복습 미션: <span class="font-extrabold text-indigo-600">2 / 5</span> 회</p>
+                    <h2 class="text-xl font-extrabold text-slate-800">현재 <span id="modal-streak-count" class="text-red-500">0</span>일 연속 학습 중!</h2>
+                    <p class="text-xs text-slate-500 mt-2">오늘의 퀘스트를 완료하고 번개를 받으세요!</p>
                 </div>
-                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 mb-5">
-                    <div class="flex justify-between text-xs font-bold mb-2"><span class="text-slate-500">다음 보상까지</span><span class="text-orange-600">D-7</span></div>
-                    <div class="h-3 w-full bg-slate-200 rounded-full overflow-hidden"><div id="streak-progress-bar" class="h-full bg-gradient-to-r from-orange-400 to-red-500 rounded-full" style="width: 30%;"></div></div>
-                    <p class="text-xs text-slate-500 mt-3 text-center">10일 연속 달성 시 <span class="font-bold text-indigo-600">번개 +30회</span> 지급 ⚡</p>
+                
+                <div class="space-y-3 mb-5">
+                    <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 flex items-center justify-between">
+                        <div class="flex items-center gap-2"><i class="fa-solid fa-headphones text-indigo-500"></i><span class="text-xs font-bold text-slate-700">롤플레잉 대본 끝까지 듣기</span></div>
+                        <span id="modal-quest-script" class="text-xs font-black text-indigo-600">0 / 5</span>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 flex items-center justify-between">
+                        <div class="flex items-center gap-2"><i class="fa-solid fa-volume-high text-emerald-500"></i><span class="text-xs font-bold text-slate-700">단어장 원어민 발음 듣기</span></div>
+                        <span id="modal-quest-vocab" class="text-xs font-black text-emerald-600">0 / 10</span>
+                    </div>
                 </div>
-                <button onclick="document.getElementById('streak-modal').classList.add('hidden')" class="w-full bg-slate-900 text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition shadow-md">계속 학습하기</button>
+
+                <div class="bg-orange-50 p-4 rounded-2xl border border-orange-100 mb-5">
+                    <div class="flex justify-between text-[10px] font-bold mb-2"><span class="text-orange-700">다음 보상 (10일 연속)</span><span class="text-orange-600">진행 중</span></div>
+                    <div class="h-2 w-full bg-orange-200 rounded-full overflow-hidden"><div id="streak-progress-bar" class="h-full bg-gradient-to-r from-orange-400 to-red-500 rounded-full transition-all duration-500" style="width: 0%;"></div></div>
+                    <p class="text-[10px] text-orange-600 mt-2 text-center font-bold">10일 연속 달성 시 번개 +30회 지급 ⚡</p>
+                </div>
+                <button onclick="closeStreakModal()" class="w-full bg-slate-900 text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition shadow-md">계속 학습하기</button>
             </div>
         </div>
 
@@ -94,7 +107,7 @@
            <!-- ⬆️ 상단 영역 (좌측 일렬종대 정렬) -->
             <div class="relative z-10 flex-1 w-full pt-16 pb-4 px-4 overflow-y-auto no-scrollbar">
                 
-                <div class="flex justify-between items-stretch gap-3">
+                <div class="flex justify-between items-start gap-3">
                     
                     <div class="w-[42%] min-w-[130px] max-w-[160px] flex flex-col gap-2.5 shrink-0">
                         
@@ -135,17 +148,17 @@
                         </div>
                     </div>
 
-                    <div class="flex-1 bg-gradient-to-br from-white/70 to-white/30 backdrop-blur-md p-3 rounded-2xl shadow-[0_4px_15px_rgba(0,0,0,0.05)] border border-white/60 flex flex-col relative overflow-hidden group">
+                    <div class="flex-1 h-[204px] bg-gradient-to-br from-white/70 to-white/30 backdrop-blur-md p-3 rounded-2xl shadow-[0_4px_15px_rgba(0,0,0,0.05)] border border-white/60 flex flex-col relative overflow-hidden group">
                         <i class="fa-solid fa-brain text-purple-500/10 text-6xl absolute -bottom-3 -right-3 transform -rotate-12 group-hover:scale-110 transition-transform"></i>
                         
-                        <div class="relative z-10 mb-2 flex items-center gap-1.5 border-b border-white/50 pb-2">
+                        <div class="relative z-10 mb-2 flex items-center gap-1.5 border-b border-white/50 pb-2 shrink-0">
                             <div class="w-6 h-6 rounded-full bg-gradient-to-br from-purple-100 to-indigo-100 flex items-center justify-center border border-white shadow-sm shrink-0">
                                 <i class="fa-solid fa-robot text-xs text-purple-600"></i>
                             </div>
                             <p class="text-[11px] font-black text-slate-700 tracking-tight">AI 튜터의 기억 🧠</p>
                         </div>
                         
-                        <div class="relative z-10 flex-1 bg-white/40 rounded-xl p-3 border border-white/60 shadow-inner overflow-y-auto no-scrollbar">
+                        <div class="relative z-10 flex-1 bg-white/40 rounded-xl p-3 border border-white/60 shadow-inner overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-300/80 [&::-webkit-scrollbar-thumb]:rounded-full">
                             <p id="ai_memory_display" class="text-[11px] text-slate-700 font-bold leading-relaxed break-words whitespace-pre-wrap">
                                 데이터 로딩 중...
                             </p>
@@ -162,7 +175,7 @@
                 <div class="mb-3">
                     <h2 class="text-sm font-extrabold text-slate-800 mb-2 px-1 flex items-center justify-between drop-shadow-sm">
                         <span>내 학습 리포트 📊</span>
-                        <span class="text-[9px] text-slate-500 font-bold bg-white/60 backdrop-blur-sm px-2 py-0.5 rounded-full shadow-sm border border-white/50">실시간 기록</span>
+                        <span id="dash-quest-status" class="text-[9px] text-orange-600 font-bold bg-orange-100 px-2 py-0.5 rounded-full shadow-sm border border-orange-200 transition-colors">퀘스트: 대본(0/5) 단어(0/10)</span>
                     </h2>
                     <div class="grid grid-cols-2 gap-2">
                         <div class="col-span-2 bg-gradient-to-br from-white/70 to-white/30 backdrop-blur-md rounded-2xl p-3 shadow-[0_4px_15px_rgba(0,0,0,0.05)] relative overflow-hidden flex items-center justify-between transform transition hover:-translate-y-1 border border-white/60">
@@ -179,7 +192,7 @@
                         </div>
                         <div class="bg-gradient-to-br from-white/70 to-white/30 backdrop-blur-md rounded-2xl p-3 shadow-[0_4px_15px_rgba(0,0,0,0.05)] relative overflow-hidden transform transition hover:-translate-y-1 border border-white/60">
                             <i class="fa-solid fa-scroll text-blue-500/10 text-4xl absolute -right-2 -bottom-2"></i>
-                            <div class="relative z-10"><p class="text-slate-500 text-[9px] font-bold mb-0.5">보관된 롤플레잉</p><p class="text-lg font-black text-slate-800"><span id="dash-total-scripts">0</span><span class="text-[10px] font-bold text-slate-500 ml-1">개</span></p></div>
+                            <div class="relative z-10"><p class="text-slate-500 text-[9px] font-bold mb-0.5">복습한 롤플레잉</p><p class="text-lg font-black text-slate-800"><span id="dash-total-scripts">0</span><span class="text-[10px] font-bold text-slate-500 ml-1">개</span></p></div>
                         </div>
                     </div>
                 </div>
@@ -325,13 +338,16 @@
             </div>
         </div>
 
+        <!-- 🎬 상황별 롤플레잉 화면 -->
         <div id="screen-roleplay" class="absolute top-0 left-0 w-full h-full flex flex-col z-20 bg-[#f3f4f6] overflow-hidden sm:rounded-3xl" style="transform: translateX(100%); box-shadow: -10px 0 25px rgba(0,0,0,0.1); transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);">
-            <div class="flex-none bg-white pt-14 border-b border-gray-100 p-4 flex items-center justify-between z-10 shadow-sm relative gap-2">
-                <button onclick="goHome('screen-roleplay')" class="w-8 h-8 flex items-center justify-center text-slate-500 hover:bg-slate-100 rounded-full shrink-0">
-                    <i class="fa-solid fa-chevron-left"></i></button>
+            
+            <div class="flex-none bg-white pt-14 sm:pt-4 border-b border-gray-100 p-4 flex items-center justify-between z-10 shadow-sm relative gap-2">
+                <button onclick="goToScreen(0)" class="w-8 h-8 flex items-center justify-center text-slate-500 hover:bg-slate-100 rounded-full shrink-0">
+                    <i class="fa-solid fa-chevron-left text-lg"></i>
+                </button>
                 <h1 id="header_room2" class="text-lg font-bold text-gray-800 truncate flex-1 min-w-0">🎬 상황별 롤플레잉</h1>
                 <div class="flex items-center shrink-0 gap-2"> 
-                     
+                    <div id="usageBadge2"></div> 
                     <button class="bg-blue-50 text-blue-600 text-[11px] font-bold rounded-lg border border-blue-200 px-2.5 py-1.5 flex items-center gap-1.5 outline-none hover:bg-blue-100 transition-colors shadow-sm max-w-[110px]" onclick="openCustomLangPicker('targetLanguage')">
                         <span id="disp-roleplayLanguage" class="truncate">🇺🇸 영어</span> 
                         <i class="fa-solid fa-chevron-down text-[9px] opacity-70 shrink-0"></i>
@@ -342,46 +358,29 @@
             <div id="scrollArea" class="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar pb-24">
 
                 <div id="rpWelcomeWrapper" class="flex flex-col space-y-1 mb-5">
-    <div class="bg-white border border-purple-100 rounded-2xl rounded-tl-none p-4 max-w-[95%] shadow-md shadow-purple-900/5 self-start">
-        <p class="text-[13px] text-slate-800 font-extrabold mb-3 border-b border-slate-100 pb-2 flex items-center gap-2"><i class="fa-solid fa-clapperboard text-purple-500"></i> <span id="rp_welcome_title">롤플레잉 100% 활용하기</span></p>
-        <div class="space-y-3 text-xs text-slate-600 leading-relaxed">
-            
-            <div class="flex items-start gap-2">
-                <div class="w-6 h-6 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 mt-0.5 border border-purple-100"><i class="fa-solid fa-layer-group text-[10px]"></i></div>
-                <div>
-                    <p id="rp_welcome_f1_title" class="font-bold text-slate-800 mb-0.5">레벨 및 상황 맞춤 설정</p>
-                    <p id="rp_welcome_f1_desc" class="text-slate-500">원하는 난이도와 상황을 고르거나, 텍스트 창에 직접 원하는 롤플레잉 상황을 입력해 보세요.</p>
+                    <div class="bg-white border border-purple-100 rounded-2xl rounded-tl-none p-4 max-w-[95%] shadow-md shadow-purple-900/5 self-start">
+                        <p class="text-[13px] text-slate-800 font-extrabold mb-3 border-b border-slate-100 pb-2 flex items-center gap-2"><i class="fa-solid fa-clapperboard text-purple-500"></i> <span id="rp_welcome_title">롤플레잉 100% 활용하기</span></p>
+                        <div class="space-y-3 text-xs text-slate-600 leading-relaxed">
+                            <div class="flex items-start gap-2">
+                                <div class="w-6 h-6 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 mt-0.5 border border-purple-100"><i class="fa-solid fa-layer-group text-[10px]"></i></div>
+                                <div><p id="rp_welcome_f1_title" class="font-bold text-slate-800 mb-0.5">레벨 및 상황 맞춤 설정</p><p id="rp_welcome_f1_desc" class="text-slate-500">원하는 난이도와 상황을 고르거나, 텍스트 창에 직접 원하는 롤플레잉 상황을 입력해 보세요.</p></div>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <div class="w-6 h-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 mt-0.5 border border-blue-100"><i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i></div>
+                                <div><p id="rp_welcome_f2_title" class="font-bold text-slate-800 mb-0.5">초고속 AI 대본 생성</p><p id="rp_welcome_f2_desc" class="text-slate-500">생성 버튼을 누르면 AI가 즉시 현지에서 쓰는 자연스러운 회화 대본을 만들어 줍니다.</p></div>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <div class="w-6 h-6 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5 border border-emerald-100"><i class="fa-solid fa-microphone-lines text-[10px]"></i></div>
+                                <div><p id="rp_welcome_f3_title" class="font-bold text-slate-800 mb-0.5">실전 말하기 & 섀도잉</p><p id="rp_welcome_f3_desc" class="text-slate-500">생성된 대본을 듣고, 하단의 마이크 버튼을 눌러 AI와 번갈아 가며 직접 말하기 연습을 해보세요.</p></div>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <div class="w-6 h-6 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 mt-0.5 border border-amber-100"><i class="fa-solid fa-gamepad text-[10px]"></i></div>
+                                <div><p id="rp_welcome_f4_title" class="font-bold text-slate-800 mb-0.5">다양한 복습 모드</p><p id="rp_welcome_f4_desc" class="text-slate-500">대본 우측 상단의 4가지 버튼을 눌러 전체 듣기(🔊), 실전 대화 게임(🎮), 빈칸 채우기 퀴즈(🧩) 등 다양한 방법으로 복습해 보세요.</p></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="flex items-start gap-2">
-                <div class="w-6 h-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 mt-0.5 border border-blue-100"><i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i></div>
-                <div>
-                    <p id="rp_welcome_f2_title" class="font-bold text-slate-800 mb-0.5">초고속 AI 대본 생성</p>
-                    <p id="rp_welcome_f2_desc" class="text-slate-500">생성 버튼을 누르면 AI가 즉시 현지에서 쓰는 자연스러운 회화 대본을 만들어 줍니다.</p>
-                </div>
-            </div>
-
-            <div class="flex items-start gap-2">
-                <div class="w-6 h-6 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5 border border-emerald-100"><i class="fa-solid fa-microphone-lines text-[10px]"></i></div>
-                <div>
-                    <p id="rp_welcome_f3_title" class="font-bold text-slate-800 mb-0.5">실전 말하기 & 섀도잉</p>
-                    <p id="rp_welcome_f3_desc" class="text-slate-500">생성된 대본을 듣고, 하단의 마이크 버튼을 눌러 AI와 번갈아 가며 직접 말하기 연습을 해보세요.</p>
-                </div>
-            </div>
-
-            <div class="flex items-start gap-2">
-                <div class="w-6 h-6 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 mt-0.5 border border-amber-100"><i class="fa-solid fa-gamepad text-[10px]"></i></div>
-                <div>
-                    <p id="rp_welcome_f4_title" class="font-bold text-slate-800 mb-0.5">다양한 복습 모드</p>
-                    <p id="rp_welcome_f4_desc" class="text-slate-500">대본 우측 상단의 4가지 버튼을 눌러 전체 듣기(🔊), 실전 대화 게임(🎮), 빈칸 채우기 퀴즈(🧩) 등 다양한 방법으로 복습해 보세요.</p>
-                </div>
-            </div>
-
-        </div>
-    </div>
-</div>
-                
                 <section id="levelSection">
                     <h2 class="text-xs font-bold text-slate-500 mb-2"><i class="fa-solid fa-layer-group text-blue-500 mr-1"></i> <span id="rp_level_text">1. 레벨 선택</span></h2>
                     <div class="grid grid-cols-4 gap-1.5">
@@ -402,10 +401,16 @@
                         <div id="rp_sit5" class="sit-card shrink-0 px-4 py-1.5 rounded-lg border-[1.5px] border-slate-100 bg-white text-[11px] font-bold text-slate-600 transition-all text-center cursor-pointer" data-situation="옷 쇼핑">🛍️ 옷 쇼핑</div>
                         <div id="rp_sit6" class="sit-card shrink-0 px-4 py-1.5 rounded-lg border-[1.5px] border-slate-100 bg-white text-[11px] font-bold text-slate-600 transition-all text-center cursor-pointer" data-situation="택시 탑승">🚕 택시 탑승</div>
                     </div>
+                    
                     <input type="text" id="rp_custom_input" placeholder="예시) 이세계 상인과 가격 흥정하는 대본" class="w-full h-11 bg-slate-50 border border-slate-200 text-slate-700 text-[11px] font-bold rounded-xl px-4 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all shadow-inner mb-3" oninput="document.querySelectorAll('.sit-card').forEach(c => c.classList.remove('selected-card'))">
-                    <button id="generateBtn" onclick="generateScript()" class="w-full bg-slate-900 text-white text-sm font-bold py-2.5 rounded-xl shadow-md hover:bg-black transition-all">✨ AI 대본 생성하기</button>
+                    
+                    <button id="generateBtn" onclick="generateScript()" class="w-full bg-slate-900 text-white text-sm font-bold py-3.5 rounded-xl shadow-md hover:bg-black transition-all flex items-center justify-center gap-2">
+                       <i class="fa-solid fa-wand-magic-sparkles"></i> <span>AI 대본 생성하기</span>
+                    </button>
                 </section>
+
                 <hr class="border-slate-200 border-dashed border-t-2 my-3">
+
                 <section id="scriptPlayer">
                     <div class="bg-blue-50 rounded-xl p-3 mb-3 border border-blue-100">
                         <p class="text-[11px] text-blue-600 font-bold mb-0.5" id="statusBoxTitle">상황 설명</p>
@@ -413,7 +418,9 @@
                     </div>
                     <div class="space-y-3" id="scriptList"></div>
                 </section>
+                
             </div>
+
             <div class="absolute bottom-0 w-full bg-white border-t border-gray-200 px-4 py-4 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)] rounded-b-3xl" style="padding-bottom: calc(env(safe-area-inset-bottom) - 35px);">
                 <button onclick="startShadowing()" id="roleplayMicBtn" class="w-full h-14 px-6 rounded-full bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold shadow-lg shadow-blue-200 flex items-center justify-center gap-2 transform transition-transform hover:scale-[1.02] min-w-0">
                     <i class="fa-solid fa-microphone text-xl shrink-0" id="roleplayMicIcon"></i> 
@@ -481,7 +488,8 @@
 </div>
                 
                 <div id="mainFlashcardArea" class="hidden flex-col items-center">
-                    <div id="vocabFlashcard" class="w-full max-w-sm h-[320px] relative transform-style-3d cursor-pointer shadow-xl rounded-3xl" onclick="this.classList.toggle('rotate-y-180'); window.addStudyMission(); window.addLearningStat('word', 1);">
+                    <!-- 🌟 꼼수 방지: 클릭 시 뒤집어지기만 하고 퀘스트는 안 오름! -->
+                    <div id="vocabFlashcard" class="w-full max-w-sm h-[320px] relative transform-style-3d cursor-pointer shadow-xl rounded-3xl" onclick="this.classList.toggle('rotate-y-180');">
                         <div class="absolute w-full h-full bg-white rounded-3xl border-[3px] border-indigo-100 backface-hidden flex flex-col items-center justify-center p-6 text-center">
                             <div class="absolute top-4 left-0 w-full flex justify-center"><span id="vcCount" class="text-[10px] text-indigo-500 font-bold bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">단어를 선택하세요</span></div>
                             <h2 id="vcWord" class="text-4xl sm:text-5xl font-black text-slate-800 mb-2 tracking-tight"></h2>
@@ -2051,12 +2059,16 @@
             }
         };
 
+        // 🎬 [수정완료] 1. 대본 생성 함수 (로딩 애니메이션 + 원본 로직 완벽 통합)
         window.generateScript = async function() {
             if (savedScripts.length >= 5) { if (!confirm("새로운 대본 생성 시 가장 오래된 1번 대본이 삭제됩니다.\n계속하시겠습니까?")) return; }
             if (typeof window.checkAndBlockAPI === 'function' && !window.checkAndBlockAPI()) return;
 
             const btn = document.getElementById("generateBtn");
-            const level = document.querySelector('.level-btn.selected-card').innerText.trim();
+            
+            // 🌟 대표님의 오리지널 레벨/상황 선택 로직 완벽 보존
+            const levelBtn = document.querySelector('.level-btn.selected-card');
+            const level = levelBtn ? levelBtn.innerText.trim() : "초급";
             const customInput = document.getElementById('rp_custom_input');
             const customSituation = customInput ? customInput.value.trim() : "";
             const selectedCard = document.querySelector('.sit-card.selected-card');
@@ -2068,21 +2080,36 @@
             const aiLangNames = { "ko-KR": "Korean", "en-US": "English", "ja-JP": "Japanese", "zh-CN": "Chinese", "es-ES": "Spanish", "th-TH": "Thai", "vi-VN": "Vietnamese", "fr-FR": "French", "de-DE": "German", "ru-RU": "Russian", "ar-SA": "Arabic", "hi-IN": "Hindi" };
             const expLangName = aiLangNames[expLangCode] || expLangCode;
 
+            // 🌟 생성 버튼 로딩 애니메이션 켜기
+            const originalBtnHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>AI 대본 생성 중...</span>';
             btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-wait');
+
             try {
+                // 서버로 데이터 전송
                 const res = await fetch(`${WORKER_URL}generate-script`, { 
                     method: 'POST', headers: { 'Content-Type': 'application/json' }, 
                     body: JSON.stringify({ level: level, situation: isRandom ? "random daily life" : situation, language: targetLangName, expLanguage: expLangName, isRandom: isRandom }) 
                 });
                 const data = await res.json(); 
+                
                 if (typeof window.incrementLocalUsage === 'function') window.incrementLocalUsage();
                 if (savedScripts.length >= 5) savedScripts.shift(); 
+                
                 savedScripts.push({ level: level, situation: situation, langName: targetLangName, langCode: document.getElementById('targetLanguage').value, scriptData: data.scriptData });
-                localStorage.setItem('roleplay_scripts', JSON.stringify(savedScripts)); window.renderScripts();
+                localStorage.setItem('roleplay_scripts', JSON.stringify(savedScripts)); 
+                
+                window.renderScripts(); // 화면에 그려주기
                 if(customInput) customInput.value = '';
-            } catch (err) { alert("대본 생성 실패"); } finally { 
+            } catch (err) { 
+                alert("대본 생성 실패: 네트워크나 서버를 확인해 주세요."); 
+            } finally { 
+                // 🌟 통신이 끝나면 버튼 상태 무조건 원상 복구
                 const baseLang = (document.getElementById('explanationLanguage').value || 'ko-KR').split('-')[0];
-                btn.innerText = UI_DICTIONARY[baseLang]?.generateBtn || "✨ AI 대본 생성하기"; btn.disabled = false; 
+                btn.innerHTML = UI_DICTIONARY[baseLang]?.generateBtn ? `<i class="fa-solid fa-wand-magic-sparkles"></i> <span>${UI_DICTIONARY[baseLang].generateBtn.replace('✨ ', '')}</span>` : `<i class="fa-solid fa-wand-magic-sparkles"></i> <span>AI 대본 생성하기</span>`; 
+                btn.disabled = false; 
+                btn.classList.remove('opacity-50', 'cursor-wait');
             }
         };
 
@@ -2108,9 +2135,14 @@
             const sd = savedScripts[index].scriptData; let playIdx = 0;
             const playNext = () => {
                 if (!isScriptPlaying || playingScriptIndex !== index) return;
+                // 👇 대본을 끝까지 다 읽었을 때!
                 if (playIdx >= sd.length) {
                     isScriptPlaying = false; playingScriptIndex = -1;
                     if(currentBtn) { currentBtn.innerHTML = '<i class="fa-solid fa-volume-high text-xs"></i>'; currentBtn.classList.replace('text-red-500', 'text-indigo-600'); currentBtn.classList.replace('border-red-200', 'border-indigo-200'); }
+                    
+                    // 🌟 끝까지 다 들었을 때 퀘스트 1회 달성 센서 발동!
+                    window.addStudyMission('script'); 
+                    window.updateStatus("✅ 대본 듣기 완료! (퀘스트 카운트 됨)");
                     return;
                 }
                 const textToRead = sd[playIdx].en;
@@ -2270,6 +2302,10 @@
                 utt.lang = savedVocabs[currentVocabSetIdx].langCode; utt.rate = isBackSide ? 0.9 : 1.0; 
                 window.speechSynthesis.speak(utt);
             }
+            
+            // 🌟 꼼수 방지 완료: 발음을 직접 들었을 때만 진짜 공부로 인정!
+            window.addStudyMission('vocab'); 
+            window.addLearningStat('word', 1);
         };
 
         window.generateVocab = async function() {
@@ -2569,73 +2605,97 @@
         const langSelector = document.getElementById('explanationLanguage');
         if (langSelector) langSelector.addEventListener('change', window.updateExtraUI);
 
-        window.updateStreakUI = function() {
-            const todayStr = new Date().toLocaleDateString();
-            let streakData = JSON.parse(localStorage.getItem('study_streak_v1')) || { lastDate: "", streak: 0, todayCount: 0 };
-            
-            if (streakData.lastDate !== todayStr) {
-                const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
-                const yesterdayStr = yesterday.toLocaleDateString();
-                if (streakData.lastDate !== yesterdayStr && streakData.lastDate !== todayStr) {
-                    streakData.streak = 0; 
-                }
-                if(streakData.lastDate !== todayStr && streakData.todayCount >= 5) {
-                    streakData.todayCount = 0; 
-                } else if (streakData.lastDate !== todayStr && streakData.todayCount < 5) {
-                    streakData.todayCount = 0; 
-                }
-                localStorage.setItem('study_streak_v1', JSON.stringify(streakData));
-            }
-
-            const headerStreak = document.getElementById('header-streak-count');
-            const modalStreak = document.getElementById('modal-streak-count');
-            const todayMission = document.getElementById('today-mission-count');
-            const progressBar = document.getElementById('streak-progress-bar');
-            
-            if(headerStreak) headerStreak.innerText = `${streakData.streak}일 연속`;
-            if(modalStreak) modalStreak.innerText = streakData.streak;
-            if(todayMission) todayMission.innerText = `${streakData.todayCount} / 5`;
-            
-            const nextGoal = 10;
-            const progressPercent = ((streakData.streak % nextGoal) / nextGoal) * 100;
-            if(progressBar) progressBar.style.width = `${progressPercent}%`;
+        // 🌟 출석 모달 열고 닫기 함수 명시적 추가 (버튼 먹통 버그 해결!)
+        window.openStreakModal = function() { 
+            document.getElementById('streak-modal').classList.remove('hidden'); 
+            window.updateStreakUI(); // 창 열 때 최신 상태 반영
+        };
+        window.closeStreakModal = function() { 
+            document.getElementById('streak-modal').classList.add('hidden'); 
         };
 
-        window.addStudyMission = function() {
+        // 🌟 새로운 퀘스트 UI 업데이트 로직
+        window.updateStreakUI = function() {
             const todayStr = new Date().toLocaleDateString();
-            let streakData = JSON.parse(localStorage.getItem('study_streak_v1')) || { lastDate: "", streak: 0, todayCount: 0 };
+            let streakData = JSON.parse(localStorage.getItem('study_streak_v2')) || { lastDate: "", streak: 0, scriptCount: 0, vocabCount: 0, completedToday: false };
             
-            if (streakData.lastDate === todayStr && streakData.todayCount >= 5) return;
-            
-            if (streakData.todayCount < 5) {
-                streakData.todayCount += 1;
-                window.updateStatus(`🔥 오늘의 복습 미션 (${streakData.todayCount}/5)`);
-                
-                if (streakData.todayCount === 5) {
-                    streakData.streak += 1;
-                    streakData.lastDate = todayStr;
-                    window.updateStatus(`🎉 출석 완료! ${streakData.streak}일 연속 학습 중!`);
-                    window.openStreakModal(); 
-                    
-                    let rewardAmount = 0;
-                    if (streakData.streak === 3) rewardAmount = 20;
-                    else if (streakData.streak > 0 && streakData.streak % 15 === 0) rewardAmount = 50;
-                    else if (streakData.streak > 0 && streakData.streak % 10 === 0) rewardAmount = 30;
-                    
-                    if (rewardAmount > 0) {
-                        setTimeout(() => {
-                            alert(`🎁 축하합니다!\n${streakData.streak}일 연속 학습 달성으로 번개 +${rewardAmount}개가 지급되었습니다!`);
-                            let usageObj = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}');
-                            usageObj.count = Math.max(0, (usageObj.count || 0) - rewardAmount); 
-                            localStorage.setItem('daily_usage_v4', JSON.stringify(usageObj));
-                            if(typeof window.updateBadgeUI === 'function') window.updateBadgeUI();
-                        }, 1000);
-                    }
+            // 날짜가 다르면 퀘스트 초기화
+            if (streakData.lastDate !== todayStr) {
+                const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+                // 어제 출석 안했으면 연속일수 0으로 초기화
+                if (streakData.lastDate !== yesterday.toLocaleDateString() && streakData.lastDate !== "") {
+                    streakData.streak = 0; 
                 }
-                localStorage.setItem('study_streak_v1', JSON.stringify(streakData));
+                streakData.scriptCount = 0; streakData.vocabCount = 0; streakData.completedToday = false; streakData.lastDate = todayStr;
+                localStorage.setItem('study_streak_v2', JSON.stringify(streakData));
+            }
+
+            // 헤더 연속일수
+            const headerStreak = document.getElementById('header-streak-count');
+            if(headerStreak) headerStreak.innerText = `${streakData.streak}일 연속`;
+            
+            // 모달 안쪽 텍스트 업데이트
+            if(document.getElementById('modal-streak-count')) document.getElementById('modal-streak-count').innerText = streakData.streak;
+            if(document.getElementById('modal-quest-script')) document.getElementById('modal-quest-script').innerText = `${Math.min(5, streakData.scriptCount)} / 5`;
+            if(document.getElementById('modal-quest-vocab')) document.getElementById('modal-quest-vocab').innerText = `${Math.min(10, streakData.vocabCount)} / 10`;
+
+            const progressBar = document.getElementById('streak-progress-bar');
+            if(progressBar) progressBar.style.width = `${((streakData.streak % 10) / 10) * 100}%`;
+
+            // 대시보드 퀘스트 텍스트 업데이트
+            const dashQuest = document.getElementById('dash-quest-status');
+            if(dashQuest) {
+                if (streakData.completedToday) {
+                    dashQuest.innerHTML = '✨ 오늘 퀘스트 완료!';
+                    dashQuest.className = 'text-[9px] text-emerald-600 font-bold bg-emerald-100 px-2 py-0.5 rounded-full shadow-sm border border-emerald-200 transition-colors';
+                } else {
+                    dashQuest.innerHTML = `오늘 퀘스트: 대본(${Math.min(5, streakData.scriptCount)}/5) 단어(${Math.min(10, streakData.vocabCount)}/10)`;
+                    dashQuest.className = 'text-[9px] text-orange-600 font-bold bg-orange-100 px-2 py-0.5 rounded-full shadow-sm border border-orange-200 transition-colors';
+                }
+            }
+        };
+
+        // 🌟 행동 센서가 호출할 때마다 카운트 올려주는 로직
+        window.addStudyMission = function(type) {
+            if (!type) return;
+            const todayStr = new Date().toLocaleDateString();
+            let streakData = JSON.parse(localStorage.getItem('study_streak_v2')) || { lastDate: todayStr, streak: 0, scriptCount: 0, vocabCount: 0, completedToday: false };
+            
+            if (streakData.lastDate !== todayStr) { window.updateStreakUI(); streakData = JSON.parse(localStorage.getItem('study_streak_v2')); }
+            if (streakData.completedToday) return; // 이미 오늘 퀘스트 끝냈으면 스톱
+
+            let changed = false;
+            // 타입에 맞춰서 횟수 증가
+            if (type === 'script' && streakData.scriptCount < 5) { streakData.scriptCount += 1; changed = true; } 
+            else if (type === 'vocab' && streakData.vocabCount < 10) { streakData.vocabCount += 1; changed = true; }
+
+            if (changed) {
+                // 🌟 둘 다 목표치에 도달했는지 확인!
+                if (streakData.scriptCount >= 5 && streakData.vocabCount >= 10) {
+                    streakData.completedToday = true;
+                    streakData.streak += 1;
+                    window.openStreakModal(); // 달성 즉시 축하 팝업!
+                    
+                    let rw = 10; // 기본 일일 보상 10개
+                    if (streakData.streak === 3) rw = 20;
+                    else if (streakData.streak > 0 && streakData.streak % 15 === 0) rw = 50;
+                    else if (streakData.streak > 0 && streakData.streak % 10 === 0) rw = 30;
+
+                    setTimeout(() => { 
+                        alert(`🎉 일일 퀘스트 완벽 달성!\n${streakData.streak}일 연속 출석 기념으로 번개 +${rw}개가 충전되었습니다! ⚡`); 
+                        let usageObj = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}'); 
+                        usageObj.count = Math.max(0, (usageObj.count || 0) - rw); 
+                        localStorage.setItem('daily_usage_v4', JSON.stringify(usageObj)); 
+                        window.updateBadgeUI(); 
+                    }, 800);
+                }
+                localStorage.setItem('study_streak_v2', JSON.stringify(streakData));
                 window.updateStreakUI();
             }
         };
+
+        // 앱 켤 때 퀘스트 정보 갱신
+        setTimeout(window.updateStreakUI, 500);
 
         window.updateDashboardUI = function() {
             let stats = JSON.parse(localStorage.getItem('user_learning_stats_v1')) || { sentences: 0, words: 0 };
