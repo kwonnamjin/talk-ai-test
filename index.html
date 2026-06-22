@@ -2709,6 +2709,16 @@ window.addStudyMission = function() {
 // 화면 켜질 때 UI 갱신
 setTimeout(window.updateStreakUI, 500);
 
+// 🌟 실수로 지워진 숨김 언어 설정 부품 자동 복구 (에러 원천 차단)
+setTimeout(() => {
+    if (!document.getElementById('targetLanguage')) {
+        document.body.insertAdjacentHTML('beforeend', '<select id="targetLanguage" class="hidden"></select>');
+        if (typeof renderLanguageSelects === 'function') renderLanguageSelects();
+        document.getElementById('targetLanguage').value = localStorage.getItem('target_language') || 'en-US';
+        console.log("🛠️ 복구 완료: targetLanguage 요소가 재생성되었습니다.");
+    }
+}, 500);
+
     </script>
 
 </body>
