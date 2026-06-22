@@ -44,12 +44,22 @@
 
     <div class="w-full max-w-md h-full sm:h-[850px] max-h-full sm:rounded-3xl shadow-2xl overflow-hidden relative mx-auto bg-slate-900">
         
-        <header class="absolute top-0 left-0 right-0 h-14 bg-white/90 backdrop-blur-md border-b border-slate-100 z-[60] flex items-center justify-between px-4 sm:rounded-t-3xl">
+        <!-- 🌟 1. 공통 상단 헤더 (모든 화면 위에 떠 있음) -->
+        <header class="absolute top-0 left-0 right-0 h-14 bg-white/90 backdrop-blur-md border-b border-slate-100 z-[60] flex items-center justify-between px-4 sm:rounded-t-3xl shadow-sm">
             <h1 class="text-lg font-extrabold text-slate-800 tracking-tight">AI Tutor</h1>
-            <button onclick="openStreakModal()" class="flex items-center gap-1.5 bg-gradient-to-r from-orange-500 to-red-500 px-3 py-1.5 rounded-full shadow-sm transform transition hover:scale-105">
-                <span class="text-white text-xs"><i class="fa-solid fa-fire"></i></span>
-                <span id="header-streak-count" class="text-white text-xs font-bold">3일 연속</span>
-            </button>
+            
+            <!-- 🌟 우측 뱃지 영역 (번개 뱃지 + 출석 뱃지 나란히 배치) -->
+            <div class="flex items-center gap-2">
+                <!-- 요금제 & 번개 잔여량 뱃지 (이리 이사 옴!) -->
+                <div id="usageBadge"></div>
+                
+                <!-- 출석 뱃지 -->
+                <button onclick="openStreakModal()" class="flex items-center gap-1.5 bg-gradient-to-r from-orange-500 to-red-500 px-3 py-1.5 rounded-full shadow-md transform transition hover:scale-105">
+                    <span class="text-white text-xs"><i class="fa-solid fa-fire"></i></span>
+                    <span id="header-streak-count" class="text-white text-xs font-bold tracking-wide">0일 연속</span>
+                </button>
+            </div>
+
             <select id="targetLanguage" class="hidden" onchange="targetLanguageChanged()"></select>
             <select id="explanationLanguage" class="hidden"></select>
         </header>
@@ -71,77 +81,126 @@
             </div>
         </div>
 
-        <div id="screen-home" class="absolute top-0 left-0 w-full h-full pt-14 pb-10 px-4 bg-slate-50 z-10 overflow-y-auto sm:rounded-3xl transition-transform duration-300">
+<!-- 🌟 2. 첫 번째 메인 홈 화면 (우측 슬림 메뉴 + 하단 고정) -->
+        <div id="screen-home" class="absolute top-0 left-0 w-full h-full z-10 sm:rounded-3xl transition-transform duration-300 bg-[#e0f2fe] overflow-hidden flex flex-col">
             
-            <div class="mt-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-center cursor-pointer hover:bg-slate-50 transition-all" onclick="openCustomLangPicker('targetLanguage')">
-                <div>
-                    <p class="text-xs font-bold text-slate-400 mb-1">현재 학습 설정</p>
-                    <p class="text-sm font-extrabold text-slate-800"><span id="disp-targetLanguageHome" class="text-indigo-600">🇺🇸 영어</span> 배우기 <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 ml-1"></i></p>
-                </div>
-                <div class="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-500" onclick="event.stopPropagation(); toggleSettingsModal(true)"><i class="fa-solid fa-gear"></i></div>
+            <!-- 🎨 메인 화면 투명 백그라운드 -->
+            <div class="absolute inset-0 z-0 pointer-events-none bg-[#e0f2fe]">
+                <div class="absolute inset-0 bg-[url('app-icon-03.jpg')] bg-[length:100%_auto] bg-center bg-no-repeat opacity-[0.70] mix-blend-multiply"></div>
+                <div class="absolute inset-0 bg-gradient-to-b from-[#e0f2fe] from-25% via-transparent via-50% to-[#e0f2fe] to-75%"></div>
             </div>
 
-            <div class="mt-6">
-                <h2 class="text-lg font-extrabold text-slate-800 mb-3 px-1">무엇을 만들어 볼까요? ✨</h2>
-                <div class="grid grid-cols-2 gap-3">
-                    <button onclick="openPage('screen-roleplay')" class="bg-gradient-to-br from-indigo-500 to-blue-500 p-4 rounded-2xl shadow-md text-left relative overflow-hidden transform transition hover:scale-105">
-                        <i class="fa-solid fa-masks-theater text-white/30 text-4xl absolute -bottom-2 -right-2"></i>
-                        <h3 class="text-white font-bold text-base mb-1 relative z-10">롤플레잉 대본</h3><p class="text-indigo-100 text-[10px] relative z-10">상황별 회화 생성</p>
-                    </button>
-                    <button onclick="openPage('screen-vocab')" class="bg-gradient-to-br from-emerald-500 to-teal-500 p-4 rounded-2xl shadow-md text-left relative overflow-hidden transform transition hover:scale-105">
-                        <i class="fa-solid fa-book-open text-white/30 text-4xl absolute -bottom-2 -right-2"></i>
-                        <h3 class="text-white font-bold text-base mb-1 relative z-10">주제별 단어장</h3><p class="text-emerald-100 text-[10px] relative z-10">핵심 영단어 뽑기</p>
-                    </button>
-                    <button onclick="openPage('screen-alphabet')" class="bg-gradient-to-br from-amber-500 to-orange-500 p-4 rounded-2xl shadow-md text-left relative overflow-hidden transform transition hover:scale-105 col-span-2">
-                        <i class="fa-solid fa-spell-check text-white/30 text-5xl absolute -bottom-4 -right-2"></i>
-                        <h3 class="text-white font-bold text-base mb-1 relative z-10">기초 발음 (파닉스)</h3><p class="text-amber-100 text-[10px] relative z-10">알파벳과 발음 기호 완벽 마스터</p>
-                    </button>
-                </div>
-            </div>
-
-            <div class="mt-6 mb-6">
-                <button onclick="openPage('screen-main')" class="w-full bg-slate-900 p-5 rounded-2xl shadow-lg flex items-center justify-between group transform transition hover:-translate-y-1">
-                    <div class="text-left"><h3 class="text-white font-extrabold text-base mb-1">AI 튜터와 프리토킹 💬</h3><p class="text-slate-400 text-xs">어떤 주제든 자유롭게 대화해 보세요!</p></div>
-                    <div class="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center text-white group-hover:bg-indigo-500 transition-colors"><i class="fa-solid fa-chevron-right"></i></div>
-                </button>
-            </div>
-
-            <div class="mt-8 mb-12">
-                <h2 class="text-lg font-extrabold text-slate-800 mb-3 px-1 flex items-center justify-between">
-                    <span>내 학습 리포트 📊</span>
-                    <span class="text-[10px] text-slate-400 font-medium bg-slate-200/50 px-2 py-1 rounded-full">실시간 기록</span>
-                </h2>
+            <!-- ⬆️ 상단 영역 (좌측: 설정 / 우측: 슬림 버튼 리스트) -->
+           <!-- ⬆️ 상단 영역 (좌측 일렬종대 정렬) -->
+            <div class="relative z-10 flex-1 w-full pt-16 pb-4 px-4 overflow-y-auto no-scrollbar">
                 
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="col-span-2 bg-gradient-to-r from-purple-600 to-pink-500 rounded-2xl p-5 shadow-lg shadow-purple-500/20 text-white relative overflow-hidden flex items-center justify-between transform transition hover:-translate-y-1">
-                        <i class="fa-solid fa-comments text-white/10 text-6xl absolute -right-3 -bottom-3 transform -rotate-12"></i>
-                        <div class="relative z-10">
-                            <p class="text-purple-100 text-xs font-bold mb-1 tracking-wide">AI와 대화한 총 문장 수</p>
-                            <p class="text-3xl font-black"><span id="dash-total-sentences">0</span><span class="text-sm font-bold ml-1 opacity-80">문장</span></p>
+                <div class="flex justify-between items-stretch gap-3">
+                    
+                    <div class="w-[42%] min-w-[130px] max-w-[160px] flex flex-col gap-2.5 shrink-0">
+                        
+                        <div class="bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-md px-3 py-2 rounded-2xl shadow-[0_4px_15px_rgba(0,0,0,0.05)] border border-white/60 flex items-center justify-between cursor-pointer hover:from-white/90 hover:to-white/50 transition-all" onclick="openCustomLangPicker('explanationLanguage')">
+                            <div>
+                                <p class="text-[9px] font-bold text-slate-500 mb-0.5">사용자 언어</p>
+                                <p class="text-xs font-extrabold text-slate-800"><span id="disp-explanationLanguageHome">🇰🇷 한국어</span> <i class="fa-solid fa-chevron-down text-[8px] text-slate-400 ml-1"></i></p>
+                            </div>
                         </div>
-                        <div class="relative z-10 w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-md border border-white/30 shadow-inner">
-                            <i class="fa-solid fa-bolt text-yellow-300 text-xl"></i>
+
+                        <div class="bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-md px-3 py-2 rounded-2xl shadow-[0_4px_15px_rgba(0,0,0,0.05)] border border-white/60 flex items-center justify-between cursor-pointer hover:from-white/90 hover:to-white/50 transition-all" onclick="openCustomLangPicker('targetLanguage')">
+                            <div>
+                                <p class="text-[9px] font-bold text-slate-500 mb-0.5">학습 언어</p>
+                                <p class="text-xs font-extrabold text-slate-800"><span id="disp-targetLanguageHome">🇺🇸 영어</span> <i class="fa-solid fa-chevron-down text-[8px] text-slate-400 ml-1"></i></p>
+                            </div>
+                            <div class="w-6 h-6 bg-white/60 border border-white/50 rounded-full flex items-center justify-center text-slate-600 shadow-sm hover:bg-white transition-colors" onclick="event.stopPropagation(); toggleSettingsModal(true)"><i class="fa-solid fa-gear text-[10px]"></i></div>
+                        </div>
+
+                        <div class="h-0.5"></div>
+
+                        <div class="flex flex-col gap-2">
+                            <button onclick="openPage('screen-main')" class="w-full bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-md py-2.5 px-3 rounded-2xl shadow-[0_4px_10px_rgba(0,0,0,0.05)] flex items-center justify-between border border-white/60 group hover:-translate-y-0.5 transition-transform">
+                                <span class="text-slate-800 font-extrabold text-[11px]">💬 프리토킹</span>
+                                <div class="w-5 h-5 bg-white/60 rounded-full flex items-center justify-center shadow-sm text-slate-500 group-hover:text-blue-500 group-hover:bg-white transition-colors"><i class="fa-solid fa-chevron-right text-[9px]"></i></div>
+                            </button>
+                            <button onclick="openPage('screen-roleplay')" class="w-full bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-md py-2.5 px-3 rounded-2xl shadow-[0_4px_10px_rgba(0,0,0,0.05)] flex items-center justify-between border border-white/60 group hover:-translate-y-0.5 transition-transform">
+                                <span class="text-slate-800 font-extrabold text-[11px]">🎭 롤플레잉</span>
+                                <div class="w-5 h-5 bg-white/60 rounded-full flex items-center justify-center shadow-sm text-slate-500 group-hover:text-blue-500 group-hover:bg-white transition-colors"><i class="fa-solid fa-chevron-right text-[9px]"></i></div>
+                            </button>
+                            <button onclick="openPage('screen-vocab')" class="w-full bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-md py-2.5 px-3 rounded-2xl shadow-[0_4px_10px_rgba(0,0,0,0.05)] flex items-center justify-between border border-white/60 group hover:-translate-y-0.5 transition-transform">
+                                <span class="text-slate-800 font-extrabold text-[11px]">📝 단어장</span>
+                                <div class="w-5 h-5 bg-white/60 rounded-full flex items-center justify-center shadow-sm text-slate-500 group-hover:text-blue-500 group-hover:bg-white transition-colors"><i class="fa-solid fa-chevron-right text-[9px]"></i></div>
+                            </button>
+                            <button onclick="openPage('screen-alphabet')" class="w-full bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-md py-2.5 px-3 rounded-2xl shadow-[0_4px_10px_rgba(0,0,0,0.05)] flex items-center justify-between border border-white/60 group hover:-translate-y-0.5 transition-transform">
+                                <span class="text-slate-800 font-extrabold text-[11px]">🔤 기초발음</span>
+                                <div class="w-5 h-5 bg-white/60 rounded-full flex items-center justify-center shadow-sm text-slate-500 group-hover:text-blue-500 group-hover:bg-white transition-colors"><i class="fa-solid fa-chevron-right text-[9px]"></i></div>
+                            </button>
                         </div>
                     </div>
 
-                    <div class="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-4 shadow-lg shadow-emerald-500/20 text-white relative overflow-hidden transform transition hover:-translate-y-1">
-                        <i class="fa-solid fa-layer-group text-white/10 text-5xl absolute -right-2 -bottom-2"></i>
-                        <div class="relative z-10">
-                            <p class="text-emerald-100 text-[10px] font-bold mb-1">복습한 단어장</p>
-                            <p class="text-xl font-black"><span id="dash-total-words">0</span><span class="text-xs font-bold ml-1 opacity-80">번</span></p>
+                    <div class="flex-1 bg-gradient-to-br from-white/70 to-white/30 backdrop-blur-md p-3 rounded-2xl shadow-[0_4px_15px_rgba(0,0,0,0.05)] border border-white/60 flex flex-col relative overflow-hidden group">
+                        <i class="fa-solid fa-brain text-purple-500/10 text-6xl absolute -bottom-3 -right-3 transform -rotate-12 group-hover:scale-110 transition-transform"></i>
+                        
+                        <div class="relative z-10 mb-2 flex items-center gap-1.5 border-b border-white/50 pb-2">
+                            <div class="w-6 h-6 rounded-full bg-gradient-to-br from-purple-100 to-indigo-100 flex items-center justify-center border border-white shadow-sm shrink-0">
+                                <i class="fa-solid fa-robot text-xs text-purple-600"></i>
+                            </div>
+                            <p class="text-[11px] font-black text-slate-700 tracking-tight">AI 튜터의 기억 🧠</p>
+                        </div>
+                        
+                        <div class="relative z-10 flex-1 bg-white/40 rounded-xl p-3 border border-white/60 shadow-inner overflow-y-auto no-scrollbar">
+                            <p id="ai_memory_display" class="text-[11px] text-slate-700 font-bold leading-relaxed break-words whitespace-pre-wrap">
+                                데이터 로딩 중...
+                            </p>
                         </div>
                     </div>
 
-                    <div class="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-4 shadow-lg shadow-blue-500/20 text-white relative overflow-hidden transform transition hover:-translate-y-1">
-                        <i class="fa-solid fa-scroll text-white/10 text-5xl absolute -right-2 -bottom-2"></i>
-                        <div class="relative z-10">
-                            <p class="text-blue-100 text-[10px] font-bold mb-1">보관된 롤플레잉</p>
-                            <p class="text-xl font-black"><span id="dash-total-scripts">0</span><span class="text-xs font-bold ml-1 opacity-80">개</span></p>
+                </div>
+            </div>
+
+            <!-- ⬇️ 하단 영역 (대시보드 & 결제 배너 고정) -->
+            <div class="relative z-20 flex-none w-full px-4 pb-6 pt-2 bg-gradient-to-t from-[#e0f2fe] via-[#e0f2fe]/90 to-transparent">
+                
+                <!-- 4. 대시보드 리포트 (투명 입체) -->
+                <div class="mb-3">
+                    <h2 class="text-sm font-extrabold text-slate-800 mb-2 px-1 flex items-center justify-between drop-shadow-sm">
+                        <span>내 학습 리포트 📊</span>
+                        <span class="text-[9px] text-slate-500 font-bold bg-white/60 backdrop-blur-sm px-2 py-0.5 rounded-full shadow-sm border border-white/50">실시간 기록</span>
+                    </h2>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="col-span-2 bg-gradient-to-br from-white/70 to-white/30 backdrop-blur-md rounded-2xl p-3 shadow-[0_4px_15px_rgba(0,0,0,0.05)] relative overflow-hidden flex items-center justify-between transform transition hover:-translate-y-1 border border-white/60">
+                            <i class="fa-solid fa-comments text-purple-500/10 text-5xl absolute -right-2 -bottom-2 transform -rotate-12"></i>
+                            <div class="relative z-10">
+                                <p class="text-slate-500 text-[10px] font-bold mb-0.5 tracking-wide">AI와 대화한 총 문장 수</p>
+                                <p class="text-2xl font-black text-slate-800"><span id="dash-total-sentences">0</span><span class="text-[10px] font-bold text-slate-500 ml-1">문장</span></p>
+                            </div>
+                            <div class="relative z-10 w-9 h-9 bg-purple-50/80 rounded-full flex items-center justify-center backdrop-blur-md border border-purple-200/50 shadow-inner"><i class="fa-solid fa-bolt text-purple-500 text-sm"></i></div>
+                        </div>
+                        <div class="bg-gradient-to-br from-white/70 to-white/30 backdrop-blur-md rounded-2xl p-3 shadow-[0_4px_15px_rgba(0,0,0,0.05)] relative overflow-hidden transform transition hover:-translate-y-1 border border-white/60">
+                            <i class="fa-solid fa-layer-group text-emerald-500/10 text-4xl absolute -right-2 -bottom-2"></i>
+                            <div class="relative z-10"><p class="text-slate-500 text-[9px] font-bold mb-0.5">복습한 단어장</p><p class="text-lg font-black text-slate-800"><span id="dash-total-words">0</span><span class="text-[10px] font-bold text-slate-500 ml-1">번</span></p></div>
+                        </div>
+                        <div class="bg-gradient-to-br from-white/70 to-white/30 backdrop-blur-md rounded-2xl p-3 shadow-[0_4px_15px_rgba(0,0,0,0.05)] relative overflow-hidden transform transition hover:-translate-y-1 border border-white/60">
+                            <i class="fa-solid fa-scroll text-blue-500/10 text-4xl absolute -right-2 -bottom-2"></i>
+                            <div class="relative z-10"><p class="text-slate-500 text-[9px] font-bold mb-0.5">보관된 롤플레잉</p><p class="text-lg font-black text-slate-800"><span id="dash-total-scripts">0</span><span class="text-[10px] font-bold text-slate-500 ml-1">개</span></p></div>
                         </div>
                     </div>
                 </div>
+
+                <!-- 5. 멤버십 배너 -->
+                <div id="premiumBanner" class="bg-gradient-to-r from-indigo-600/95 via-blue-600/95 to-blue-500/95 backdrop-blur-md rounded-2xl p-3 shadow-lg cursor-pointer transform transition hover:-translate-y-1 border border-white/20" onclick="window.showSubscriptionModal('upgrade')">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-yellow-300 border border-white/30 shrink-0 shadow-inner">
+                            <i class="fa-solid fa-crown text-sm"></i>
+                        </div>
+                        <div>
+                            <p class="text-white font-bold text-sm tracking-tight">멤버십 업그레이드 ✨</p>
+                            <p class="text-blue-100 text-[9px] mt-0.5 font-medium">베이직 / 프리미엄 요금제로 한도를 늘려보세요!</p>
+                        </div>
+                    </div>
+                </div>
+
             </div>
-        </div> <div id="screen-main" class="absolute top-0 left-0 w-full h-full flex flex-col z-20 bg-white overflow-hidden sm:rounded-3xl shadow-[0_0_20px_rgba(0,0,0,0.15)] transition-transform duration-300 translate-x-full">
+        </div>
+        
+        <div id="screen-main" class="absolute top-0 left-0 w-full h-full flex flex-col z-20 bg-white overflow-hidden sm:rounded-3xl shadow-[0_0_20px_rgba(0,0,0,0.15)] transition-transform duration-300 translate-x-full">
             
             <!-- 🌟 100% 통일된 프리토킹 채팅방 전용 하얀색 헤더 -->
             <div class="flex-none bg-white pt-14 border-b border-slate-100 p-4 flex items-center justify-between z-10 shadow-sm relative gap-2">
@@ -149,14 +208,16 @@
                     <i class="fa-solid fa-chevron-left text-lg"></i>
                 </button>
                 
-                <h1 class="text-lg font-bold text-slate-800 truncate flex-1 min-w-0 text-center">💬 프리토킹 튜터</h1>
+                <!-- 제목 왼쪽 정렬 & 다국어 번역을 위한 id 추가 -->
+                <h1 id="header_room1" class="text-lg font-bold text-slate-800 truncate flex-1 min-w-0 text-left">💬 프리토킹 튜터</h1>
                 
                 <div class="flex items-center gap-2 shrink-0">
                     <!-- 번개 배지 -->
-                    <div id="usageBadge"></div>
-                    <!-- 톱니바퀴 설정 버튼 -->
-                    <button onclick="toggleSettingsModal(true)" class="w-8 h-8 flex items-center justify-center text-slate-500 hover:bg-slate-100 rounded-full transition shrink-0">
-                        <i class="fa-solid fa-gear text-lg"></i>
+                    
+                    <!-- 🌟 설정 톱니바퀴를 지우고 통일된 언어 선택 버튼으로 교체 -->
+                    <button class="bg-blue-50 text-blue-600 text-[11px] font-bold rounded-lg border border-blue-200 px-2.5 py-1.5 flex items-center gap-1.5 outline-none hover:bg-blue-100 transition-colors shadow-sm max-w-[110px]" onclick="openCustomLangPicker('targetLanguage')">
+                        <span id="disp-chatLanguage" class="truncate">🇺🇸 영어</span> 
+                        <i class="fa-solid fa-chevron-down text-[9px] opacity-70 shrink-0"></i>
                     </button>
                 </div>
             </div>
@@ -199,15 +260,7 @@
             </div>
 
             <div id="chatContainer" class="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50 no-scrollbar pb-6 relative">
-                <div id="premiumBanner" class="bg-gradient-to-r from-indigo-600 via-blue-600 to-blue-500 rounded-2xl p-4 shadow-md cursor-pointer hover:shadow-lg transition-all self-start mb-4 mx-4" onclick="window.showSubscriptionModal('upgrade')">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-yellow-300 border border-white/30 shrink-0"><i class="fa-solid fa-crown"></i></div>
-                        <div>
-                            <p class="text-white font-black text-sm">멤버십 업그레이드</p>
-                            <p class="text-blue-100 text-[11px] mt-0.5">베이직 / 프리미엄 요금제로 한도를 늘려보세요!</p>
-                        </div>
-                    </div>
-                </div>
+                
 
                 <div id="welcomeWrapper" class="flex flex-col space-y-1">
                     <div class="bg-white border border-blue-100 rounded-2xl rounded-tl-none p-4 max-w-[95%] shadow-md shadow-blue-900/5 self-start" id="welcomeMessage">
@@ -278,7 +331,7 @@
                     <i class="fa-solid fa-chevron-left"></i></button>
                 <h1 id="header_room2" class="text-lg font-bold text-gray-800 truncate flex-1 min-w-0">🎬 상황별 롤플레잉</h1>
                 <div class="flex items-center shrink-0 gap-2"> 
-                    <div id="usageBadge2"></div> 
+                     
                     <button class="bg-blue-50 text-blue-600 text-[11px] font-bold rounded-lg border border-blue-200 px-2.5 py-1.5 flex items-center gap-1.5 outline-none hover:bg-blue-100 transition-colors shadow-sm max-w-[110px]" onclick="openCustomLangPicker('targetLanguage')">
                         <span id="disp-roleplayLanguage" class="truncate">🇺🇸 영어</span> 
                         <i class="fa-solid fa-chevron-down text-[9px] opacity-70 shrink-0"></i>
@@ -374,7 +427,7 @@
                 <button onclick="goHome('screen-vocab')" class="w-8 h-8 flex items-center justify-center text-slate-500 hover:bg-slate-100 rounded-full shrink-0 transition"><i class="fa-solid fa-chevron-left text-lg"></i></button>
                 <h1 id="header_room3" class="text-lg font-bold text-gray-800 truncate flex-1 min-w-0">📝 나만의 단어장</h1>
                 <div class="flex items-center shrink-0 gap-2"> 
-                    <div id="usageBadge3"></div> 
+                     
                     <button class="bg-blue-50 text-blue-600 text-[11px] font-bold rounded-lg border border-blue-200 px-2.5 py-1.5 flex items-center gap-1.5 outline-none hover:bg-blue-100 transition-colors shadow-sm max-w-[110px]" onclick="openCustomLangPicker('targetLanguage')">
                         <span id="disp-vocabLanguage" class="truncate">🇺🇸 영어</span> 
                         <i class="fa-solid fa-chevron-down text-[9px] opacity-70 shrink-0"></i>
@@ -461,7 +514,7 @@
                 <button onclick="goHome('screen-alphabet')" class="w-8 h-8 flex items-center justify-center text-slate-500 hover:bg-slate-100 rounded-full shrink-0 transition"><i class="fa-solid fa-chevron-left text-lg"></i></button>
                 <h1 id="header_room4" class="text-lg font-bold text-gray-800 truncate flex-1 min-w-0">🔤 왕초보 기초 발음</h1>
                 <div class="flex items-center shrink-0 gap-2"> 
-                    <div id="usageBadge4"></div> 
+                     
                     <button class="bg-blue-50 text-blue-600 text-[11px] font-bold rounded-lg border border-blue-200 px-2.5 py-1.5 flex items-center gap-1.5 outline-none hover:bg-blue-100 transition-colors shadow-sm max-w-[110px]" onclick="openCustomLangPicker('targetLanguage')">
                         <span id="disp-alphaLanguage" class="truncate">🇺🇸 영어</span> 
                         <i class="fa-solid fa-chevron-down text-[9px] opacity-70 shrink-0"></i>
@@ -506,11 +559,7 @@
                 <div class="mb-6"><label id="set_voice_gender" class="block text-sm font-bold text-slate-700 mb-3">AI 목소리 성별</label>
                     <div class="flex bg-slate-100 p-1 rounded-xl"><button id="genderFemaleBtn" class="flex-1 py-2.5 text-sm font-bold rounded-lg bg-white text-blue-600 shadow-sm" onclick="selectGender('female')">👩 <span id="gender_f_text">여성</span></button><button id="genderMaleBtn" class="flex-1 py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-200 rounded-lg" onclick="selectGender('male')">👨 <span id="gender_m_text">남성</span></button></div>
                 </div>
-                <div class="mb-6">
-                    <label id="set_exp_lang" class="block text-sm font-bold text-slate-700 mb-3">사용자 언어</label>
-                    <select id="explanationLanguage" class="hidden"></select>
-                    <button id="btnExplanationLanguage" class="w-full border border-slate-300 rounded-xl p-3 text-sm font-medium outline-none bg-slate-50 flex items-center justify-between text-slate-700 hover:bg-slate-100 transition-colors" onclick="openCustomLangPicker('explanationLanguage')"><span id="disp-explanationLanguage">🇰🇷 한국어</span> <i class="fa-solid fa-chevron-down text-slate-400"></i></button>
-                </div>
+               
                 <div class="flex gap-3 mt-8 pt-4 border-t border-slate-100">
                     <button id="settings_close" class="flex-1 bg-slate-100 text-slate-700 font-bold py-3 rounded-xl text-sm hover:bg-slate-200 transition-colors" onclick="toggleSettingsModal(false)">닫기</button>
                     <button id="settings_save" class="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold py-3 rounded-xl text-sm hover:opacity-90 shadow-md" onclick="saveSettings()">저장</button>
@@ -1304,18 +1353,27 @@
                 }
             });
             const targetSel = document.getElementById('targetLanguage');
-            ['roleplayLanguage', 'vocabLanguage', 'alphaLanguage'].forEach(id => {
+            // 👇 맨 앞에 'chatLanguage' 추가!
+            ['chatLanguage', 'roleplayLanguage', 'vocabLanguage', 'alphaLanguage'].forEach(id => {
                 const disp = document.getElementById('disp-' + id);
                 if(targetSel && disp && targetSel.options[targetSel.selectedIndex]) {
                     const langData = SUPPORTED_LANGUAGES.find(l => l.code === targetSel.value); 
                     disp.innerHTML = `${langData.flag} ${getLangName(langData.code)}`;
                 }
             });
-            // 홈화면의 타겟 랭귀지 표시 업데이트
+            // 홈화면의 타겟 랭귀지(학습 언어) 표시 업데이트
             const dispHome = document.getElementById('disp-targetLanguageHome');
             if(targetSel && dispHome && targetSel.options[targetSel.selectedIndex]) {
                 const langData = SUPPORTED_LANGUAGES.find(l => l.code === targetSel.value); 
                 dispHome.innerHTML = `${langData.flag} ${getLangName(langData.code)}`;
+            }
+            
+            // 🌟 홈화면의 사용자 언어 표시 업데이트
+            const expSel = document.getElementById('explanationLanguage');
+            const dispExpHome = document.getElementById('disp-explanationLanguageHome');
+            if(expSel && dispExpHome && expSel.options[expSel.selectedIndex]) {
+                const langData = SUPPORTED_LANGUAGES.find(l => l.code === expSel.value); 
+                dispExpHome.innerHTML = `${langData.flag} ${getLangName(langData.code)}`;
             }
         };
         updateLangDisplays();
@@ -1477,30 +1535,26 @@
             }
             const remaining = Math.max(0, status.maxLimit - currentCount);
 
-            let badgeContent = '', badgeClassMain = '', badgeClassSub = '';
+            let badgeContent = '', badgeClass = '';
 
+            // 🌟 디자인 개선: 출석 뱃지(둥근 캡슐)와 통일감을 주기 위해 rounded-full 적용
             if (status.tier === 'premium') {
                 badgeContent = `<i class="fa-solid fa-crown text-amber-300"></i><div class="flex flex-col ml-1.5 justify-center text-left"><span class="tracking-widest leading-none text-[10px]">PREMIUM</span><span class="text-[8px] text-amber-100 font-bold mt-0.5 leading-none">잔여: ${remaining}</span></div>`;
-                badgeClassMain = "shrink-0 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold px-2.5 py-1 rounded-lg border border-amber-400 shadow-inner flex items-center";
-                badgeClassSub = badgeClassMain;
+                badgeClass = "shrink-0 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold px-2.5 py-1 rounded-full border border-amber-400 shadow-sm flex items-center transition hover:scale-105";
             } else if (status.tier === 'basic') {
                 badgeContent = `<i class="fa-solid fa-star text-indigo-300"></i><div class="flex flex-col ml-1.5 justify-center text-left"><span class="tracking-widest leading-none text-[10px]">BASIC</span><span class="text-[8px] text-indigo-100 font-bold mt-0.5 leading-none">잔여: ${remaining}</span></div>`;
-                badgeClassMain = "shrink-0 bg-gradient-to-r from-indigo-500 to-blue-500 text-white font-bold px-2.5 py-1 rounded-lg border border-indigo-400 shadow-inner flex items-center";
-                badgeClassSub = badgeClassMain;
+                badgeClass = "shrink-0 bg-gradient-to-r from-indigo-500 to-blue-500 text-white font-bold px-2.5 py-1 rounded-full border border-indigo-400 shadow-sm flex items-center transition hover:scale-105";
             } else {
                 badgeContent = `<i class="fa-solid fa-bolt text-yellow-500"></i> <span class="text-slate-600">${remaining}</span>`;
-                // 👇 모든 화면에서 동일하게 밝고 예쁜 회색 배지로 통일!
-                badgeClassMain = "shrink-0 bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-1.5 rounded-lg border border-slate-200 shadow-sm flex items-center gap-1";
-                badgeClassSub = badgeClassMain;
+                badgeClass = "shrink-0 bg-white text-slate-600 text-[11px] font-bold px-3 py-1.5 rounded-full border border-slate-200 shadow-sm flex items-center gap-1 transition hover:bg-slate-50";
             }
 
-            const badge1 = document.getElementById('usageBadge');
-            if(badge1) { badge1.innerHTML = badgeContent; badge1.className = badgeClassMain; }
-
-            ['usageBadge2', 'usageBadge3', 'usageBadge4'].forEach(id => {
-                const badge = document.getElementById(id);
-                if (badge) { badge.innerHTML = badgeContent; badge.className = badgeClassSub; }
-            });
+            // 이제 최상단 헤더에 있는 단 1개의 뱃지만 업데이트!
+            const badge = document.getElementById('usageBadge');
+            if(badge) { 
+                badge.innerHTML = badgeContent; 
+                badge.className = badgeClass; 
+            }
         };
 
         window.showSubscriptionModal = function(reason) {
@@ -2432,11 +2486,24 @@
             }, 100); 
         });
 
+        // 🌟 화면에 AI 기억을 띄워주는 함수
+        window.updateMemoryDisplay = function() {
+            const memDisplay = document.getElementById('ai_memory_display');
+            if(memDisplay) {
+                const savedMem = localStorage.getItem('user_compressed_memory');
+                if(savedMem && savedMem !== '없음') {
+                    memDisplay.innerHTML = savedMem;
+                } else {
+                    memDisplay.innerHTML = "아직은 대화가 부족해서 기억된 내용이 없어요.\n\n프리토킹 튜터와 자유롭게 대화하면서 나만의 AI를 성장시켜 보세요! 🌱";
+                }
+            }
+        };
+
         window.compressMemory = async function() {
             if (conversationHistory.length < 8) return; 
             const savedMem = localStorage.getItem('user_compressed_memory') || '없음';
             const chatLog = JSON.stringify(conversationHistory);
-            const sysPrompt = `당신은 기억 압축기입니다. 사용자의 특징만 100자 이내로 갱신하여 JSON 형식으로 응답: {"memory": "..."}`;
+            const sysPrompt = `당신은 기억 압축기입니다. 사용자의 특징, 취향, 관심사 등 사용자와 친밀감을 형성할 수 있는 정보만 100자 이내의 친근한 존댓말로 갱신하여 JSON 형식으로 응답: {"memory": "..."}`;
             try {
                 let res = await fetchAPI(WORKER_URL, {
                     method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Device-ID': myDeviceId },
@@ -2449,9 +2516,15 @@
                     localStorage.setItem('user_compressed_memory', parsed.memory);
                     conversationHistory = conversationHistory.slice(-4);
                     sessionStorage.setItem('llmHistory', JSON.stringify(conversationHistory));
+                    
+                    // 🌟 기억이 압축될 때마다 홈 화면의 노트 내용도 새로고침!
+                    window.updateMemoryDisplay();
                 }
             } catch(e) {}
         };
+
+        // 앱이 처음 켜질 때도 기억을 띄워줌
+        setTimeout(window.updateMemoryDisplay, 500);
 
         let savedAIMemos = JSON.parse(localStorage.getItem('ai_auto_memos')) || [];
         window.toggleMemoModal = function(show) {
@@ -2482,6 +2555,14 @@
             if(document.getElementById('ui_persona_friend')) document.getElementById('ui_persona_friend').innerText = "친근한 친구";
             if(document.getElementById('ui_persona_assistant')) document.getElementById('ui_persona_assistant').innerText = "개인 비서";
             if(document.getElementById('ui_persona_guide')) document.getElementById('ui_persona_guide').innerText = "여행 가이드";
+            
+            // 🌟 프리토킹 방 제목 다국어 자동 패치
+            const room1Titles = { 'ko': '💬 프리토킹 튜터', 'en': '💬 Free Chat Tutor', 'ja': '💬 フリートーキング', 'zh': '💬 自由对话导师', 'es': '💬 Tutor de Charla Libre', 'fr': '💬 Tuteur de Chat', 'de': '💬 Freier Chat', 'vi': '💬 Gia sư trò chuyện', 'ru': '💬 Свободный разговор', 'th': '💬 ติวเตอร์แชท', 'ar': '💬 معلم محادثة حرة' };
+            const baseLang = (document.getElementById('explanationLanguage').value || 'ko-KR').split('-')[0];
+            if(document.getElementById('header_room1')) {
+                document.getElementById('header_room1').innerText = room1Titles[baseLang] || room1Titles['en'];
+            }
+
             if(typeof window.renderMemos === 'function') window.renderMemos();
         };
         setTimeout(window.updateExtraUI, 500);
