@@ -1664,16 +1664,25 @@ window.sendTextMessage = function() {
 
 async function fetchAPI(url, options) {
     let delay = 500;
+    let lastStatus = "네트워크 오류";
     for(let i=0; i<3; i++) { 
         try { 
             const res = await fetch(url, options); 
             if(res.ok) return res; 
+            
+            lastStatus = res.status; // 서버가 뱉은 에러 번호 기억 (예: 500, 503)
             await new Promise(r => setTimeout(r, delay)); 
             delay *= 2; 
         } catch(e) { 
-            if(i == 2) throw e; 
+            if(i == 2) {
+                alert("📡 인터넷 연결이 불안정하여 통신에 실패했습니다.");
+                throw e; 
+            }
         } 
     }
+    // 3번 재시도 후에도 실패하면 화면에 정확한 이유를 띄워줌!
+    alert("📡 AI 서버 통신 에러!\n에러 코드: " + lastStatus + "\n(현재 연결된 AI 서버에 트래픽이 몰려 과부하가 걸렸습니다. 잠시 후 다시 시도해 주세요!)");
+    throw new Error("HTTP_ERROR_" + lastStatus);
 }
 
 window.updateStatus = function(txt) { 
