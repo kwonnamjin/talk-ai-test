@@ -143,25 +143,20 @@
             </div>
         </div> <div id="screen-main" class="absolute top-0 left-0 w-full h-full flex flex-col z-20 bg-white overflow-hidden sm:rounded-3xl shadow-[0_0_20px_rgba(0,0,0,0.15)] transition-transform duration-300 translate-x-full">
             
-            <div class="flex-none bg-gradient-to-r from-blue-900 to-blue-700 text-white pt-14 pb-4 px-4 flex justify-between items-center gap-2 z-10 shadow-lg border-b border-blue-800 relative">
-                <button onclick="goHome('screen-main')" class="w-8 h-8 flex items-center justify-center text-blue-100 hover:bg-blue-800 rounded-full transition shrink-0">
+            <!-- 🌟 100% 통일된 프리토킹 채팅방 전용 하얀색 헤더 -->
+            <div class="flex-none bg-white pt-14 border-b border-slate-100 p-4 flex items-center justify-between z-10 shadow-sm relative gap-2">
+                <button onclick="goHome('screen-main')" class="w-8 h-8 flex items-center justify-center text-slate-500 hover:bg-slate-100 rounded-full transition shrink-0">
                     <i class="fa-solid fa-chevron-left text-lg"></i>
                 </button>
-                <div class="flex-1 min-w-0 ml-1">
-                    <h1 class="text-xl font-extrabold tracking-tight truncate">TalkAI Tutor</h1>
-                    <p id="main_subtitle" class="text-[10px] text-blue-200 uppercase tracking-widest font-semibold mt-0.5 truncate">Smart Language Partner</p>
-                </div>
+                
+                <h1 class="text-lg font-bold text-slate-800 truncate flex-1 min-w-0 text-center">💬 프리토킹 튜터</h1>
                 
                 <div class="flex items-center gap-2 shrink-0">
-                    <div id="usageBadge" class="shrink-0 bg-blue-950/50 text-white text-[10px] font-bold px-2 py-1.5 rounded-lg border border-blue-500 shadow-inner flex items-center gap-1 backdrop-blur-sm">
-                        <i class="fa-solid fa-bolt text-yellow-400"></i> <span id="remainCountText">50/50</span>
-                    </div>
-                    <button id="btnTargetLanguage" class="shrink-0 max-w-[90px] bg-blue-800/80 text-white text-[11px] rounded-lg border border-blue-500 p-2 flex items-center gap-1.5 backdrop-blur-sm font-medium outline-none hover:bg-blue-700 transition-colors" onclick="openCustomLangPicker('targetLanguage')">
-                        <span id="disp-targetLanguage" class="truncate">🇺🇸 영어</span> 
-                        <i class="fa-solid fa-chevron-down text-[9px] opacity-70 shrink-0"></i>
-                    </button>
-                    <button class="shrink-0 w-9 h-9 rounded-lg bg-blue-800/80 hover:bg-blue-700 flex items-center justify-center transition-colors border border-blue-500 shadow-sm backdrop-blur-sm" onclick="toggleSettingsModal(true)">
-                        <i class="fa-solid fa-gear text-sm text-blue-100"></i>
+                    <!-- 번개 배지 -->
+                    <div id="usageBadge"></div>
+                    <!-- 톱니바퀴 설정 버튼 -->
+                    <button onclick="toggleSettingsModal(true)" class="w-8 h-8 flex items-center justify-center text-slate-500 hover:bg-slate-100 rounded-full transition shrink-0">
+                        <i class="fa-solid fa-gear text-lg"></i>
                     </button>
                 </div>
             </div>
@@ -1493,9 +1488,10 @@
                 badgeClassMain = "shrink-0 bg-gradient-to-r from-indigo-500 to-blue-500 text-white font-bold px-2.5 py-1 rounded-lg border border-indigo-400 shadow-inner flex items-center";
                 badgeClassSub = badgeClassMain;
             } else {
-                badgeContent = `<i class="fa-solid fa-bolt text-yellow-400"></i> <span>${remaining}</span>`;
-                badgeClassMain = "shrink-0 bg-blue-950/50 text-white text-[10px] font-bold px-2 py-1.5 rounded-lg border border-blue-500 shadow-inner flex items-center gap-1 backdrop-blur-sm";
-                badgeClassSub = "shrink-0 bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-1.5 rounded-lg border border-slate-200 shadow-sm flex items-center gap-1";
+                badgeContent = `<i class="fa-solid fa-bolt text-yellow-500"></i> <span class="text-slate-600">${remaining}</span>`;
+                // 👇 모든 화면에서 동일하게 밝고 예쁜 회색 배지로 통일!
+                badgeClassMain = "shrink-0 bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-1.5 rounded-lg border border-slate-200 shadow-sm flex items-center gap-1";
+                badgeClassSub = badgeClassMain;
             }
 
             const badge1 = document.getElementById('usageBadge');
