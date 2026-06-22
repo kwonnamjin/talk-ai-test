@@ -2868,14 +2868,43 @@ Respond EXACTLY in this JSON format:
             }
         };
 
-        window.updateMemoryDisplay = function() {
-            const memDisplay = document.getElementById('ai_memory_display');
-            const baseLang = (document.getElementById('explanationLanguage').value || 'ko-KR').split('-')[0];
-            const dict = UI_DICTIONARY[baseLang] || UI_DICTIONARY['en'];
-            if(memDisplay) {
-                const savedMem = localStorage.getItem('user_compressed_memory');
-                if(savedMem && savedMem !== '없음') memDisplay.innerHTML = savedMem;
-                else memDisplay.innerHTML = dict.ui_memory_empty || "아직 대화가 부족합니다 🌱";
+        // 🌟 [수정됨] AI 튜터의 속마음(기억)을 사용자의 언어 설정에 맞춰 다국어로 요약하는 기능
+        window.compressMemory = async function() {
+            // 대화가 8줄 이상 쌓였을 때만 기억 압축 실행
+            if (conversationHistory.length < 8) return; 
+            const savedMem = localStorage.getItem('user_compressed_memory') || 'Empty';
+            const chatLog = JSON.stringify(conversationHistory);
+            
+            // 🌟 1. 현재 사용자가 설정한 '사용자 언어' 파악하기
+            const expLangCode = document.getElementById('explanationLanguage').value || 'ko-KR';
+            const aiLangNames = { "ko-KR": "Korean", "en-US": "English", "ja-JP": "Japanese", "zh-CN": "Chinese", "es-ES": "Spanish", "th-TH": "Thai", "vi-VN": "Vietnamese", "fr-FR": "French", "de-DE": "German", "ru-RU": "Russian", "ar-SA": "Arabic", "hi-IN": "Hindi" };
+            const exactAiLang = aiLangNames[expLangCode] || expLangCode;
+
+            // 🌟 2. AI에게 "무조건 사용자가 설정한 언어(exactAiLang)로 속마음을 작성해!"라고 강력하게 명령
+            const sysPrompt = `You are an AI tutor's memory compressor. Extract the user's characteristics, preferences, and interests from the chat log.
+            STRICT RULE: You MUST write the compressed memory ONLY in ${exactAiLang}. Keep it friendly and concise (under 100 characters).
+            Respond ONLY in JSON format: {"memory": "..."}`;
+
+            try {
+                let res = await fetchAPI(WORKER_URL, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Device-ID': myDeviceId },
+                    body: JSON.stringify({ model: "deepseek-chat", messages: [{role: "system", content: sysPrompt}, {role: "user", content: `Old Memory:${savedMem}\nNew Chat:${chatLog}`}], response_format: { type: "json_object" } })
+                });
+                let data = await res.json();
+                let rawContent = data.choices[0].message.content.replace(/```json/g, "").replace(/```/g, "").trim();
+                let parsed = JSON.parse(rawContent.match(/\{[\s\S]*\}/)[0]);
+                
+                if (parsed.memory) {
+                    localStorage.setItem('user_compressed_memory', parsed.memory);
+                    // 압축 완료 후 오래된 대화 기록 정리
+                    conversationHistory = conversationHistory.slice(-4);
+                    sessionStorage.setItem('llmHistory', JSON.stringify(conversationHistory));
+                    
+                    // 기억이 압축될 때마다 홈 화면의 노트 내용도 새로고침!
+                    if (typeof window.updateMemoryDisplay === 'function') window.updateMemoryDisplay();
+                }
+            } catch(e) {
+                console.error("메모리 압축 실패:", e);
             }
         };
 
