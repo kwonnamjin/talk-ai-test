@@ -101,13 +101,41 @@
                 </div>
             </div>
 
-            <div class="mt-6 mb-6">
-                <button onclick="openPage('screen-main')" class="w-full bg-slate-900 p-5 rounded-2xl shadow-lg flex items-center justify-between group">
-                    <div class="text-left"><h3 class="text-white font-extrabold text-base mb-1">AI 튜터와 프리토킹 💬</h3><p class="text-slate-400 text-xs">어떤 주제든 자유롭게 대화해 보세요!</p></div>
-                    <div class="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center text-white group-hover:bg-indigo-500 transition-colors"><i class="fa-solid fa-chevron-right"></i></div>
-                </button>
+            <div class="mt-8 mb-12">
+                <h2 class="text-lg font-extrabold text-slate-800 mb-3 px-1 flex items-center justify-between">
+                    <span>내 학습 리포트 📊</span>
+                    <span class="text-[10px] text-slate-400 font-medium bg-slate-200/50 px-2 py-1 rounded-full">실시간 기록</span>
+                </h2>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="col-span-2 bg-gradient-to-r from-purple-600 to-pink-500 rounded-2xl p-5 shadow-lg shadow-purple-500/20 text-white relative overflow-hidden flex items-center justify-between transform transition hover:-translate-y-1">
+                        <i class="fa-solid fa-comments text-white/10 text-6xl absolute -right-3 -bottom-3 transform -rotate-12"></i>
+                        <div class="relative z-10">
+                            <p class="text-purple-100 text-xs font-bold mb-1 tracking-wide">AI와 대화한 총 문장 수</p>
+                            <p class="text-3xl font-black"><span id="dash-total-sentences">0</span><span class="text-sm font-bold ml-1 opacity-80">문장</span></p>
+                        </div>
+                        <div class="relative z-10 w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-md border border-white/30 shadow-inner">
+                            <i class="fa-solid fa-bolt text-yellow-300 text-xl"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-4 shadow-lg shadow-emerald-500/20 text-white relative overflow-hidden transform transition hover:-translate-y-1">
+                        <i class="fa-solid fa-layer-group text-white/10 text-5xl absolute -right-2 -bottom-2"></i>
+                        <div class="relative z-10">
+                            <p class="text-emerald-100 text-[10px] font-bold mb-1">복습한 단어장</p>
+                            <p class="text-xl font-black"><span id="dash-total-words">0</span><span class="text-xs font-bold ml-1 opacity-80">번</span></p>
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-4 shadow-lg shadow-blue-500/20 text-white relative overflow-hidden transform transition hover:-translate-y-1">
+                        <i class="fa-solid fa-scroll text-white/10 text-5xl absolute -right-2 -bottom-2"></i>
+                        <div class="relative z-10">
+                            <p class="text-blue-100 text-[10px] font-bold mb-1">보관된 롤플레잉</p>
+                            <p class="text-xl font-black"><span id="dash-total-scripts">0</span><span class="text-xs font-bold ml-1 opacity-80">개</span></p>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
 
         <!-- 🌟 3. 기존 프리토킹 대화방 (이제 서브 페이지가 됨) -->
         <!-- 이제 기존 화면들은 오른쪽(translateX: 100%)에 대기하고 있다가 불려옵니다. -->
@@ -515,7 +543,7 @@
 </div>
                 
                 <div id="mainFlashcardArea" class="hidden flex-col items-center">
-                    <div id="vocabFlashcard" class="w-full max-w-sm h-[320px] relative transform-style-3d cursor-pointer shadow-xl rounded-3xl" onclick="this.classList.toggle('rotate-y-180'); window.addStudyMission();">
+                    <div id="vocabFlashcard" class="w-full max-w-sm h-[320px] relative transform-style-3d cursor-pointer shadow-xl rounded-3xl" onclick="this.classList.toggle('rotate-y-180'); window.addStudyMission(); window.addLearningStat('word', 1);"></div>
                         <div class="absolute w-full h-full bg-white rounded-3xl border-[3px] border-indigo-100 backface-hidden flex flex-col items-center justify-center p-6 text-center">
                             <div class="absolute top-4 left-0 w-full flex justify-center">
                                 <span id="vcCount" class="text-[10px] text-indigo-500 font-bold bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">단어를 선택하세요</span>
@@ -1983,6 +2011,7 @@ async function handleUserMessage(text) {
         if(parsed.foreign_text) { 
             addMessageToChat('ai', parsed.foreign_text, parsed.translation || parsed.korean_translation, targetLang); 
             speakText(parsed.foreign_text, targetLang); 
+            window.addLearningStat('sentence', 2); // 🌟 내가 한 마디, AI가 한 마디 했으니 +2 추가!
         }
     } catch(e) { console.error(e); updateStatus("AI 서버 통신 에러"); if(avatarWrap) avatarWrap.style.borderColor="#f87171"; }
 }
@@ -2706,8 +2735,38 @@ window.addStudyMission = function() {
     }
 };
 
-// 화면 켜질 때 UI 갱신
-setTimeout(window.updateStreakUI, 500);
+
+// ==========================================
+// 📊 대시보드 통계 기록 및 화면 갱신 로직
+// ==========================================
+window.updateDashboardUI = function() {
+    // 1. 단어장과 문장 통계 가져오기
+    let stats = JSON.parse(localStorage.getItem('user_learning_stats_v1')) || { sentences: 0, words: 0 };
+    
+    // 2. 현재 저장된 롤플레잉 대본 개수 가져오기
+    let scriptsCount = (JSON.parse(localStorage.getItem('roleplay_scripts')) || []).length;
+
+    // 3. 화면에 숫자 찍어주기
+    const elSentences = document.getElementById('dash-total-sentences');
+    const elWords = document.getElementById('dash-total-words');
+    const elScripts = document.getElementById('dash-total-scripts');
+
+    if(elSentences) elSentences.innerText = stats.sentences;
+    if(elWords) elWords.innerText = stats.words;
+    if(elScripts) elScripts.innerText = scriptsCount;
+};
+
+// 행동할 때마다 숫자 올려주는 함수
+window.addLearningStat = function(type, amount = 1) {
+    let stats = JSON.parse(localStorage.getItem('user_learning_stats_v1')) || { sentences: 0, words: 0 };
+    if (type === 'sentence') stats.sentences += amount;
+    if (type === 'word') stats.words += amount;
+    localStorage.setItem('user_learning_stats_v1', JSON.stringify(stats));
+    window.updateDashboardUI(); // 즉시 화면 갱신
+};
+
+// 앱 켜질 때 대시보드 숫자 업데이트
+setTimeout(window.updateDashboardUI, 500);
 
 // 🌟 실수로 지워진 숨김 언어 설정 부품 자동 복구 (에러 원천 차단)
 setTimeout(() => {
