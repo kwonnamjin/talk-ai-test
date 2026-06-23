@@ -65,30 +65,24 @@
             <select id="explanationLanguage" class="hidden"></select>
         </header>
 
+        <!-- 🌟 기존 streak-modal을 찾아서 이걸로 덮어쓰세요 -->
         <div id="streak-modal" class="fixed inset-0 bg-slate-900/60 z-[100] hidden flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
             <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl relative transform transition-all scale-100">
                 <button onclick="closeStreakModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 transition"><i class="fa-solid fa-xmark"></i></button>
                 <div class="text-center mt-2 mb-5">
                     <div class="text-5xl mb-3 animate-bounce">🔥</div>
                     <h2 class="text-xl font-extrabold text-slate-800">현재 <span id="modal-streak-count" class="text-red-500">0</span>일 연속 학습 중!</h2>
-                    <p class="text-xs text-slate-500 mt-2">오늘의 퀘스트를 완료하고 번개를 받으세요!</p>
+                    <p class="text-[11px] text-slate-500 mt-2 font-bold">오늘의 퀘스트를 완료하고 초승달을 받으세요!</p>
                 </div>
                 
-                <div class="space-y-3 mb-5">
-                    <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 flex items-center justify-between">
-                        <div class="flex items-center gap-2"><i class="fa-solid fa-headphones text-indigo-500"></i><span class="text-xs font-bold text-slate-700">롤플레잉 대본 끝까지 듣기</span></div>
-                        <span id="modal-quest-script" class="text-xs font-black text-indigo-600">0 / 5</span>
-                    </div>
-                    <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 flex items-center justify-between">
-                        <div class="flex items-center gap-2"><i class="fa-solid fa-volume-high text-emerald-500"></i><span class="text-xs font-bold text-slate-700">단어장 원어민 발음 듣기</span></div>
-                        <span id="modal-quest-vocab" class="text-xs font-black text-emerald-600">0 / 10</span>
-                    </div>
+                <!-- 🌟 동적 퀘스트 컨테이너 -->
+                <div id="modal-quest-container" class="space-y-2 mb-5">
+                    <!-- JS에서 동적으로 예쁘게 채워집니다 -->
                 </div>
 
-                <div class="bg-orange-50 p-4 rounded-2xl border border-orange-100 mb-5">
-                    <div class="flex justify-between text-[10px] font-bold mb-2"><span class="text-orange-700">다음 보상 (10일 연속)</span><span class="text-orange-600">진행 중</span></div>
-                    <div class="h-2 w-full bg-orange-200 rounded-full overflow-hidden"><div id="streak-progress-bar" class="h-full bg-gradient-to-r from-orange-400 to-red-500 rounded-full transition-all duration-500" style="width: 0%;"></div></div>
-                    <p class="text-[10px] text-orange-600 mt-2 text-center font-bold">10일 연속 달성 시 번개 +30회 지급 ⚡</p>
+                <!-- 🌟 동적 타겟 보상 컨테이너 -->
+                <div id="modal-target-box" class="bg-orange-50 p-4 rounded-2xl border border-orange-100 mb-5">
+                    <!-- JS에서 동적으로 예쁘게 채워집니다 -->
                 </div>
                 <button onclick="closeStreakModal()" class="w-full bg-slate-900 text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition shadow-md">계속 학습하기</button>
             </div>
@@ -103,6 +97,12 @@
             </div>
 
             <div class="relative z-10 flex-1 w-full pt-16 pb-4 px-4 overflow-y-auto no-scrollbar">
+                
+                <div class="bg-white/60 backdrop-blur-md border border-white/50 rounded-full px-3 py-1 mb-3 flex justify-between items-center shadow-sm">
+                    <span id="ai_engine_label" class="text-slate-500 font-extrabold text-[9px] uppercase tracking-wider">AI Engine</span>
+                    <span class="font-bold text-blue-600 text-[9px] bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100"><i class="fa-solid fa-shield-halved mr-0.5"></i> DeepSeek Secure</span>
+                </div>
+
                 <div class="flex justify-between items-start gap-3">
                     
                     <div class="w-[42%] min-w-[130px] max-w-[160px] flex flex-col gap-2.5 shrink-0">
@@ -118,7 +118,6 @@
                                 <p id="ui_home_target_lang" class="text-[9px] font-bold text-slate-500 mb-0.5">학습 언어</p>
                                 <p class="text-xs font-extrabold text-slate-800"><span id="disp-targetLanguageHome">🇺🇸 영어</span> <i class="fa-solid fa-chevron-down text-[8px] text-slate-400 ml-1"></i></p>
                             </div>
-                            <div class="w-6 h-6 bg-white/60 border border-white/50 rounded-full flex items-center justify-center text-slate-600 shadow-sm hover:bg-white transition-colors" onclick="event.stopPropagation(); toggleSettingsModal(true)"><i class="fa-solid fa-gear text-[10px]"></i></div>
                         </div>
 
                         <div class="h-0.5"></div>
@@ -146,14 +145,26 @@
                     <div class="flex-1 h-[204px] bg-gradient-to-br from-white/70 to-white/30 backdrop-blur-md p-3 rounded-2xl shadow-[0_4px_15px_rgba(0,0,0,0.05)] border border-white/60 flex flex-col relative overflow-hidden group">
                         <i class="fa-solid fa-brain text-purple-500/10 text-6xl absolute -bottom-3 -right-3 transform -rotate-12 group-hover:scale-110 transition-transform"></i>
                         
-                        <div class="relative z-10 mb-2 flex items-center gap-1.5 border-b border-white/50 pb-2 shrink-0">
-                            <div class="w-6 h-6 rounded-full bg-gradient-to-br from-purple-100 to-indigo-100 flex items-center justify-center border border-white shadow-sm shrink-0">
-                                <i class="fa-solid fa-robot text-xs text-purple-600"></i>
+                        <div class="relative z-20 mb-2 flex items-center justify-between border-b border-white/50 pb-2 shrink-0">
+                            <div class="flex items-center gap-1.5">
+                                <div class="w-6 h-6 rounded-full bg-gradient-to-br from-purple-100 to-indigo-100 flex items-center justify-center border border-white shadow-sm shrink-0">
+                                    <i class="fa-solid fa-robot text-xs text-purple-600"></i>
+                                </div>
+                                <p id="ui_home_memory_title" class="text-[11px] font-black text-slate-700 tracking-tight">AI 튜터의 기억 🧠</p>
                             </div>
-                            <p id="ui_home_memory_title" class="text-[11px] font-black text-slate-700 tracking-tight">AI 튜터의 기억 🧠</p>
+                            
+                            <div class="relative" id="genderDropdownContainer">
+                                <button onclick="document.getElementById('genderDropdown').classList.toggle('hidden'); event.stopPropagation();" class="flex items-center gap-1 bg-white/60 hover:bg-white transition-colors border border-white/50 rounded-lg px-2 py-1 outline-none shadow-sm">
+                                    <span id="currentGenderDisplay" class="text-[9px] font-bold text-slate-600">👩 여성</span> <i class="fa-solid fa-chevron-down text-[7px] text-slate-400"></i>
+                                </button>
+                                <div id="genderDropdown" class="hidden absolute right-0 top-full mt-1 w-20 bg-white/95 backdrop-blur-md rounded-lg shadow-lg border border-slate-100 overflow-hidden z-30 flex flex-col">
+                                    <button onclick="selectGender('female'); event.stopPropagation();" class="px-2 py-2 text-[10px] font-bold text-slate-600 hover:bg-blue-50 hover:text-blue-600 text-left border-b border-slate-50 transition-colors">👩 <span id="gender_f_text">여성</span></button>
+                                    <button onclick="selectGender('male'); event.stopPropagation();" class="px-2 py-2 text-[10px] font-bold text-slate-600 hover:bg-blue-50 hover:text-blue-600 text-left transition-colors">👨 <span id="gender_m_text">남성</span></button>
+                                </div>
+                            </div>
                         </div>
                         
-                        <div class="relative z-10 flex-1 bg-white/40 rounded-xl p-3 border border-white/60 shadow-inner overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-300/80 [&::-webkit-scrollbar-thumb]:rounded-full">
+                        <div class="relative z-10 flex-1 bg-white/40 rounded-xl p-3 border border-white/60 shadow-inner overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-300/80 [&::-webkit-scrollbar-thumb]:rounded-full" onclick="document.getElementById('genderDropdown').classList.add('hidden')">
                             <p id="ai_memory_display" class="text-[11px] text-slate-700 font-bold leading-relaxed break-words whitespace-pre-wrap">
                                 데이터 로딩 중...
                             </p>
@@ -164,7 +175,6 @@
             </div>
 
             <div class="relative z-20 flex-none w-full px-4 pb-6 pt-2 bg-gradient-to-t from-[#e0f2fe] via-[#e0f2fe]/90 to-transparent">
-                
                 <div class="mb-3">
                     <h2 class="text-sm font-extrabold text-slate-800 mb-2 px-1 flex items-center justify-between drop-shadow-sm">
                         <span id="ui_home_report_title">내 학습 리포트 📊</span>
@@ -199,7 +209,6 @@
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
         
@@ -230,9 +239,11 @@
                 <button onclick="document.getElementById('inAppWarning').style.display='none'" class="ml-2 px-2 py-1 text-red-500 hover:text-red-800"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
 
-            <div class="flex-none bg-slate-50/50 px-4 py-1.5 flex justify-between items-center border-b border-slate-300 text-[11px]">
-                <span id="ai_engine_label" class="text-slate-500 font-semibold text-[10px] uppercase tracking-wider">AI Engine</span>
-                <span id="activeEngineText" class="font-bold text-blue-600 text-[10px] bg-blue-100 px-2 py-0.5 rounded-full border border-blue-200"><i class="fa-solid fa-shield-halved mr-0.5"></i> DeepSeek Secure</span>
+            <div class="flex-none bg-slate-50/50 px-4 py-2 flex justify-between items-center border-b border-slate-300 text-[11px] shadow-sm z-10">
+                <label for="fontSizeSlider" class="text-slate-600 font-bold text-[10px] flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-text-height text-slate-400"></i> <span id="set_font_size">채팅 글자 크기</span>
+                </label>
+                <input type="range" id="fontSizeSlider" min="12" max="22" step="1" value="14" class="w-[140px] accent-blue-500 cursor-pointer" oninput="document.documentElement.style.setProperty('--chat-font-size', this.value + 'px'); localStorage.setItem('chat_font_size', this.value);">
             </div>
 
             <div class="px-4 py-3 bg-slate-50 border-b border-slate-200 shrink-0 flex items-center gap-4 shadow-sm z-10 relative">
@@ -563,7 +574,7 @@
             </div>
         </div>
 
-        <div id="settingsModal" class="hidden absolute inset-0 bg-slate-900/60 flex items-center justify-center z-[100] p-4 backdrop-blur-sm">
+       
             <div class="bg-white w-full max-w-[360px] rounded-3xl p-6 shadow-2xl relative transition-all border border-slate-100">
                 <h3 class="text-xl font-extrabold text-slate-800 mb-5 border-b border-slate-100 pb-3 flex items-center gap-2"><i class="fa-solid fa-gear text-slate-400"></i> <span id="settings_title_text">상세 설정</span></h3>
                 <div class="mb-6"><label id="set_font_size" class="block text-sm font-bold text-slate-700 mb-3">채팅 글자 크기</label><input type="range" id="fontSizeSlider" min="12" max="22" step="1" value="14" class="w-full accent-blue-600" oninput="document.documentElement.style.setProperty('--chat-font-size', this.value + 'px')"></div>
@@ -1580,26 +1591,48 @@
 
         window.checkAndBlockAPI = function() {
             const status = checkUsageLimit();
-            if (!status.allowed) { showSubscriptionModal(status.reason); return false; }
+            let currentMoons = parseInt(localStorage.getItem('moon_coins') || '0');
+
+            // 번개를 다 썼더라도 초승달이 남아있으면 통과!
+            if (!status.allowed && currentMoons <= 0) { 
+                showSubscriptionModal(status.reason); 
+                return false; 
+            }
             return true;    
         };
 
         window.incrementLocalUsage = function() {
             const status = checkUsageLimit();
-            if (!status.allowed) return false;
-            if (status.tier === 'free' && !localStorage.getItem('free_trial_start')) localStorage.setItem('free_trial_start', Date.now().toString());
-            let usageObj = JSON.parse(localStorage.getItem('daily_usage_v4'));
-            usageObj.count += 1;
-            localStorage.setItem('daily_usage_v4', JSON.stringify(usageObj));
+            if (status.tier === 'free' && !localStorage.getItem('free_trial_start')) {
+                localStorage.setItem('free_trial_start', Date.now().toString());
+            }
+
+            if (status.allowed) {
+                // 번개가 남아있으면 기본 번개 소모 (일일 사용량 카운트 증가)
+                let usageObj = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}');
+                usageObj.count = (usageObj.count || 0) + 1;
+                localStorage.setItem('daily_usage_v4', JSON.stringify(usageObj));
+            } else {
+                // 번개를 다 썼다면 소중한 초승달 소모
+                let currentMoons = parseInt(localStorage.getItem('moon_coins') || '0');
+                if (currentMoons > 0) {
+                    localStorage.setItem('moon_coins', currentMoons - 1);
+                }
+            }
+            
             window.updateBadgeUI();
             return true;
         }
 
+        // 🌟 상단 재화/등급 표시 UI 업데이트 (초승달 캡슐 + 번개/등급 캡슐 분리형 + 남은 횟수 표시)
         window.updateBadgeUI = function() {
             if (typeof checkUsageLimit !== 'function') return;
             const isTestMode = localStorage.getItem('is_test_mode') === 'true';
             const status = checkUsageLimit();
             const currentCount = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}').count || 0;
+            
+            // 🌟 1. 초승달 개수 불러오기
+            let currentMoons = parseInt(localStorage.getItem('moon_coins') || '0');
             
             if (isTestMode) {
                 status.tier = 'premium';
@@ -1607,26 +1640,29 @@
             }
             const remaining = Math.max(0, status.maxLimit - currentCount);
 
-            let badgeContent = '', badgeClass = '';
+            // 🌟 2. 초승달 뱃지 HTML (공통으로 맨 앞에 위치)
+            const moonHtml = `<div class="bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-full text-[11px] font-black border border-indigo-200 shadow-sm flex items-center gap-1.5"><i class="fa-solid fa-moon"></i> <span>${currentMoons}</span></div>`;
+            
+            let badgeContent = '';
 
-            // 🌟 디자인 개선: 출석 뱃지(둥근 캡슐)와 통일감을 주기 위해 rounded-full 적용
+            // 🌟 3. 유저 등급에 따른 우측 뱃지 HTML 설정 (결제자도 남은 ⚡번개 표시 추가!)
             if (status.tier === 'premium') {
-                badgeContent = `<i class="fa-solid fa-crown text-amber-300"></i><div class="flex flex-col ml-1.5 justify-center text-left"><span class="tracking-widest leading-none text-[10px]">PREMIUM</span><span class="text-[8px] text-amber-100 font-bold mt-0.5 leading-none">잔여: ${remaining}</span></div>`;
-                badgeClass = "shrink-0 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold px-2.5 py-1 rounded-full border border-amber-400 shadow-sm flex items-center transition hover:scale-105";
+                badgeContent = moonHtml + `<div class="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2.5 py-1 rounded-full text-[9px] font-black border border-amber-400 shadow-sm flex items-center gap-1.5 transition hover:scale-105"><i class="fa-solid fa-crown text-amber-200"></i> <span class="text-[9px] tracking-wide mt-[1px]">PREMIUM</span> <span class="text-amber-200 opacity-60 font-normal mx-0.5 text-[10px]">|</span> <i class="fa-solid fa-bolt text-amber-200"></i> ${remaining}</div>`;
             } else if (status.tier === 'basic') {
-                badgeContent = `<i class="fa-solid fa-star text-indigo-300"></i><div class="flex flex-col ml-1.5 justify-center text-left"><span class="tracking-widest leading-none text-[10px]">BASIC</span><span class="text-[8px] text-indigo-100 font-bold mt-0.5 leading-none">잔여: ${remaining}</span></div>`;
-                badgeClass = "shrink-0 bg-gradient-to-r from-indigo-500 to-blue-500 text-white font-bold px-2.5 py-1 rounded-full border border-indigo-400 shadow-sm flex items-center transition hover:scale-105";
+                badgeContent = moonHtml + `<div class="bg-gradient-to-r from-indigo-500 to-blue-500 text-white px-2.5 py-1 rounded-full text-[9px] font-black border border-indigo-400 shadow-sm flex items-center gap-1.5 transition hover:scale-105"><i class="fa-solid fa-star text-indigo-200"></i> <span class="text-[9px] tracking-wide mt-[1px]">BASIC</span> <span class="text-indigo-200 opacity-60 font-normal mx-0.5 text-[10px]">|</span> <i class="fa-solid fa-bolt text-indigo-200"></i> ${remaining}</div>`;
             } else {
-                badgeContent = `<i class="fa-solid fa-bolt text-yellow-500"></i> <span class="text-slate-600">${remaining}</span>`;
-                badgeClass = "shrink-0 bg-white text-slate-600 text-[11px] font-bold px-3 py-1.5 rounded-full border border-slate-200 shadow-sm flex items-center gap-1 transition hover:bg-slate-50";
+                badgeContent = moonHtml + `<div class="bg-white text-slate-600 px-2.5 py-1 rounded-full text-[11px] font-black border border-slate-200 shadow-sm flex items-center gap-1.5 transition hover:bg-slate-50"><i class="fa-solid fa-bolt text-yellow-500"></i> <span>${remaining}</span></div>`;
             }
 
-            // 이제 최상단 헤더에 있는 단 1개의 뱃지만 업데이트!
-            const badge = document.getElementById('usageBadge');
-            if(badge) { 
-                badge.innerHTML = badgeContent; 
-                badge.className = badgeClass; 
-            }
+            // 🌟 4. 메인 홈 화면과 롤플레잉 화면의 뱃지에 동시에 적용
+            const badgeIds = ['usageBadge', 'usageBadge2'];
+            badgeIds.forEach(id => {
+                const badge = document.getElementById(id);
+                if(badge) { 
+                    badge.innerHTML = badgeContent; 
+                    badge.className = "flex items-center gap-1.5 shrink-0 cursor-pointer"; 
+                }
+            });
         };
 
         window.showSubscriptionModal = function(reason) {
@@ -1927,7 +1963,9 @@
             const personaInstructions = {
                 friend: `You are the user's cheerful best friend (native ${targetName}). Use lots of emojis! Ask questions back to keep the conversation going smoothly. Keep it to 1-2 natural sentences.`,
                 assistant: `You are the user's smart, friendly personal assistant (native ${targetName}). Answer their questions, confirm their requests, and chat actively. Polite, clear, and approachable.`,
-                guide: `You are an engaging travel guide (native ${targetName}). Give great recommendations, answer questions actively, and share local insights.`
+                guide: `You are an engaging travel guide (native ${targetName}). Give great recommendations, answer questions actively, and share local insights.`,
+                special: `You are a sweet and popular ${starGender} (native ${targetName}). The user is your precious fan. Speak with a lot of warmth, gratitude, and cute emojis. Encourage them in their language learning. STRICT RULE: Keep the conversation polite, family-friendly (PG-13), and avoid overly romantic or explicit content.`
+            
             };
             const selectedPersona = personaInstructions[window.currentPersona] || personaInstructions['friend'];
             const memoRule = `\n🚨 CRITICAL: If the user asks to save, note, or remember a schedule/task, extract it into the "save_memo" key (in ${exactAiLang}). Otherwise, "save_memo" MUST be "".`;
@@ -1992,7 +2030,8 @@
                 if(parsed.foreign_text) { 
                     addMessageToChat('ai', parsed.foreign_text, parsed.translation || parsed.korean_translation, targetLang); 
                     speakText(parsed.foreign_text, targetLang); 
-                    window.addLearningStat('sentence', 2); 
+                    window.addLearningStat('sentence', 2);
+                    window.addStudyMission('freeTalk'); 
                 }
             } catch(e) { console.error(e); updateStatus("AI 서버 통신 에러"); if(avatarWrap) avatarWrap.style.borderColor="#f87171"; }
         }
@@ -2570,6 +2609,20 @@ Respond EXACTLY in this JSON format:
                 }
             }
         };
+        // 🌟 2. 비밀 페르소나 버튼 생성 함수 (연인 -> 톱스타로 변경)
+        window.renderSpecialPersona = function() {
+            if (localStorage.getItem('unlocked_special_persona') === 'true') {
+                const guideBtn = document.querySelector('button[onclick="window.currentPersona=\'guide\';"]');
+                if (guideBtn && !document.getElementById('btn_persona_special')) {
+                    guideBtn.insertAdjacentHTML('afterend', `
+                        <button id="btn_persona_special" onclick="window.currentPersona='special'; window.updateStatus('비밀 페르소나 적용!');" class="w-[70px] h-[32px] flex items-center justify-center bg-pink-50 hover:bg-pink-100 border border-pink-200 text-pink-600 text-[10px] font-extrabold rounded shadow-[0_0_10px_rgba(244,114,182,0.5)] transition-all px-1">
+                            <span class="truncate w-full text-center">✨ 톱스타</span>
+                        </button>
+                    `);
+                }
+            }
+        };
+        document.addEventListener('DOMContentLoaded', () => { setTimeout(window.renderSpecialPersona, 600); });
 
         document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
@@ -2697,89 +2750,128 @@ Respond EXACTLY in this JSON format:
             document.getElementById('streak-modal').classList.add('hidden'); 
         };
 
-        // 🌟 1. 출석 및 퀘스트 UI 업데이트 로직 (다국어 지원 적용!)
+        // 🌟 1. 퀘스트 진행도 및 모달창 UI 업데이트 함수
         window.updateStreakUI = function() {
             const todayStr = new Date().toLocaleDateString();
-            let streakData = JSON.parse(localStorage.getItem('study_streak_v2')) || { lastDate: "", streak: 0, scriptCount: 0, vocabCount: 0, completedToday: false };
+            let streakData = JSON.parse(localStorage.getItem('study_streak_v3')) || { lastDate: "", streak: 0, scriptCount: 0, vocabCount: 0, freeTalkCount: 0, completedToday: false };
             
             if (streakData.lastDate !== todayStr) {
                 const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
-                if (streakData.lastDate !== yesterday.toLocaleDateString() && streakData.lastDate !== "") {
-                    streakData.streak = 0; 
-                }
-                streakData.scriptCount = 0; streakData.vocabCount = 0; streakData.completedToday = false; streakData.lastDate = todayStr;
-                localStorage.setItem('study_streak_v2', JSON.stringify(streakData));
+                if (streakData.lastDate !== yesterday.toLocaleDateString() && streakData.lastDate !== "") streakData.streak = 0; 
+                streakData.scriptCount = 0; streakData.vocabCount = 0; streakData.freeTalkCount = 0; streakData.completedToday = false; streakData.lastDate = todayStr;
+                localStorage.setItem('study_streak_v3', JSON.stringify(streakData));
             }
 
-            // 번역 사전 불러오기
-            const baseLang = (document.getElementById('explanationLanguage').value || 'ko-KR').split('-')[0];
-            const dict = UI_DICTIONARY[baseLang] || UI_DICTIONARY['en'];
-
-            // 상단 출석 뱃지 번역 적용
             const headerStreak = document.getElementById('header-streak-count');
-            if(headerStreak) headerStreak.innerText = (dict.ui_streak_days || "{n}일 연속").replace('{n}', streakData.streak);
-            
+            if(headerStreak) headerStreak.innerText = `${streakData.streak}일 연속`;
             if(document.getElementById('modal-streak-count')) document.getElementById('modal-streak-count').innerText = streakData.streak;
-            if(document.getElementById('modal-quest-script')) document.getElementById('modal-quest-script').innerText = `${Math.min(5, streakData.scriptCount)} / 5`;
-            if(document.getElementById('modal-quest-vocab')) document.getElementById('modal-quest-vocab').innerText = `${Math.min(10, streakData.vocabCount)} / 10`;
 
-            const progressBar = document.getElementById('streak-progress-bar');
-            if(progressBar) progressBar.style.width = `${((streakData.streak % 10) / 10) * 100}%`;
+            const questContainer = document.getElementById('modal-quest-container');
+            if (questContainer) {
+                questContainer.innerHTML = `
+                    <div class="bg-emerald-50 p-3 rounded-xl border ${streakData.vocabCount>=10?'border-emerald-400 shadow-inner':'border-emerald-100'} flex items-center justify-between mb-1">
+                        <div class="flex items-center gap-2"><i class="fa-solid fa-layer-group text-emerald-500"></i><span class="text-xs font-bold text-slate-700">단어장 학습 (필수)</span></div>
+                        <span class="text-xs font-black text-emerald-600">${Math.min(10, streakData.vocabCount)} / 10</span>
+                    </div>
+                    <div class="text-[10px] text-center text-slate-400 font-bold mb-1 mt-2">+ 아래 둘 중 하나 선택 달성 +</div>
+                    <div class="flex gap-2">
+                        <div class="flex-1 bg-blue-50 p-2.5 rounded-xl border ${streakData.freeTalkCount>=10?'border-blue-400 shadow-inner':'border-blue-100'} flex flex-col items-center justify-center">
+                            <i class="fa-solid fa-comments text-blue-500 mb-1"></i><span class="text-[10px] font-bold text-slate-700">프리토킹</span>
+                            <span class="text-xs font-black text-blue-600 mt-0.5">${Math.min(10, streakData.freeTalkCount)} / 10</span>
+                        </div>
+                        <div class="text-[10px] text-slate-300 font-black self-center">OR</div>
+                        <div class="flex-1 bg-indigo-50 p-2.5 rounded-xl border ${streakData.scriptCount>=5?'border-indigo-400 shadow-inner':'border-indigo-100'} flex flex-col items-center justify-center">
+                            <i class="fa-solid fa-headphones text-indigo-500 mb-1"></i><span class="text-[10px] font-bold text-slate-700">롤플레잉</span>
+                            <span class="text-xs font-black text-indigo-600 mt-0.5">${Math.min(5, streakData.scriptCount)} / 5</span>
+                        </div>
+                    </div>
+                `;
+            }
 
-            // 대시보드 퀘스트 번역 적용
+            // 🌟 보상 타겟 로직 (테스트용: 시작하자마자 1일 타겟이 스페셜 페르소나!)
+            let nextTarget = 1, rewardText = "스페셜 페르소나 🎁";
+            if (streakData.streak >= 1 && streakData.streak < 5) { nextTarget = 5; rewardText = "초승달 10개 🌙"; }
+            else if (streakData.streak >= 5 && streakData.streak < 10) { nextTarget = 10; rewardText = "초승달 20개 🌙"; }
+            else if (streakData.streak >= 10 && streakData.streak < 20) { nextTarget = 20; rewardText = "초승달 30개 🌙"; }
+            else if (streakData.streak >= 20 && streakData.streak < 30) { nextTarget = 30; rewardText = "초승달 30개 🌙"; }
+            else if (streakData.streak >= 30) { nextTarget = streakData.streak + 10; rewardText = "초승달 30개 🌙"; } 
+
+            let prevTarget = nextTarget === 1 ? 0 : (nextTarget === 5 ? 1 : (nextTarget === 10 ? 5 : (nextTarget === 20 ? 10 : (nextTarget === 30 ? 20 : nextTarget - 10))));
+            let progressPercent = Math.min(100, ((streakData.streak - prevTarget) / (nextTarget - prevTarget)) * 100);
+
+            const targetBox = document.getElementById('modal-target-box');
+            if (targetBox) {
+                targetBox.innerHTML = `
+                    <div class="flex justify-between text-[10px] font-bold mb-2"><span class="text-orange-700">다음 보상 (${nextTarget}일 연속)</span><span class="text-orange-600">진행 중</span></div>
+                    <div class="h-2 w-full bg-orange-200 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-orange-400 to-red-500 rounded-full transition-all duration-500" style="width: ${progressPercent}%;"></div></div>
+                    <p class="text-[10px] text-orange-600 mt-2 text-center font-bold">${nextTarget}일 달성 시 [ ${rewardText} ] 지급!</p>
+                `;
+            }
+
             const dashQuest = document.getElementById('dash-quest-status');
             if(dashQuest) {
                 if (streakData.completedToday) {
-                    dashQuest.innerHTML = dict.ui_quest_done || '✨ 오늘 퀘스트 완료!';
+                    dashQuest.innerHTML = '✨ 오늘 퀘스트 완료!';
                     dashQuest.className = 'text-[9px] text-emerald-600 font-bold bg-emerald-100 px-2 py-0.5 rounded-full shadow-sm border border-emerald-200 transition-colors';
                 } else {
-                    let qText = dict.ui_quest_status || `오늘 퀘스트: 대본({s}/5) 단어({v}/10)`;
-                    qText = qText.replace('{s}', Math.min(5, streakData.scriptCount)).replace('{v}', Math.min(10, streakData.vocabCount));
-                    dashQuest.innerHTML = qText;
-                    dashQuest.className = 'text-[9px] text-orange-600 font-bold bg-orange-100 px-2 py-0.5 rounded-full shadow-sm border border-orange-200 transition-colors';
+                    dashQuest.innerHTML = `퀘스트: 단어(${streakData.vocabCount}/10) & 톡(${streakData.freeTalkCount}/10)or극(${streakData.scriptCount}/5)`;
+                    dashQuest.className = 'text-[9px] text-orange-600 font-bold bg-orange-100 px-2 py-0.5 rounded-full shadow-sm border border-orange-200 transition-colors truncate max-w-[150px]';
                 }
             }
         };
 
-        // 🌟 행동 센서가 호출할 때마다 카운트 올려주는 로직
+        // 🌟 2. 퀘스트 체크 & 보상 지급 함수
         window.addStudyMission = function(type) {
             if (!type) return;
             const todayStr = new Date().toLocaleDateString();
-            let streakData = JSON.parse(localStorage.getItem('study_streak_v2')) || { lastDate: todayStr, streak: 0, scriptCount: 0, vocabCount: 0, completedToday: false };
+            let streakData = JSON.parse(localStorage.getItem('study_streak_v3')) || { lastDate: todayStr, streak: 0, scriptCount: 0, vocabCount: 0, freeTalkCount: 0, completedToday: false };
             
-            if (streakData.lastDate !== todayStr) { window.updateStreakUI(); streakData = JSON.parse(localStorage.getItem('study_streak_v2')); }
-            if (streakData.completedToday) return; // 이미 오늘 퀘스트 끝냈으면 스톱
+            if (streakData.lastDate !== todayStr) { window.updateStreakUI(); streakData = JSON.parse(localStorage.getItem('study_streak_v3')); }
+            if (streakData.completedToday) return; 
 
             let changed = false;
-            // 타입에 맞춰서 횟수 증가
             if (type === 'script' && streakData.scriptCount < 5) { streakData.scriptCount += 1; changed = true; } 
             else if (type === 'vocab' && streakData.vocabCount < 10) { streakData.vocabCount += 1; changed = true; }
+            else if (type === 'freeTalk' && streakData.freeTalkCount < 10) { streakData.freeTalkCount += 1; changed = true; }
 
             if (changed) {
-                // 🌟 둘 다 목표치에 도달했는지 확인!
-                if (streakData.scriptCount >= 5 && streakData.vocabCount >= 10) {
+                if (streakData.vocabCount >= 10 && (streakData.scriptCount >= 5 || streakData.freeTalkCount >= 10)) {
                     streakData.completedToday = true;
                     streakData.streak += 1;
-                    window.openStreakModal(); // 달성 즉시 축하 팝업!
                     
-                    let rw = 10; // 기본 일일 보상 10개
-                    if (streakData.streak === 3) rw = 20;
-                    else if (streakData.streak > 0 && streakData.streak % 15 === 0) rw = 50;
-                    else if (streakData.streak > 0 && streakData.streak % 10 === 0) rw = 30;
+                    let rwMoons = 3; 
+                    let unlockPersona = false;
+
+                    // 🌟 테스트를 위해 1일 출석(오늘)하자마자 연인 모드 즉시 해제! 
+                    // (정식 출시하실 때는 `streak === 1` 부분을 지우시거나 `30`으로 돌려놓으시면 됩니다!)
+                    if (streakData.streak === 1) { rwMoons = 10; unlockPersona = true; }
+                    else if (streakData.streak === 5) rwMoons = 10;
+                    else if (streakData.streak === 10) rwMoons = 20;
+                    else if (streakData.streak === 20) rwMoons = 30;
+                    else if (streakData.streak === 30) { rwMoons = 30; unlockPersona = true; } 
+                    else if (streakData.streak > 30 && streakData.streak % 10 === 0) rwMoons = 30; 
 
                     setTimeout(() => { 
-                        alert(`🎉 일일 퀘스트 완벽 달성!\n${streakData.streak}일 연속 출석 기념으로 번개 +${rw}개가 충전되었습니다! ⚡`); 
-                        let usageObj = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}'); 
-                        usageObj.count = Math.max(0, (usageObj.count || 0) - rw); 
-                        localStorage.setItem('daily_usage_v4', JSON.stringify(usageObj)); 
+                        window.openStreakModal(); 
+                        
+                        let currentMoons = parseInt(localStorage.getItem('moon_coins') || '0');
+                        localStorage.setItem('moon_coins', currentMoons + rwMoons); 
+                        
+                        if (unlockPersona) {
+                            localStorage.setItem('unlocked_special_persona', 'true');
+                            window.renderSpecialPersona(); 
+                            alert(`🎉 퀘스트 완벽 달성!\n초승달 +${rwMoons}개와 함께 [💖 스페셜 연인] 페르소나가 잠금 해제되었습니다!`);
+                        } else {
+                            alert(`🎉 퀘스트 완벽 달성!\n오늘의 보상 초승달 +${rwMoons}개가 지급되었습니다! 🌙`);
+                        }
+                        
                         window.updateBadgeUI(); 
                     }, 800);
                 }
-                localStorage.setItem('study_streak_v2', JSON.stringify(streakData));
+                localStorage.setItem('study_streak_v3', JSON.stringify(streakData));
                 window.updateStreakUI();
             }
         };
-
         // 앱 켤 때 퀘스트 정보 갱신
         setTimeout(window.updateStreakUI, 500);
 
@@ -2969,6 +3061,45 @@ Respond EXACTLY in this JSON format:
                 console.error("메모리 압축 실패:", e);
             }
         };
+        // 🌟 [UI 업데이트] 성별 선택 기능 (저장 버튼 없이 즉시 반영되도록 수정)
+        window.selectGender = function(g) { 
+            currentVoiceGender = g; 
+            localStorage.setItem('voice_gender', g);
+            
+            const baseLang = (document.getElementById('explanationLanguage').value || 'ko-KR').split('-')[0];
+            const dict = UI_DICTIONARY[baseLang] || UI_DICTIONARY["en"];
+            const genderText = g === 'female' ? (dict.gender_f_text || '여성') : (dict.gender_m_text || '남성');
+            const icon = g === 'female' ? '👩' : '👨';
+            
+            const display = document.getElementById('currentGenderDisplay');
+            if (display) display.innerHTML = `${icon} ${genderText}`;
+            
+            const dd = document.getElementById('genderDropdown');
+            if(dd) dd.classList.add('hidden');
+        };
+
+        // 빈 공간 클릭 시 드롭다운 닫히게 하기
+        const originalHandleBodyClick = window.handleBodyClick;
+        window.handleBodyClick = function(e) {
+            if(originalHandleBodyClick) originalHandleBodyClick(e);
+            const dd = document.getElementById('genderDropdown');
+            if (dd && !e.target.closest('#genderDropdownContainer')) dd.classList.add('hidden');
+        };
+
+        // 앱 시작 시 저장된 목소리 성별과 폰트 크기 초기화
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const savedGender = localStorage.getItem('voice_gender') || 'female';
+                window.selectGender(savedGender); // 초기 성별 UI 세팅
+                
+                const savedFontSize = localStorage.getItem('chat_font_size');
+                if (savedFontSize) {
+                    document.documentElement.style.setProperty('--chat-font-size', savedFontSize + 'px');
+                    const fontSlider = document.getElementById('fontSizeSlider');
+                    if (fontSlider) fontSlider.value = savedFontSize;
+                }
+            }, 200); 
+        });
 
     </script>
 </body>
