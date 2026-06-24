@@ -3154,7 +3154,105 @@ window.saveCustomPersona = function() {
     window.currentPersona = 'custom';
     window.updateStatus("나만의 튜터 설정이 완료되었습니다!");
 };
+// 🌟 나만의 튜터 모달창 열기
+        window.openCustomPersonaModal = function() {
+            // 기존에 저장된 설정이 있다면 불러와서 입력창에 미리 채워줍니다.
+            const savedCustom = JSON.parse(localStorage.getItem('user_custom_persona')) || { name: '', job: '', hobby: '', personality: '' };
+            
+            document.getElementById('input_custom_name').value = savedCustom.name;
+            document.getElementById('input_custom_job').value = savedCustom.job;
+            document.getElementById('input_custom_hobby').value = savedCustom.hobby;
+            document.getElementById('input_custom_personality').value = savedCustom.personality;
+            
+            // 모달창 보이기
+            document.getElementById('customPersonaModal').classList.remove('hidden');
+        };
+
+        // 🌟 나만의 튜터 모달창 닫기
+        window.closeCustomPersonaModal = function() {
+            document.getElementById('customPersonaModal').classList.add('hidden');
+        };
+
+        // 🌟 사용자 설정 저장 및 적용하기
+        window.saveCustomPersona = function() {
+            const customName = document.getElementById('input_custom_name').value.trim() || 'AI 튜터';
+            const customJob = document.getElementById('input_custom_job').value.trim() || '언어 선생님';
+            const customHobby = document.getElementById('input_custom_hobby').value.trim() || '대화하기';
+            const customPersonality = document.getElementById('input_custom_personality').value.trim() || '매우 친절하고 상냥함';
+
+            const customData = {
+                name: customName,
+                job: customJob,
+                hobby: customHobby,
+                personality: customPersonality
+            };
+
+            // 기기(로컬스토리지)에 저장
+            localStorage.setItem('user_custom_persona', JSON.stringify(customData));
+            
+            // 현재 페르소나를 'custom'으로 변경
+            window.currentPersona = 'custom';
+            
+            // 모달창 닫기
+            window.closeCustomPersonaModal();
+            
+            // 사용자에게 알림 표시
+            alert(`[${customName}] 튜터 설정이 완료되었습니다!\\n이제 대화를 시작해 보세요.`);
+            
+            // (선택 사항) 만약 버튼 색상을 바꾸는 UI 로직이 있다면 여기서 호출
+            // updatePersonaButtonsUI('custom'); 
+        };
 
     </script>
+
+
+    <div id="customPersonaModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-opacity">
+        <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden flex flex-col transform transition-all">
+            <div class="px-5 py-4 flex justify-between items-center border-b border-slate-100 bg-slate-50/50">
+                <h3 class="text-sm font-black text-slate-800 flex items-center gap-2">
+                    <span>✨ 나만의 튜터 만들기</span>
+                </h3>
+                <button onclick="closeCustomPersonaModal()" class="w-7 h-7 flex items-center justify-center rounded-full bg-slate-200/50 text-slate-500 hover:bg-slate-200 transition-colors">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+            
+            <div class="p-5 flex flex-col gap-4 bg-white">
+                <p class="text-[11px] text-slate-500 font-medium mb-1">좋아하는 연예인, 가상의 인물 등 원하는 설정을 자유롭게 입력해 보세요. (기기에만 안전하게 저장됩니다.)</p>
+                
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-[10px] font-bold text-slate-700 ml-1">이름 (Name)</label>
+                    <input type="text" id="input_custom_name" placeholder="예: 셀레나 고메즈" class="w-full h-11 bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl px-4 outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all shadow-inner">
+                </div>
+                
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-[10px] font-bold text-slate-700 ml-1">직업 (Job / Role)</label>
+                    <input type="text" id="input_custom_job" placeholder="예: 세계적인 팝 가수" class="w-full h-11 bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl px-4 outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all shadow-inner">
+                </div>
+
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-[10px] font-bold text-slate-700 ml-1">취미 및 관심사 (Hobby)</label>
+                    <input type="text" id="input_custom_hobby" placeholder="예: 요리, 노래 만들기" class="w-full h-11 bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl px-4 outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all shadow-inner">
+                </div>
+
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-[10px] font-bold text-slate-700 ml-1">성격 및 말투 (Personality)</label>
+                    <input type="text" id="input_custom_personality" placeholder="예: 아주 다정하고 활기차며 이모티콘을 자주 씀" class="w-full h-11 bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl px-4 outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all shadow-inner">
+                </div>
+            </div>
+
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex gap-2">
+                <button onclick="closeCustomPersonaModal()" class="flex-1 py-3 bg-white text-slate-600 text-xs font-bold rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors">취소</button>
+                <button onclick="saveCustomPersona()" class="flex-1 py-3 bg-rose-500 text-white text-xs font-bold rounded-xl shadow-md shadow-rose-500/20 hover:bg-rose-600 transition-colors">저장 후 적용하기</button>
+            </div>
+        </div>
+    </div>
+
+
+
 </body>
+
+
+
+
 </html>
