@@ -459,6 +459,7 @@
                     <button id="vc_theme3" class="vocab-theme-btn shrink-0 bg-white border border-slate-200 text-slate-500 text-xs font-bold px-4 py-2 rounded-xl hover:bg-slate-50 transition-all" onclick="setVocabTheme(this)">❤️ 연애/감정</button>
                     <button id="vc_theme4" class="vocab-theme-btn shrink-0 bg-white border border-slate-200 text-slate-500 text-xs font-bold px-4 py-2 rounded-xl hover:bg-slate-50 transition-all" onclick="setVocabTheme(this)">🍽️ 식당/카페</button>
                 </div>
+                <input type="text" id="vc_custom_input" placeholder="원하는 단어나 문장을 직접 입력해 보세요! (선택)" class="w-full h-11 bg-slate-50 border border-slate-200 text-slate-700 text-[11px] font-bold rounded-xl px-4 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all shadow-inner mb-2">
                 <button id="generateVocabBtn" class="w-full mt-1 bg-slate-900 text-white text-sm font-bold py-2.5 rounded-xl shadow-md hover:bg-black transition-all" onclick="generateVocab()">✨ AI 단어장 생성하기</button>
             </div>
 
@@ -2430,42 +2431,55 @@ Respond EXACTLY in this JSON format:
         };
 
         window.generateVocab = async function() {
-            if (savedVocabs.length >= 5) { if (!confirm("새로운 단어장 생성 시 가장 오래된 단어장이 자동 삭제됩니다.\n계속하시겠습니까?")) return; }
-            if (typeof window.checkAndBlockAPI === 'function' && !window.checkAndBlockAPI()) return;
+    if (savedVocabs.length >= 5) { if (!confirm("새로운 단어장 생성 시 가장 오래된 단어장이 자동 삭제됩니다.\n계속하시겠습니까?")) return; }
+    if (typeof window.checkAndBlockAPI === 'function' && !window.checkAndBlockAPI()) return;
 
-            const btn = document.getElementById("generateVocabBtn");
-            const theme = document.querySelector('.vocab-theme-btn.bg-indigo-50').innerText.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]|\n/g, '').trim();
-            const targetLangName = document.getElementById('targetLanguage').options[document.getElementById('targetLanguage').selectedIndex].dataset.langName;
-            const expLangCode = document.getElementById('explanationLanguage').value || 'ko-KR';
-            const aiLangNames = { "ko-KR": "Korean", "en-US": "English", "ja-JP": "Japanese", "zh-CN": "Chinese", "es-ES": "Spanish", "th-TH": "Thai", "vi-VN": "Vietnamese", "fr-FR": "French", "de-DE": "German", "ru-RU": "Russian", "ar-SA": "Arabic", "hi-IN": "Hindi" };
-            const expLangName = aiLangNames[expLangCode] || expLangCode;
+    const btn = document.getElementById("generateVocabBtn");
+    const theme = document.querySelector('.vocab-theme-btn.bg-indigo-50').innerText.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]|\n/g, '').trim();
+    
+    // 🌟 [추가] 사용자가 입력한 단어 가져오기
+    const customInput = document.getElementById('vc_custom_input');
+    const userCustomWord = customInput ? customInput.value.trim() : "";
 
-            let myExistingWords = [];
-            savedVocabs.forEach(set => { if (set.langName === targetLangName) set.vocabData.forEach(v => myExistingWords.push(v.word)); });
+    const targetLangName = document.getElementById('targetLanguage').options[document.getElementById('targetLanguage').selectedIndex].dataset.langName;
+    const expLangCode = document.getElementById('explanationLanguage').value || 'ko-KR';
+    const aiLangNames = { "ko-KR": "Korean", "en-US": "English", "ja-JP": "Japanese", "zh-CN": "Chinese", "es-ES": "Spanish", "th-TH": "Thai", "vi-VN": "Vietnamese", "fr-FR": "French", "de-DE": "German", "ru-RU": "Russian", "ar-SA": "Arabic", "hi-IN": "Hindi" };
+    const expLangName = aiLangNames[expLangCode] || expLangCode;
 
-            btn.innerText = "⏳ ..."; btn.disabled = true;
-            try {
-                const res = await fetch(`${WORKER_URL}generate-vocab`, { 
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify({ theme: theme, language: targetLangName, expLanguage: expLangName, existingWords: myExistingWords }) 
-                });
-                const data = await res.json(); 
-                if (typeof window.incrementLocalUsage === 'function') window.incrementLocalUsage();
+    let myExistingWords = [];
+    savedVocabs.forEach(set => { if (set.langName === targetLangName) set.vocabData.forEach(v => myExistingWords.push(v.word)); });
 
-                let newId = savedVocabs.length > 0 ? savedVocabs[savedVocabs.length - 1].id + 1 : 1;
-                if (savedVocabs.length >= 5) savedVocabs.shift(); 
-                savedVocabs.push({ id: newId, theme: theme, langName: targetLangName, langCode: document.getElementById('targetLanguage').value, vocabData: data.vocabData });
-                localStorage.setItem('vocab_scripts', JSON.stringify(savedVocabs)); 
-                window.showFlashcard(savedVocabs.length - 1, 0);
+    btn.innerText = "⏳ ..."; btn.disabled = true;
+    try {
+        const res = await fetch(`${WORKER_URL}generate-vocab`, { 
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, 
+            // 🌟 [추가] userWord 파라미터를 워커로 전송!
+            body: JSON.stringify({ theme: theme, language: targetLangName, expLanguage: expLangName, existingWords: myExistingWords, userWord: userCustomWord }) 
+        });
+        const data = await res.json(); 
+        if (typeof window.incrementLocalUsage === 'function') window.incrementLocalUsage();
 
-                if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
-                    window.flutter_inappwebview.callHandler('scheduleLocalPush', { id: 999, title: "📚 학습 복습 시간!", body: `오늘 공부했던 내용들, 까먹기 전에 한 번 복습해 볼까요?`, delayHours: 24 });
-                }
-            } catch (err) { alert("Fail"); } finally { 
-                const baseLang = (document.getElementById('explanationLanguage').value || 'ko-KR').split('-')[0];
-                btn.innerHTML = UI_DICTIONARY[baseLang]?.generateVocabBtn || "✨ AI 단어장 생성하기"; btn.disabled = false; 
-            }
-        };
+        let newId = savedVocabs.length > 0 ? savedVocabs[savedVocabs.length - 1].id + 1 : 1;
+        if (savedVocabs.length >= 5) savedVocabs.shift(); 
+
+        // 🌟 [추가] 사용자가 입력한 단어가 있다면 테마 이름에 반영
+        let finalTheme = userCustomWord ? `[내 단어] ${theme}` : theme;
+
+        savedVocabs.push({ id: newId, theme: finalTheme, langName: targetLangName, langCode: document.getElementById('targetLanguage').value, vocabData: data.vocabData });
+        localStorage.setItem('vocab_scripts', JSON.stringify(savedVocabs)); 
+        window.showFlashcard(savedVocabs.length - 1, 0);
+
+        // 🌟 [추가] 생성 완료 후 입력창 초기화
+        if (customInput) customInput.value = '';
+
+        if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
+            window.flutter_inappwebview.callHandler('scheduleLocalPush', { id: 999, title: "📚 학습 복습 시간!", body: `오늘 공부했던 내용들, 까먹기 전에 한 번 복습해 볼까요?`, delayHours: 24 });
+        }
+    } catch (err) { alert("Fail"); } finally { 
+        const baseLang = (document.getElementById('explanationLanguage').value || 'ko-KR').split('-')[0];
+        btn.innerHTML = UI_DICTIONARY[baseLang]?.generateVocabBtn || "✨ AI 단어장 생성하기"; btn.disabled = false; 
+    }
+};
         window.renderVocabs();
 
         window.loadAlphabetData = async function() {
