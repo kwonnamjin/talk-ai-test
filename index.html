@@ -63,64 +63,26 @@
 
             <select id="targetLanguage" class="hidden" onchange="targetLanguageChanged()"></select>
             <select id="explanationLanguage" class="hidden"></select>
-        </header>
 
-        <!-- 🌟 기존 streak-modal을 찾아서 이걸로 덮어쓰세요 -->
-        <div id="streak-modal" class="fixed inset-0 bg-slate-900/60 z-[100] hidden flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
-            <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl relative transform transition-all scale-100">
-                <button onclick="closeStreakModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 transition"><i class="fa-solid fa-xmark"></i></button>
-                <div class="text-center mt-2 mb-5">
-                    <div class="text-5xl mb-3 animate-bounce">🔥</div>
-                    <h2 class="text-xl font-extrabold text-slate-800">현재 <span id="modal-streak-count" class="text-red-500">0</span>일 연속 학습 중!</h2>
-                    <p class="text-[11px] text-slate-500 mt-2 font-bold">오늘의 퀘스트를 완료하고 초승달을 받으세요!</p>
-                </div>
-                
-                <!-- 🌟 동적 퀘스트 컨테이너 -->
-                <div id="modal-quest-container" class="space-y-2 mb-5">
-                    <!-- JS에서 동적으로 예쁘게 채워집니다 -->
-                </div>
-
-                <!-- 🌟 동적 타겟 보상 컨테이너 -->
-                <div id="modal-target-box" class="bg-orange-50 p-4 rounded-2xl border border-orange-100 mb-5">
-                    <!-- JS에서 동적으로 예쁘게 채워집니다 -->
-                </div>
-                <button onclick="closeStreakModal()" class="w-full bg-slate-900 text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition shadow-md">계속 학습하기</button>
-            </div>
-        </div>
-        <!-- 🌟 2. 메인 홈 화면 (모든 요소를 상단 탭 메뉴 안으로 삽입!) -->
-        <div id="screen-home" class="absolute top-0 left-0 w-full h-full z-10 sm:rounded-3xl transition-transform duration-300 bg-[#e0f2fe] overflow-hidden flex flex-col">
             
-            <div class="absolute inset-0 z-0 pointer-events-none bg-[#e0f2fe]">
-                <div class="absolute inset-0 bg-[url('app-icon-03.jpg')] bg-[length:100%_auto] bg-center bg-no-repeat opacity-[0.70] mix-blend-multiply"></div>
-                <div class="absolute inset-0 bg-gradient-to-b from-[#e0f2fe] from-25% via-transparent via-50% to-[#e0f2fe] to-75%"></div>
-            </div>
-
-            <!-- 스크롤 컨테이너 -->
-            <div class="relative z-10 w-full h-full pt-14 pb-6 px-1 overflow-y-auto no-scrollbar" id="homeScrollContainer">
-                
-                <!-- 🌟 상단 메인 탭 메뉴 (5개 탭) -->
-                <div id="navTabContainer" class="flex overflow-x-auto no-scrollbar w-full items-end border-b-[3px] border-slate-300/50 pt-2 relative z-20">
-                    <button onclick="togglePanel('')" class="shrink-0 w-[80px] py-2 bg-[#dcdcdc] text-slate-600 text-[10px] font-black rounded-t-xl z-10 relative border border-b-0 border-slate-400/30 truncate">HOME</button>
-                    
-                    <button onclick="togglePanel('inlinePagesPanel')" class="shrink-0 w-[80px] py-2 bg-[#aaaaaa] text-white text-[10px] font-black rounded-t-xl -ml-2 z-20 relative hover:bg-blue-500 transition-colors border border-b-0 border-white/20 truncate">페이지</button>
-                    
-                    <button onclick="togglePanel('inlineReportPanel')" class="shrink-0 w-[80px] py-2 bg-[#828282] text-white text-[10px] font-black rounded-t-xl -ml-2 z-30 relative hover:bg-emerald-600 transition-colors border border-b-0 border-white/20 truncate">리포트</button>
-                    
-                    <button onclick="togglePanel('inlineMemoryPanel')" class="shrink-0 w-[80px] py-2 bg-[#626262] text-white text-[10px] font-black rounded-t-xl -ml-2 z-40 relative hover:bg-blue-600 transition-colors border border-b-0 border-white/20 truncate">속마음</button>
-                    
-                    <button onclick="togglePanel('inlineSparePanel')" class="shrink-0 w-[80px] py-2 bg-[#5a5a5a] text-white text-[10px] font-black rounded-t-xl -ml-2 z-50 relative hover:bg-slate-500 transition-colors border border-b-0 border-white/20 truncate">예비용</button>
-                    
-                    <button onclick="togglePanel('inlineSettingsPanel')" class="shrink-0 w-[80px] py-2 bg-[#000000] text-slate-500 text-[10px] font-black rounded-t-xl -ml-2 z-[60] relative hover:bg-slate-200 transition-colors border border-b-0 border-white/50 truncate">설정</button>
-                </div>
-                <div class="px-2 pt-2 mb-2 flex justify-between items-center gap-60 relative z-20">
-                     <span id="ai_engine_label" class="text-slate-400 font-bold text-[8px] uppercase tracking-widest opacity-80">AI Engine</span>
-                     <span class="text-blue-400/80 text-[8px] font-bold"><i class="fa-solid fa-shield-halved mr-0.5"></i> DeepSeek Secure</span>
-                </div>
-
-                <!-- 🌟 하위 패널들 (기본적으로 모두 숨김 처리되어 있음) -->
-
-                <!-- 1. 페이지 패널 -->
-                <div id="inlinePagesPanel" class="hidden bg-white/95 backdrop-blur-md border-b border-x border-slate-200 rounded-b-xl shadow-lg p-3 mb-4 z-10 relative grid grid-cols-2 gap-2">
+        </header>
+        <div id="globalNavWrapper" class="absolute top-[50px] sm:top-[60px] left-0 right-0 z-[9999] flex flex-col bg-[#e0f2fe] border-b-[3px] border-slate-300/50 pb-0">
+    
+    <div class="px-3 pt-1 flex justify-between items-center relative z-20">
+         <span id="ai_engine_label" class="text-slate-400 font-bold text-[8px] uppercase tracking-widest opacity-80">AI Engine</span>
+         <span class="text-blue-400/80 text-[8px] font-bold"><i class="fa-solid fa-shield-halved mr-0.5"></i> DeepSeek Secure</span>
+    </div>
+    
+    <div class="flex overflow-x-auto no-scrollbar w-full items-end pt-1 px-1 relative z-20">
+         <button onclick="navigate('screen-home')" class="shrink-0 w-[80px] py-2 bg-[#dcdcdc] text-slate-600 text-[10px] font-black rounded-t-xl z-10 relative border border-b-0 border-slate-400/30 truncate">HOME</button>
+         <button onclick="togglePanel('inlinePagesPanel')" class="shrink-0 w-[80px] py-2 bg-[#3232ff] text-white text-[10px] font-black rounded-t-xl -ml-2 z-20 relative hover:bg-blue-500 transition-colors border border-b-0 border-white/20 truncate">페이지</button>
+         <button onclick="togglePanel('inlineReportPanel')" class="shrink-0 w-[80px] py-2 bg-[#646eff] text-white text-[10px] font-black rounded-t-xl -ml-2 z-30 relative hover:bg-emerald-600 transition-colors border border-b-0 border-white/20 truncate">리포트</button>
+         <button onclick="togglePanel('inlineMemoryPanel')" class="shrink-0 w-[80px] py-2 bg-[#6482ff] text-white text-[10px] font-black rounded-t-xl -ml-2 z-40 relative hover:bg-blue-600 transition-colors border border-b-0 border-white/20 truncate">속마음</button>
+         <button onclick="togglePanel('inlineSparePanel')" class="shrink-0 w-[80px] py-2 bg-[#6496ff] text-white text-[10px] font-black rounded-t-xl -ml-2 z-50 relative hover:bg-slate-500 transition-colors border border-b-0 border-white/20 truncate">예비용</button>
+         <button onclick="togglePanel('inlineSettingsPanel')" class="shrink-0 w-[80px] py-2 bg-[#64aaff] text-slate-500 text-[10px] font-black rounded-t-xl -ml-2 z-[60] relative hover:bg-slate-200 transition-colors border border-b-0 border-white/50 truncate">설정</button>
+    </div>
+    <!-- 1. 페이지 패널 -->
+                <div id="inlinePagesPanel" class="hidden panel-popup bg-white/95 backdrop-blur-md border-b border-x border-slate-200 rounded-b-xl shadow-lg p-3 mb-4 z-10 relative grid grid-cols-2 gap-2">
                     <button onclick="openPage('screen-main')" class="bg-blue-50 py-2.5 rounded-xl text-[11px] font-bold text-blue-700 shadow-sm border border-blue-100 hover:bg-blue-100 flex items-center justify-center gap-1.5"><i class="fa-solid fa-comments"></i> 프리토킹</button>
                     <button onclick="openPage('screen-roleplay')" class="bg-emerald-50 py-2.5 rounded-xl text-[11px] font-bold text-emerald-700 shadow-sm border border-emerald-100 hover:bg-emerald-100 flex items-center justify-center gap-1.5"><i class="fa-solid fa-masks-theater"></i> 롤플레잉</button>
                     <button onclick="openPage('screen-vocab')" class="bg-indigo-50 py-2.5 rounded-xl text-[11px] font-bold text-indigo-700 shadow-sm border border-indigo-100 hover:bg-indigo-100 flex items-center justify-center gap-1.5"><i class="fa-solid fa-book"></i> 단어장</button>
@@ -128,7 +90,7 @@
                 </div>
 
                 <!-- 2. 학습리포트 패널 -->
-                <div id="inlineReportPanel" class="hidden bg-white/95 backdrop-blur-md border-b border-x border-slate-200 rounded-b-xl shadow-lg p-4 mb-4 z-10 relative">
+                <div id="inlineReportPanel" class="hidden panel-popup bg-white/95 backdrop-blur-md border-b border-x border-slate-200 rounded-b-xl shadow-lg p-4 mb-4 z-10 relative">
                     <h2 class="text-sm font-extrabold text-slate-800 mb-2 px-1 flex items-center justify-between drop-shadow-sm">
                         <span id="ui_home_report_title">내 학습 리포트 📊</span>
                         <span id="dash-quest-status" class="text-[9px] text-orange-600 font-bold bg-orange-100 px-2 py-0.5 rounded-full shadow-sm border border-orange-200">퀘스트: 진행중</span>
@@ -154,7 +116,7 @@
                 </div>
 
                 <!-- 3. AI 속마음 패널 -->
-                <div id="inlineMemoryPanel" class="hidden bg-white/95 backdrop-blur-md border-b border-x border-slate-200 rounded-b-xl shadow-lg p-4 mb-4 z-10 relative">
+                <div id="inlineMemoryPanel" class="hidden panel-popup bg-white/95 backdrop-blur-md border-b border-x border-slate-200 rounded-b-xl shadow-lg p-4 mb-4 z-10 relative">
                     <div class="flex items-center gap-1.5 border-b border-slate-100 pb-2 mb-2">
                         <div class="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center border border-purple-200"><i class="fa-solid fa-robot text-xs text-purple-600"></i></div>
                         <p id="ui_home_memory_title" class="text-[11px] font-black text-slate-700">AI 튜터의 기억 🧠</p>
@@ -165,13 +127,13 @@
                 </div>
 
                 <!-- 4. 예비용 패널 -->
-                <div id="inlineSparePanel" class="hidden bg-white/95 backdrop-blur-md border-b border-x border-slate-200 rounded-b-xl shadow-lg p-4 mb-4 z-10 relative">
+                <div id="inlineSparePanel" class="hidden panel-popup bg-white/95 backdrop-blur-md border-b border-x border-slate-200 rounded-b-xl shadow-lg p-4 mb-4 z-10 relative">
                     <p class="text-xs text-slate-500 font-bold text-center py-5">추후 업데이트될 기능입니다. 🚀</p>
                 </div>
 
                 <!-- 5. 설정 패널 (언어 선택) -->
                 <!-- 5. 설정 패널 (언어 선택 + 목소리 성별) -->
-                <div id="inlineSettingsPanel" class="hidden bg-white/95 backdrop-blur-md border-b border-x border-slate-200 rounded-b-xl shadow-lg p-4 mb-4 z-10 relative flex flex-col gap-3">
+                <div id="inlineSettingsPanel" class="hidden panel-popup bg-white/95 backdrop-blur-md border-b border-x border-slate-200 rounded-b-xl shadow-lg p-4 mb-4 z-10 relative flex flex-col gap-3">
                     
                     <div class="flex justify-between items-center bg-slate-50 border border-slate-200 rounded-lg py-2.5 px-3 cursor-pointer hover:bg-slate-100 transition-colors" onclick="openCustomLangPicker('explanationLanguage')">
                         <span class="text-xs font-bold text-slate-500" id="ui_home_user_lang">사용자 언어</span>
@@ -198,6 +160,44 @@
                         </div>
                     </div>
                 </div>
+</div>
+
+<style>
+#globalNavWrapper {
+    position: absolute;    /* fixed를 쓰면 스마트폰 틀을 벗어나므로 absolute로 고정 */
+    top: 56px;             /* 상단 헤더(h-14 = 56px) 바로 아래에 정확히 안착 */
+    width: 100%;
+    z-index: 9999;
+}
+
+/* 2. 하위 메뉴 패널들을 본문 위에 공중 부양하는 깔끔한 팝업(드롭다운) 카드로 변경 */
+.panel-popup {
+    position: absolute !important;   /* HTML에 적힌 relative를 무시하고 공중에 띄움 */
+    top: 100% !important;            /* 네비게이션 메뉴 버튼 바로 밑에서 떨어지도록 설정 */
+    left: 12px !important;           /* 좌우 여백을 주어 공중에 뜬 깔끔한 카드 형태로 디자인 */
+    right: 12px !important;
+    z-index: 10000 !important;       /* 본문의 어떤 콘텐츠보다도 무조건 위에 보이도록 처리 */
+    background-color: rgba(255, 255, 255, 0.98) !important; /* 뒷 배경 글씨가 비치지 않게 불투명도 조정 */
+    border-radius: 16px !important;  /* 기존 하단 라운드에서 이쁜 사방 라운드형 팝업 창으로 변경 */
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.2) !important; /* 부드러운 그림자 주입 */
+}
+
+/* 3. 본문 화면(홈, 프리토킹, 롤플레잉 등)의 상단 기본 여백 설정 */
+/* 상단 헤더(56px) + 메뉴가 닫혀있을 때의 네비바 높이(약 59px) = 총 115px 아래에서 본문 글씨들이 시작됨 */
+#homeScrollContainer, #screen-main, #screen-roleplay, #screen-vocab, #screen-alphabet {
+    padding-top: 115px !important; 
+}
+</style>
+
+<div id="screen-home" class="absolute top-0 left-0 w-full h-full z-10 sm:rounded-3xl transition-transform duration-300 bg-[#e0f2fe] overflow-hidden flex flex-col">
+    
+    <div class="absolute inset-0 z-0 pointer-events-none bg-[#e0f2fe]">
+        <div class="absolute inset-0 bg-[url('app-icon-03.jpg')] bg-[length:100%_auto] bg-center bg-no-repeat opacity-[0.70] mix-blend-multiply"></div>
+        <div class="absolute inset-0 bg-gradient-to-b from-[#e0f2fe] from-25% via-transparent via-50% to-[#e0f2fe] to-75%"></div>
+    </div>
+
+    <div class="relative z-10 w-full h-full pb-6 px-1 overflow-y-auto no-scrollbar" id="homeScrollContainer">
+                
                 <!-- 🌟 하단에 고정된 멤버십 배너 -->
             <div class="absolute bottom-4 left-4 right-4 z-50 pointer-events-none">
                 <div id="premiumBanner" class="bg-gradient-to-r from-indigo-600/95 via-blue-600/95 to-blue-500/95 backdrop-blur-md rounded-2xl p-3 shadow-lg cursor-pointer transform transition hover:-translate-y-1 border border-white/20 pointer-events-auto" onclick="window.showSubscriptionModal('upgrade')">
@@ -212,28 +212,10 @@
             </div>
 
         </div>
-        
-        <div id="screen-main" class="absolute top-0 left-0 w-full h-full flex flex-col z-20 bg-white overflow-hidden sm:rounded-3xl shadow-[0_0_20px_rgba(0,0,0,0.15)] transition-transform duration-300 translate-x-full">
+        </div>
+        <div id="screen-main" class="absolute top-0 left-0 w-full h-full flex flex-col z-20 bg-white overflow-hidden sm:rounded-3xl shadow-[0_0_20px_rgba(0,0,0,0.15)]" style="transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);">
             
-            <!-- 🌟 100% 통일된 프리토킹 채팅방 전용 하얀색 헤더 -->
-            <div class="flex-none bg-white pt-14 border-b border-slate-100 p-4 flex items-center justify-between z-10 shadow-sm relative gap-2">
-                <button onclick="goHome('screen-main')" class="w-8 h-8 flex items-center justify-center text-slate-500 hover:bg-slate-100 rounded-full transition shrink-0">
-                    <i class="fa-solid fa-chevron-left text-lg"></i>
-                </button>
-                
-                <!-- 제목 왼쪽 정렬 & 다국어 번역을 위한 id 추가 -->
-                <h1 id="header_room1" class="text-lg font-bold text-slate-800 truncate flex-1 min-w-0 text-left">💬 프리토킹 튜터</h1>
-                
-                <div class="flex items-center gap-2 shrink-0">
-                    <!-- 번개 배지 -->
-                    
-                    <!-- 🌟 설정 톱니바퀴를 지우고 통일된 언어 선택 버튼으로 교체 -->
-                    <button class="bg-blue-50 text-blue-600 text-[11px] font-bold rounded-lg border border-blue-200 px-2.5 py-1.5 flex items-center gap-1.5 outline-none hover:bg-blue-100 transition-colors shadow-sm max-w-[110px]" onclick="openCustomLangPicker('targetLanguage')">
-                        <span id="disp-chatLanguage" class="truncate">🇺🇸 영어</span> 
-                        <i class="fa-solid fa-chevron-down text-[9px] opacity-70 shrink-0"></i>
-                    </button>
-                </div>
-            </div>
+            
 
             <div id="inAppWarning" class="hidden flex-none bg-red-100 text-red-700 px-4 py-2 text-[11px] font-bold flex items-center justify-between z-10 border-b border-red-200 shadow-inner">
                 <span class="flex-1"><i class="fa-solid fa-triangle-exclamation mr-1 text-red-500"></i> <span id="mic_warning_text">브라우저 마이크 제한. '다른 브라우저로 열기'를 선택해 주세요.</span></span>
@@ -334,6 +316,7 @@
                         </button>
                     </div>
                 </div>
+                
                 <div class="flex gap-2 mb-3">
                     <input type="text" id="textInput" placeholder="마이크가 안 될 때는 직접 입력해 보세요..." class="flex-1 min-w-0 h-10 rounded-xl bg-slate-50 border border-slate-300 px-4 text-[11px] sm:text-xs outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-inner" onkeypress="if(event.key==='Enter') sendTextMessage()">
                     <button id="sendMsgBtn" class="w-10 h-10 shrink-0 rounded-xl bg-gradient-to-br from-blue-600 to-blue-800 text-white flex items-center justify-center hover:from-blue-700 shadow-md outline-none" onclick="sendTextMessage()"><i class="fa-solid fa-paper-plane text-xs"></i></button>
@@ -352,20 +335,7 @@
         <!-- 🎬 상황별 롤플레잉 화면 -->
         <div id="screen-roleplay" class="absolute top-0 left-0 w-full h-full flex flex-col z-20 bg-[#f3f4f6] overflow-hidden sm:rounded-3xl" style="transform: translateX(100%); box-shadow: -10px 0 25px rgba(0,0,0,0.1); transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);">
             
-            <div class="flex-none bg-white pt-14 sm:pt-4 border-b border-gray-100 p-4 flex items-center justify-between z-10 shadow-sm relative gap-2">
-                <button onclick="goHome('screen-roleplay')" class="w-8 h-8 flex items-center justify-center text-slate-500 hover:bg-slate-100 rounded-full shrink-0">
-                    <i class="fa-solid fa-chevron-left text-lg"></i>
-                </button>
-                <h1 id="header_room2" class="text-lg font-bold text-gray-800 truncate flex-1 min-w-0">🎬 상황별 롤플레잉</h1>
-                <div class="flex items-center shrink-0 gap-2"> 
-                    <div id="usageBadge2"></div> 
-                    <button class="bg-blue-50 text-blue-600 text-[11px] font-bold rounded-lg border border-blue-200 px-2.5 py-1.5 flex items-center gap-1.5 outline-none hover:bg-blue-100 transition-colors shadow-sm max-w-[110px]" onclick="openCustomLangPicker('targetLanguage')">
-                        <span id="disp-roleplayLanguage" class="truncate">🇺🇸 영어</span> 
-                        <i class="fa-solid fa-chevron-down text-[9px] opacity-70 shrink-0"></i>
-                    </button>
-                </div>
-            </div>
-
+            
             <div id="scrollArea" class="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar pb-24">
 
                 <div id="rpWelcomeWrapper" class="flex flex-col space-y-1 mb-5">
@@ -444,17 +414,7 @@
         </div>
 
         <div id="screen-vocab" class="absolute top-0 left-0 w-full h-full flex flex-col z-30 bg-[#f8fafc] overflow-hidden sm:rounded-3xl" style="transform: translateX(100%); box-shadow: -10px 0 25px rgba(0,0,0,0.1); transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);">
-            <div class="flex-none bg-white pt-14 border-b border-gray-100 p-4 flex items-center justify-between z-10 shadow-sm relative gap-2">
-                <button onclick="goHome('screen-vocab')" class="w-8 h-8 flex items-center justify-center text-slate-500 hover:bg-slate-100 rounded-full shrink-0 transition"><i class="fa-solid fa-chevron-left text-lg"></i></button>
-                <h1 id="header_room3" class="text-lg font-bold text-gray-800 truncate flex-1 min-w-0">📝 나만의 단어장</h1>
-                <div class="flex items-center shrink-0 gap-2"> 
-                     
-                    <button class="bg-blue-50 text-blue-600 text-[11px] font-bold rounded-lg border border-blue-200 px-2.5 py-1.5 flex items-center gap-1.5 outline-none hover:bg-blue-100 transition-colors shadow-sm max-w-[110px]" onclick="openCustomLangPicker('targetLanguage')">
-                        <span id="disp-vocabLanguage" class="truncate">🇺🇸 영어</span> 
-                        <i class="fa-solid fa-chevron-down text-[9px] opacity-70 shrink-0"></i>
-                    </button>
-                </div>
-            </div>
+            
 
             <div class="flex-none bg-white px-4 py-3 border-b border-gray-100 shadow-sm z-10">
                 <div class="flex gap-2 overflow-x-auto no-scrollbar pb-2">
@@ -531,23 +491,14 @@
             </div>
         </div>
 
-        <<div id="screen-alphabet" class="absolute top-0 left-0 w-full h-full flex flex-col z-40 bg-[#e0f2fe] overflow-hidden sm:rounded-3xl" style="transform: translateX(100%); box-shadow: -10px 0 25px rgba(0,0,0,0.1); transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);">
+        <div id="screen-alphabet" class="absolute top-0 left-0 w-full h-full flex flex-col z-40 bg-[#e0f2fe] overflow-hidden sm:rounded-3xl" style="transform: translateX(100%); box-shadow: -10px 0 25px rgba(0,0,0,0.1); transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);">
             
             <div class="absolute inset-0 z-0 pointer-events-none bg-[#f0fdf4]">
                 <div class="absolute inset-0 bg-[url('app-icon-03.jpg')] bg-[length:100%_auto] bg-center bg-no-repeat opacity-[0.70] mix-blend-multiply"></div>
                 <div class="absolute inset-0 bg-gradient-to-b from-[#f0fdf4] from-25% via-transparent via-50% to-[#f0fdf4] to-75%"></div>
             </div>
 
-            <div class="relative z-10 flex-none bg-white/80 backdrop-blur-md pt-14 sm:pt-4 border-b border-emerald-100 p-4 flex items-center justify-between shadow-sm gap-2">
-                <button onclick="goHome('screen-alphabet')" class="w-8 h-8 flex items-center justify-center text-slate-500 hover:bg-emerald-50 rounded-full shrink-0 transition"><i class="fa-solid fa-chevron-left text-lg"></i></button>
-                <h1 id="header_room4" class="text-lg font-bold text-gray-800 truncate flex-1 min-w-0">🔤 왕초보 기초 발음</h1>
-                <div class="flex items-center shrink-0 gap-2"> 
-                    <button class="bg-emerald-50 text-emerald-600 text-[11px] font-bold rounded-lg border border-emerald-200 px-2.5 py-1.5 flex items-center gap-1.5 outline-none hover:bg-emerald-100 transition-colors shadow-sm max-w-[110px]" onclick="openCustomLangPicker('targetLanguage')">
-                        <span id="disp-alphaLanguage" class="truncate">🇺🇸 영어</span> 
-                        <i class="fa-solid fa-chevron-down text-[9px] opacity-70 shrink-0"></i>
-                    </button>
-                </div>
-            </div>
+            
 
             <div class="relative z-10 flex-none bg-white/50 backdrop-blur-md px-4 py-3 border-b border-emerald-100 shadow-sm">
                 <button id="generateAlphaBtn" onclick="loadAlphabetData()" class="w-full bg-slate-900 text-white text-sm font-bold py-2.5 rounded-xl shadow-md hover:bg-black transition-all">✨ 선택한 언어의 AI 파닉스 가져오기</button>
@@ -590,22 +541,61 @@
     </div>
     
     <script type="module">
+        // 패널 토글 함수 (메뉴 클릭 시)
+window.togglePanel = function(panelId) {
+    const panels = ['inlinePagesPanel', 'inlineReportPanel', 'inlineMemoryPanel', 'inlineSparePanel', 'inlineSettingsPanel'];
+    
+    panels.forEach(id => {
+        const el = document.getElementById(id);
+        if (id === panelId) {
+            el.classList.toggle('hidden');
+        } else {
+            el.classList.add('hidden');
+        }
+    });
+};
 
-        // 🌟 통합 패널 제어 함수 (하나의 탭을 열면 다른 탭은 모두 자동으로 닫힙니다)
+// 화면 아무 곳이나 클릭하면 열려있는 패널 모두 닫기
+document.addEventListener('click', (e) => {
+    const nav = document.getElementById('globalNavWrapper');
+    const isClickInside = nav.contains(e.target);
+    
+    if (!isClickInside) {
+        const panels = ['inlinePagesPanel', 'inlineReportPanel', 'inlineMemoryPanel', 'inlineSparePanel', 'inlineSettingsPanel'];
+        panels.forEach(id => document.getElementById(id).classList.add('hidden'));
+    }
+});
+
+       // 🌟 화면 이동 만능 함수
+        window.navigate = function(screenId) {
+            // 1. 모든 화면 숨기기 (홈 포함)
+            const allScreens = ['screen-home', 'screen-main', 'screen-roleplay', 'screen-vocab', 'screen-alphabet'];
+            allScreens.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    if (id === screenId) {
+                        el.style.transform = 'translateX(0%)'; // 목적지 화면은 나타나게
+                    } else {
+                        el.style.transform = 'translateX(100%)'; // 나머지는 숨김
+                    }
+                }
+            });
+
+            // 2. 패널 열려있으면 닫기
+            ['inlinePagesPanel', 'inlineReportPanel', 'inlineMemoryPanel', 'inlineSparePanel', 'inlineSettingsPanel'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+        };
+
+        // 🌟 기존 togglePanel도 이 함수를 활용하도록 수정
         window.togglePanel = function(panelId) {
-            // 관리할 모든 패널의 ID 배열
+            // 패널만 열고 닫고, 화면 이동은 안 함 (현재 화면 유지)
             const panels = ['inlinePagesPanel', 'inlineReportPanel', 'inlineMemoryPanel', 'inlineSparePanel', 'inlineSettingsPanel'];
-            
             panels.forEach(id => {
                 const el = document.getElementById(id);
                 if (el) {
-                    // 클릭한 패널과 ID가 같으면 열기/닫기 토글
-                    if (id === panelId) {
-                        el.classList.toggle('hidden');
-                    } else {
-                        // 다른 패널들은 무조건 닫기
-                        el.classList.add('hidden');
-                    }
+                    if (id === panelId) el.classList.toggle('hidden');
+                    else el.classList.add('hidden');
                 }
             });
         };
@@ -2157,12 +2147,34 @@ Respond EXACTLY in this JSON format:
         }
         
         window.openPage = function(pageId) {
-            const page = document.getElementById(pageId);
-            if(page) {
-                page.style.transform = 'translateX(0%)';
-                document.getElementById('screen-home').style.transform = 'translateX(-20%)';
+    const page = document.getElementById(pageId);
+    if(page) {
+        // 모든 서브 화면 ID 배열
+        const subScreens = ['screen-main', 'screen-roleplay', 'screen-vocab', 'screen-alphabet'];
+        
+        // 선택한 화면만 화면 중앙(0%)에 띄우고, 나머지는 모두 오른쪽(100%)으로 깔끔하게 밀어내기
+        subScreens.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                if (id === pageId) {
+                    el.style.transform = 'translateX(0%)';
+                } else {
+                    el.style.transform = 'translateX(100%)';
+                }
             }
-        };
+        });
+        
+        // 홈 화면은 자연스럽게 왼쪽(-20%)으로 밀어두기
+        const home = document.getElementById('screen-home');
+        if (home) home.style.transform = 'translateX(-20%)';
+    }
+
+    // 네비게이션 바에서 페이지 이동을 했으므로 열려있던 메뉴 패널들은 hidden으로 숨기기
+    ['inlinePagesPanel', 'inlineReportPanel', 'inlineMemoryPanel', 'inlineSparePanel', 'inlineSettingsPanel'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('hidden');
+    });
+};
 
         window.goHome = function(pageId) {
             const page = document.getElementById(pageId);
