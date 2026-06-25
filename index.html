@@ -245,27 +245,26 @@
                     <i class="fa-solid fa-text-height text-slate-400"></i> <span id="set_font_size">채팅 글자 크기</span>
                 </label>
                 <input type="range" id="fontSizeSlider" min="12" max="22" step="1" value="14" class="w-[140px] accent-blue-500 cursor-pointer" oninput="document.documentElement.style.setProperty('--chat-font-size', this.value + 'px'); localStorage.setItem('chat_font_size', this.value);">
-            </div>
-
-            <div class="px-4 py-3 bg-slate-50 border-b border-slate-200 shrink-0 flex items-center gap-4 shadow-sm z-10 relative">
-                <div class="flex flex-col items-center shrink-0">
-                    <div id="avatarWrap" class="w-14 h-14 rounded-full bg-white border-[3px] border-slate-200 shadow-sm flex items-center justify-center transition-all duration-300 relative">
-                        <img id="aiAvatarImg" src="app-icon.png" class="w-10 h-10 object-contain drop-shadow-sm" alt="AI" onerror="this.src='https://cdn-icons-png.flaticon.com/512/4712/4712010.png'">
-                        <button id="stopAudioBtn" onclick="stopSpeaking()" class="absolute -bottom-1 -right-1 bg-white w-6 h-6 rounded-full shadow border border-slate-200 text-slate-400 flex items-center justify-center disabled:opacity-50 hover:text-red-500 transition-colors" disabled><i class="fa-solid fa-stop text-[10px]"></i></button>
-                    </div>
-                    <p id="statusText" class="text-[9px] font-extrabold text-slate-400 mt-1.5 tracking-wide">대기 중</p>
-                </div>
-                <div class="flex items-center justify-between w-full mb-3 z-50">
-                    <div class="flex gap-1">
+                
                         
-                        <button onclick="document.getElementById('memoModal').classList.remove('hidden');" class="w-[70px] h-[32px] flex items-center justify-center bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-700 text-[10px] font-bold rounded shadow-sm transition-all px-1 relative">
+                        <button onclick="document.getElementById('memoModal').classList.remove('hidden');" class="ml-auto w-[70px] h-[32px] flex items-center justify-center bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-700 text-[10px] font-bold rounded shadow-sm transition-all px-1 relative">
                             <span id="ui_memo_text" class="truncate w-full text-center">메모장</span>
                             <span id="memoCountBadge" class="absolute -top-1 -right-1 w-4 h-4 flex items-center justify-center bg-red-500 text-white text-[9px] font-bold rounded-full hidden">0</span>
                         </button>
                         
-                    </div>
-                </div>
+             
             </div>
+
+            <div class="relative w-full h-0 z-50 pointer-events-none">
+    <div class="absolute top-4 right-4 flex flex-col items-center pointer-events-auto">
+        <div id="avatarWrap" class="w-12 h-12 rounded-full bg-white border-[2px] border-blue-200 shadow-lg flex items-center justify-center transition-all duration-300">
+            <img id="aiAvatarImg" src="app-icon.png" class="w-8 h-8 object-contain drop-shadow-sm" alt="AI" onerror="this.src='https://cdn-icons-png.flaticon.com/512/4712/4712010.png'">
+        </div>
+        
+        <p id="statusText" class="mt-1.5 px-2.5 py-0.5 bg-white/90 backdrop-blur-sm border border-blue-200 rounded-full shadow-sm text-[9px] font-black text-blue-600 tracking-wide text-center min-w-[50px] transition-all">대기 중</p>
+    </div>
+</div>
+
 
             <div id="chatContainer" class="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50 no-scrollbar pb-6 relative">
                 
