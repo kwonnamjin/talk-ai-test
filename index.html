@@ -190,11 +190,21 @@
     </div>
 
     <!-- 👇 기존 AI 목소리 성별 선택 영역 -->
-    <div class="flex justify-between items-center bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 mt-1">
-        <span class="text-xs font-bold text-slate-500" id="set_voice_gender">AI 목소리 성별</span>
-        <div class="flex bg-slate-200/50 p-1 rounded-lg gap-1">
-            <button id="genderFemaleBtn" class="px-3 py-1.5 text-[10px] font-bold rounded-md bg-white text-blue-600 shadow-sm border border-blue-200 transition-all" onclick="selectGender('female')">👩 <span id="gender_f_text">여성</span></button>
-            <button id="genderMaleBtn" class="px-3 py-1.5 text-[10px] font-bold text-slate-500 hover:bg-white/80 rounded-md border border-transparent transition-all" onclick="selectGender('male')">👨 <span id="gender_m_text">남성</span></button>
+    <div class="flex flex-col bg-slate-50 border border-slate-200 rounded-lg overflow-hidden mt-1 relative z-50">
+        <div class="flex justify-between items-center py-2.5 px-3 cursor-pointer hover:bg-slate-100 transition-colors" onclick="document.getElementById('drop-gender').classList.toggle('hidden')">
+            <span class="text-xs font-bold text-slate-500" id="set_voice_gender">AI 목소리 성별</span>
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-black text-purple-600" id="disp-voiceGender">👩 여성</span>
+                <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
+            </div>
+        </div>
+        <div id="drop-gender" class="hidden bg-white border-t border-slate-100 flex-col">
+            <button onclick="changeVoiceGender('female')" class="w-full text-left px-4 py-2.5 text-[11px] font-bold text-slate-600 hover:bg-slate-100 border-b border-slate-50 flex items-center gap-2 transition-colors">
+                <span class="text-sm">👩</span> <span id="gender_f_text_drop">여성 (Female)</span>
+            </button>
+            <button onclick="changeVoiceGender('male')" class="w-full text-left px-4 py-2.5 text-[11px] font-bold text-slate-600 hover:bg-slate-100 border-b border-slate-50 flex items-center gap-2 transition-colors">
+                <span class="text-sm">👨</span> <span id="gender_m_text_drop">남성 (Male)</span>
+            </button>
         </div>
     </div>
 </div>
@@ -1458,32 +1468,7 @@ document.addEventListener('click', (e) => {
         });
         
         
-            const targetSel = document.getElementById('targetLanguage');
-            // 👇 맨 앞에 'chatLanguage' 추가!
-            ['chatLanguage', 'roleplayLanguage', 'vocabLanguage', 'alphaLanguage'].forEach(id => {
-                const disp = document.getElementById('disp-' + id);
-                if(targetSel && disp && targetSel.options[targetSel.selectedIndex]) {
-                    const langData = SUPPORTED_LANGUAGES.find(l => l.code === targetSel.value); 
-                    disp.innerHTML = `${langData.flag} ${getLangName(langData.code)}`;
-                }
-            });
-            // 홈화면의 타겟 랭귀지(학습 언어) 표시 업데이트
-            const dispHome = document.getElementById('disp-targetLanguageHome');
-            if(targetSel && dispHome && targetSel.options[targetSel.selectedIndex]) {
-                const langData = SUPPORTED_LANGUAGES.find(l => l.code === targetSel.value); 
-                dispHome.innerHTML = `${langData.flag} ${getLangName(langData.code)}`;
-            }
             
-            // 🌟 홈화면의 사용자 언어 표시 업데이트
-            const expSel = document.getElementById('explanationLanguage');
-            const dispExpHome = document.getElementById('disp-explanationLanguageHome');
-            if(expSel && dispExpHome && expSel.options[expSel.selectedIndex]) {
-                const langData = SUPPORTED_LANGUAGES.find(l => l.code === expSel.value); 
-                dispExpHome.innerHTML = `${langData.flag} ${getLangName(langData.code)}`;
-            }
-        };
-        updateLangDisplays();
-
         // 1. 드롭다운 열고 닫기 함수
 window.toggleDropdown = function(dropId) {
     ['drop-exp', 'drop-target', 'drop-stt'].forEach(id => {
@@ -1624,16 +1609,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (text) { input.value = ''; handleUserMessage(text); }
         }
 
-        function updateGenderUI(g, applyImg=false) {
-            if(g === 'female') { 
-                document.getElementById('genderFemaleBtn').className="flex-1 py-2.5 text-sm font-bold rounded-lg bg-white text-blue-600 shadow-sm border border-blue-200"; 
-                document.getElementById('genderMaleBtn').className="flex-1 py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-200 border border-transparent rounded-lg"; 
-            } else { 
-                document.getElementById('genderMaleBtn').className="flex-1 py-2.5 text-sm font-bold rounded-lg bg-white shadow-sm text-blue-600 border border-blue-200"; 
-                document.getElementById('genderFemaleBtn').className="flex-1 py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-200 border border-transparent rounded-lg"; 
-            }
-        }
-        updateGenderUI(currentVoiceGender, true); 
+        
 
         window.enableInputs = function() {
             ['textInput','sendMsgBtn','micBtn','expGlobalBtn'].forEach(id => document.getElementById(id).disabled = false);
@@ -3294,6 +3270,36 @@ window.saveCustomPersona = function() {
             // (선택 사항) 만약 버튼 색상을 바꾸는 UI 로직이 있다면 여기서 호출
             // updatePersonaButtonsUI('custom'); 
         };
+
+        // 🌟 새로운 목소리 성별 변경 로직 (드롭다운용)
+        window.changeVoiceGender = function(gender) {
+            currentVoiceGender = gender;
+            localStorage.setItem('voice_gender', gender);
+            
+            const baseLang = (document.getElementById('explanationLanguage').value || 'ko-KR').split('-')[0];
+            const dict = UI_DICTIONARY[baseLang] || UI_DICTIONARY["en"];
+            const genderText = gender === 'female' ? (dict.gender_f_text || '여성') : (dict.gender_m_text || '남성');
+            
+            // 화면 텍스트 업데이트
+            const dispG = document.getElementById('disp-voiceGender');
+            if (dispG) {
+                dispG.innerHTML = (gender === 'female' ? '👩 ' : '👨 ') + genderText;
+            }
+            
+            // 선택 후 메뉴 닫기
+            document.getElementById('drop-gender').classList.add('hidden');
+        };
+
+        // 앱 켤 때 이전에 선택한 성별 글씨 유지하기
+        setTimeout(() => {
+            const savedGender = localStorage.getItem('voice_gender') || 'female';
+            const baseLang = (document.getElementById('explanationLanguage').value || 'ko-KR').split('-')[0];
+            const dict = UI_DICTIONARY[baseLang] || UI_DICTIONARY["en"];
+            const genderText = savedGender === 'female' ? (dict.gender_f_text || '여성') : (dict.gender_m_text || '남성');
+            
+            const disp = document.getElementById('disp-voiceGender');
+            if (disp) disp.innerHTML = (savedGender === 'female' ? '👩 ' : '👨 ') + genderText;
+        }, 300);
 
     </script>
 
