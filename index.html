@@ -149,35 +149,55 @@
                 </div>
                 </div>
 
-                <!-- 5. 설정 패널 (언어 선택) -->
                 <!-- 5. 설정 패널 (언어 선택 + 목소리 성별) -->
-                <div id="inlineSettingsPanel" class="hidden panel-popup bg-white/95 backdrop-blur-md border-b border-x border-slate-200 rounded-b-xl shadow-lg p-4 mb-4 z-10 relative flex flex-col gap-3">
-                    
-                    <div class="flex justify-between items-center bg-slate-50 border border-slate-200 rounded-lg py-2.5 px-3 cursor-pointer hover:bg-slate-100 transition-colors" onclick="openCustomLangPicker('explanationLanguage')">
-                        <span class="text-xs font-bold text-slate-500" id="ui_home_user_lang">사용자 언어</span>
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs font-black text-blue-600" id="disp-explanationLanguageHome">한국어</span>
-                            <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
-                        </div>
-                    </div>
-                    
-                    <div class="flex justify-between items-center bg-slate-50 border border-slate-200 rounded-lg py-2.5 px-3 cursor-pointer hover:bg-slate-100 transition-colors" onclick="openCustomLangPicker('targetLanguage')">
-                        <span class="text-xs font-bold text-slate-500" id="ui_home_target_lang">학습 언어</span>
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs font-black text-blue-600" id="disp-targetLanguageHome">영어</span>
-                            <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
-                        </div>
-                    </div>
+<div id="inlineSettingsPanel" class="hidden panel-popup bg-white/95 backdrop-blur-md border-b border-x border-slate-200 rounded-b-xl shadow-lg p-4 mb-4 z-10 relative flex flex-col gap-2">
+    
+    <!-- 1. 앱 표시 언어 (UI) -->
+    <div class="flex flex-col bg-slate-50 border border-slate-200 rounded-lg overflow-hidden">
+        <div class="flex justify-between items-center py-2.5 px-3 cursor-pointer hover:bg-slate-100 transition-colors" onclick="toggleDropdown('drop-exp')">
+            <span class="text-xs font-bold text-slate-500" id="ui_home_user_lang">앱 표시 언어</span>
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-black text-slate-700" id="disp-explanationLanguageHome">🇰🇷 한국어 (UI)</span>
+                <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
+            </div>
+        </div>
+        <!-- 펼쳐지는 드롭다운 영역 -->
+        <div id="drop-exp" class="hidden max-h-48 overflow-y-auto bg-white border-t border-slate-100 flex-col no-scrollbar"></div>
+    </div>
+    
+    <!-- 2. AI 언어 (AI) -->
+    <div class="flex flex-col bg-slate-50 border border-slate-200 rounded-lg overflow-hidden">
+        <div class="flex justify-between items-center py-2.5 px-3 cursor-pointer hover:bg-slate-100 transition-colors" onclick="toggleDropdown('drop-target')">
+            <span class="text-xs font-bold text-slate-500" id="ui_home_target_lang">AI 언어 (학습)</span>
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-black text-blue-600" id="disp-targetLanguageHome">🇺🇸 English (AI)</span>
+                <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
+            </div>
+        </div>
+        <div id="drop-target" class="hidden max-h-48 overflow-y-auto bg-white border-t border-slate-100 flex-col no-scrollbar"></div>
+    </div>
 
-                    <!-- 👇 새로 추가된 AI 목소리 성별 선택 영역 -->
-                    <div class="flex justify-between items-center bg-slate-50 border border-slate-200 rounded-lg py-2 px-3">
-                        <span class="text-xs font-bold text-slate-500" id="set_voice_gender">AI 목소리 성별</span>
-                        <div class="flex bg-slate-200/50 p-1 rounded-lg gap-1">
-                            <button id="genderFemaleBtn" class="px-3 py-1.5 text-[10px] font-bold rounded-md bg-white text-blue-600 shadow-sm border border-blue-200 transition-all" onclick="selectGender('female')">👩 <span id="gender_f_text">여성</span></button>
-                            <button id="genderMaleBtn" class="px-3 py-1.5 text-[10px] font-bold text-slate-500 hover:bg-white/80 rounded-md border border-transparent transition-all" onclick="selectGender('male')">👨 <span id="gender_m_text">남성</span></button>
-                        </div>
-                    </div>
-                </div>
+    <!-- 3. 음성 입력 언어 (Me) -->
+    <div class="flex flex-col bg-slate-50 border border-slate-200 rounded-lg overflow-hidden">
+        <div class="flex justify-between items-center py-2.5 px-3 cursor-pointer hover:bg-slate-100 transition-colors" onclick="toggleDropdown('drop-stt')">
+            <span class="text-xs font-bold text-slate-500" id="ui_home_stt_lang">내 음성 언어</span>
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-black text-emerald-600" id="disp-sttInputLanguageHome">🇰🇷 한국어 (Me)</span>
+                <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
+            </div>
+        </div>
+        <div id="drop-stt" class="hidden max-h-48 overflow-y-auto bg-white border-t border-slate-100 flex-col no-scrollbar"></div>
+    </div>
+
+    <!-- 👇 기존 AI 목소리 성별 선택 영역 -->
+    <div class="flex justify-between items-center bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 mt-1">
+        <span class="text-xs font-bold text-slate-500" id="set_voice_gender">AI 목소리 성별</span>
+        <div class="flex bg-slate-200/50 p-1 rounded-lg gap-1">
+            <button id="genderFemaleBtn" class="px-3 py-1.5 text-[10px] font-bold rounded-md bg-white text-blue-600 shadow-sm border border-blue-200 transition-all" onclick="selectGender('female')">👩 <span id="gender_f_text">여성</span></button>
+            <button id="genderMaleBtn" class="px-3 py-1.5 text-[10px] font-bold text-slate-500 hover:bg-white/80 rounded-md border border-transparent transition-all" onclick="selectGender('male')">👨 <span id="gender_m_text">남성</span></button>
+        </div>
+    </div>
+</div>
 </div>
 
 <style>
@@ -317,7 +337,7 @@
                     <div id="sttToggleContainer" class="bg-slate-100 rounded-xl flex-1 min-w-0 flex items-center border border-slate-200 shadow-sm pl-2 overflow-hidden">
                         <span class="text-[10px] text-slate-500 font-bold pr-1 shrink-0">🗣️</span>
                         <select id="sttInputLanguage" class="hidden" onchange="updateStatus('내 음성 언어 변경됨')"></select>
-                        <button id="btnSttInputLanguage" class="flex-1 min-w-0 bg-transparent text-[11px] sm:text-xs font-bold text-blue-600 py-2 px-1 border-l border-slate-200 w-full flex items-center justify-between gap-1 outline-none" onclick="openCustomLangPicker('sttInputLanguage')">
+                        <button id="btnSttInputLanguage" class="flex-1 min-w-0 bg-transparent text-[11px] sm:text-xs font-bold text-blue-600 py-2 px-1 border-l border-slate-200 w-full flex items-center justify-between gap-1 outline-none" onclick="togglePanel('inlineSettingsPanel'); toggleDropdown('drop-stt');">
                             <span id="disp-sttInputLanguage" class="truncate">🇰🇷 한국어</span> 
                             <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 shrink-0"></i>
                         </button>
@@ -1437,14 +1457,7 @@ document.addEventListener('click', (e) => {
             localStorage.setItem('stt_input_language', this.value);
         });
         
-        window.updateLangDisplays = function() {
-            ['targetLanguage', 'sttInputLanguage', 'explanationLanguage'].forEach(id => {
-                const sel = document.getElementById(id); const disp = document.getElementById('disp-' + id);
-                if(sel && disp && sel.options[sel.selectedIndex]) {
-                    const langData = SUPPORTED_LANGUAGES.find(l => l.code === sel.value); 
-                    disp.innerHTML = `${langData.flag} ${getLangName(langData.code)}`;
-                }
-            });
+        
             const targetSel = document.getElementById('targetLanguage');
             // 👇 맨 앞에 'chatLanguage' 추가!
             ['chatLanguage', 'roleplayLanguage', 'vocabLanguage', 'alphaLanguage'].forEach(id => {
@@ -1471,43 +1484,98 @@ document.addEventListener('click', (e) => {
         };
         updateLangDisplays();
 
-        window.openCustomLangPicker = function(targetId) {
-            const baseLang = (document.getElementById('explanationLanguage').value || 'ko-KR').split('-')[0];
-            const currentDict = UI_DICTIONARY[baseLang] || UI_DICTIONARY["en"];
-            const titles = { 'targetLanguage': currentDict.picker_target || 'Target Language', 'sttInputLanguage': currentDict.picker_stt || 'Voice Language', 'explanationLanguage': currentDict.picker_exp || 'User Language' };
-            
-            document.getElementById('customLangTitle').innerText = titles[targetId];
-            const listContainer = document.getElementById('customLangList'); listContainer.innerHTML = '';
-            const currentVal = document.getElementById(targetId).value;
-            
-            SUPPORTED_LANGUAGES.forEach(lang => {
-                const isSelected = lang.code === currentVal; const btn = document.createElement('button');
-                btn.className = `py-3 px-4 rounded-xl flex items-center justify-start gap-3 text-sm font-bold transition-all border-2 ${isSelected ? 'bg-blue-50 border-blue-500 text-blue-700 shadow-sm' : 'bg-white border-slate-100 text-slate-600 hover:border-blue-200'}`;
-                btn.innerHTML = `<span class="text-2xl drop-shadow-sm">${lang.flag}</span> <span>${getLangName(lang.code)}</span>`;
-                
-                btn.onclick = () => { 
-                    document.getElementById(targetId).value = lang.code; 
-                    updateLangDisplays(); 
-                    closeCustomLangPicker(); 
-                    
-                    if (targetId === 'explanationLanguage' && typeof window.changeUILanguage === 'function') {
-                        window.changeUILanguage(lang.code);
-                        localStorage.setItem('explanation_language', lang.code);
-                    }
-                    if (targetId === 'targetLanguage' && typeof window.targetLanguageChanged === 'function') {
-                        window.targetLanguageChanged();
-                    }
-                };
-                listContainer.appendChild(btn);
-            });
-            const modal = document.getElementById('customLangModal'); modal.classList.remove('hidden');
-            setTimeout(() => document.getElementById('customLangContent').style.transform = 'translateY(0)', 10);
-        };
+        // 1. 드롭다운 열고 닫기 함수
+window.toggleDropdown = function(dropId) {
+    ['drop-exp', 'drop-target', 'drop-stt'].forEach(id => {
+        // 다른 드롭다운이 열려있으면 닫기 (아코디언 형태 유지)
+        if (id !== dropId) document.getElementById(id).classList.add('hidden');
+    });
+    document.getElementById(dropId).classList.toggle('hidden');
+};
 
-        window.closeCustomLangPicker = function() {
-            document.getElementById('customLangContent').style.transform = 'translateY(100%)';
-            setTimeout(() => document.getElementById('customLangModal').classList.add('hidden'), 300);
-        };
+// 2. 드롭다운 안에 각 나라별 버튼 채워넣기
+function populateDropdowns() {
+    const setups = [
+        { id: 'drop-exp', target: 'explanationLanguage', tag: '(UI)' },
+        { id: 'drop-target', target: 'targetLanguage', tag: '(AI)' },
+        { id: 'drop-stt', target: 'sttInputLanguage', tag: '(Me)' }
+    ];
+
+    setups.forEach(setup => {
+        const container = document.getElementById(setup.id);
+        if(!container) return;
+        container.innerHTML = '';
+        
+        SUPPORTED_LANGUAGES.forEach(lang => {
+            const btn = document.createElement('button');
+            btn.className = "w-full text-left px-4 py-2.5 text-[11px] font-bold text-slate-600 hover:bg-slate-100 border-b border-slate-50 flex items-center justify-between transition-colors";
+            btn.innerHTML = `<div class="flex items-center gap-2"><span class="text-sm">${lang.flag}</span> <span>${getLangName(lang.code)}</span></div> <span class="text-[9px] text-slate-400 font-black">${setup.tag}</span>`;
+            
+            btn.onclick = (e) => {
+                e.stopPropagation(); // 부모 클릭 이벤트를 막음
+                document.getElementById(setup.target).value = lang.code;
+                
+                // 설정 적용 로직
+                if (setup.target === 'explanationLanguage' && typeof window.changeUILanguage === 'function') {
+                    window.changeUILanguage(lang.code);
+                    localStorage.setItem('explanation_language', lang.code);
+                }
+                if (setup.target === 'targetLanguage' && typeof window.targetLanguageChanged === 'function') {
+                    window.targetLanguageChanged();
+                }
+                if (setup.target === 'sttInputLanguage') {
+                    localStorage.setItem('stt_input_language', lang.code);
+                }
+                
+                updateLangDisplays();
+                toggleDropdown(setup.id); // 선택 후 드롭다운 닫기
+            };
+            container.appendChild(btn);
+        });
+    });
+}
+
+// 3. 언어 디스플레이 (AI, Me, UI 꼬리표 추가) 업데이트 함수
+window.updateLangDisplays = function() {
+    const tSel = document.getElementById('targetLanguage');
+    const eSel = document.getElementById('explanationLanguage');
+    const sSel = document.getElementById('sttInputLanguage');
+
+    // AI 언어
+    const dispT = document.getElementById('disp-targetLanguageHome');
+    if(tSel && dispT && tSel.options[tSel.selectedIndex]) {
+        const langData = SUPPORTED_LANGUAGES.find(l => l.code === tSel.value);
+        dispT.innerHTML = `${langData.flag} ${getLangName(langData.code)} (AI)`;
+    }
+    
+    // 앱 표시 언어
+    const dispE = document.getElementById('disp-explanationLanguageHome');
+    if(eSel && dispE && eSel.options[eSel.selectedIndex]) {
+        const langData = SUPPORTED_LANGUAGES.find(l => l.code === eSel.value);
+        dispE.innerHTML = `${langData.flag} ${getLangName(langData.code)} (UI)`;
+    }
+
+    // 음성 입력 언어 (Setting 창)
+    const dispS1 = document.getElementById('disp-sttInputLanguageHome');
+    if(sSel && dispS1 && sSel.options[sSel.selectedIndex]) {
+        const langData = SUPPORTED_LANGUAGES.find(l => l.code === sSel.value);
+        dispS1.innerHTML = `${langData.flag} ${getLangName(langData.code)} (Me)`;
+    }
+    
+    // 메인 채팅창 하단의 마이크 음성 버튼 (Me)
+    const dispS2 = document.getElementById('disp-sttInputLanguage');
+    if(sSel && dispS2 && sSel.options[sSel.selectedIndex]) {
+        const langData = SUPPORTED_LANGUAGES.find(l => l.code === sSel.value);
+        dispS2.innerHTML = `${langData.flag} ${getLangName(langData.code)} (Me)`;
+    }
+};
+
+// 앱 로딩 완료 시 드롭다운 생성
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(populateDropdowns, 300);
+});
+
+        
 
         // 🌟 [서버 주소]
         const WORKER_URL = "https://talkaitest.thin770.workers.dev/";
