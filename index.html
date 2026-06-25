@@ -339,18 +339,27 @@
             <div class="flex-none bg-white border-t border-slate-200 pt-3 px-4 flex flex-col z-20 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)]" style="padding-bottom: calc(env(safe-area-inset-bottom) - 35px);">
                 <div class="flex justify-between items-center gap-2 mb-3">
                     <div class="bg-slate-100 rounded-xl flex-1 min-w-0 border border-slate-200 shadow-sm overflow-hidden">
-                        <select id="appMode" class="w-full bg-transparent text-[11px] sm:text-xs font-bold text-slate-700 text-center py-2 px-1 outline-none cursor-pointer truncate" onchange="changeAppMode()">
-                            <option value="tutor">🎓 대화형 튜터</option>
-                            <option value="translate">🌐 통번역 모드</option>
-                        </select>
+
+                        <div id="appModeContainer" class="flex gap-2 flex-1 min-w-0">
+                             <button id="modeTutorBtn" onclick="changeAppMode('tutor')" 
+                             class="flex-1 py-2 text-[11px] font-black rounded-xl border border-blue-600 bg-blue-600 text-white shadow-md transition-all">
+                            💬 대화
+                                </button>
+                             <button id="modeTranslateBtn" onclick="changeAppMode('translate')" 
+                             class="flex-1 py-2 text-[11px] font-black rounded-xl border border-slate-200 bg-slate-100 text-slate-500 hover:bg-slate-200 transition-all">
+                            🌐 번역
+                                </button>
+                        </div>
+                        
                     </div>
-                    <div id="sttToggleContainer" class="bg-slate-100 rounded-xl flex-1 min-w-0 flex items-center border border-slate-200 shadow-sm pl-2 overflow-hidden">
-                        <span class="text-[10px] text-slate-500 font-bold pr-1 shrink-0">🗣️</span>
-                        <select id="sttInputLanguage" class="hidden" onchange="updateStatus('내 음성 언어 변경됨')"></select>
-                        <button id="btnSttInputLanguage" class="flex-1 min-w-0 bg-transparent text-[11px] sm:text-xs font-bold text-blue-600 py-2 px-1 border-l border-slate-200 w-full flex items-center justify-between gap-1 outline-none" onclick="togglePanel('inlineSettingsPanel'); toggleDropdown('drop-stt');">
-                            <span id="disp-sttInputLanguage" class="truncate">🇰🇷 한국어</span> 
-                            <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 shrink-0"></i>
-                        </button>
+                    <div id="sttToggleContainer" class="flex-1 min-w-0 flex items-center bg-slate-100 rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                         <button id="btnSwapLang" onclick="swapLanguages()" class="w-10 h-10 flex items-center justify-center text-blue-600 hover:bg-slate-200 transition-all border-r border-slate-200 shrink-0">
+                               <i class="fa-solid fa-right-left text-[12px]"></i>
+                         </button>
+    
+                         <button id="btnSttInputLanguage" class="flex-1 min-w-0 bg-transparent text-[11px] font-bold text-slate-700 py-2 px-2 flex items-center justify-center gap-1 outline-none" onclick="togglePanel('inlineSettingsPanel'); toggleDropdown('drop-stt');">
+                               <span id="disp-sttInputLanguage" class="truncate">🇰🇷 한국어(Me) ↔️ 🇺🇸 영어(AI)</span>
+                         </button>
                     </div>
                 </div>
                 
@@ -1519,12 +1528,39 @@ function populateDropdowns() {
         });
     });
 }
-
+// 🌟 언어 교체 로직 (Me ↔ AI)
+window.swapLanguages = function() {
+    const sttSelect = document.getElementById('sttInputLanguage');
+    const targetSelect = document.getElementById('targetLanguage');
+    
+    // 1. 값 서로 바꾸기
+    const temp = sttSelect.value;
+    sttSelect.value = targetSelect.value;
+    targetSelect.value = temp;
+    
+    // 2. 저장소 업데이트
+    localStorage.setItem('stt_input_language', sttSelect.value);
+    localStorage.setItem('target_language', targetSelect.value);
+    
+    // 3. UI 업데이트
+    window.updateLangDisplays();
+    window.updateStatus("언어 설정이 교체되었습니다!");
+};
 // 3. 언어 디스플레이 (AI, Me, UI 꼬리표 추가) 업데이트 함수
 window.updateLangDisplays = function() {
+    
     const tSel = document.getElementById('targetLanguage');
     const eSel = document.getElementById('explanationLanguage');
     const sSel = document.getElementById('sttInputLanguage');
+    const disp = document.getElementById('disp-sttInputLanguage');
+
+    if(tSel && sSel && disp) {
+        const langMe = SUPPORTED_LANGUAGES.find(l => l.code === sSel.value);
+        const langAi = SUPPORTED_LANGUAGES.find(l => l.code === tSel.value);
+        
+        // 버튼 텍스트 구성
+        disp.innerHTML = `${langMe.flag} ${getLangName(langMe.code)}(Me) ↔️ ${langAi.flag} ${getLangName(langAi.code)}(AI)`;
+    }
 
     // AI 언어
     const dispT = document.getElementById('disp-targetLanguageHome');
@@ -1558,6 +1594,7 @@ window.updateLangDisplays = function() {
 // 앱 로딩 완료 시 드롭다운 생성
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(populateDropdowns, 300);
+    changeAppMode(localStorage.getItem('app_mode') || 'tutor');
 });
 
         
@@ -2001,7 +2038,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const avatarWrap = document.getElementById('avatarWrap');
             if(avatarWrap) avatarWrap.style.borderColor = "#94a3b8";
             
-            const mode = document.getElementById('appMode').value;
+            const mode = localStorage.getItem('app_mode') || 'tutor';
             const tLang = document.getElementById('targetLanguage');
             const targetLang = tLang.value, targetName = tLang.options[tLang.selectedIndex].dataset.langName;
             const inputName = document.getElementById('sttInputLanguage').options[document.getElementById('sttInputLanguage').selectedIndex].dataset.langName;
@@ -3300,6 +3337,32 @@ window.saveCustomPersona = function() {
             const disp = document.getElementById('disp-voiceGender');
             if (disp) disp.innerHTML = (savedGender === 'female' ? '👩 ' : '👨 ') + genderText;
         }, 300);
+
+        window.changeAppMode = function(mode) {
+    const tutorBtn = document.getElementById('modeTutorBtn');
+    const translateBtn = document.getElementById('modeTranslateBtn');
+
+    if (mode === 'tutor') {
+        // 대화 모드 활성화 스타일
+        tutorBtn.className = "flex-1 py-2 text-[11px] font-black rounded-xl border border-blue-600 bg-blue-600 text-white shadow-md transition-all";
+        translateBtn.className = "flex-1 py-2 text-[11px] font-black rounded-xl border border-slate-200 bg-slate-100 text-slate-500 hover:bg-slate-200 transition-all";
+        
+        // 기존 모드 설정값 반영
+        localStorage.setItem('app_mode', 'tutor');
+        window.updateStatus("대화 모드로 전환되었습니다.");
+    } else {
+        // 번역 모드 활성화 스타일
+        translateBtn.className = "flex-1 py-2 text-[11px] font-black rounded-xl border border-blue-600 bg-blue-600 text-white shadow-md transition-all";
+        tutorBtn.className = "flex-1 py-2 text-[11px] font-black rounded-xl border border-slate-200 bg-slate-100 text-slate-500 hover:bg-slate-200 transition-all";
+        
+        localStorage.setItem('app_mode', 'translate');
+        window.updateStatus("통번역 모드로 전환되었습니다.");
+    }
+    
+    // 🌟 여기서 중요한 점: 기존 로직(handleUserMessage 등)에서 
+    // document.getElementById('appMode').value를 사용했다면, 
+    // 이제는 localStorage.getItem('app_mode')를 참조하게 수정해야 합니다.
+};
 
     </script>
 
