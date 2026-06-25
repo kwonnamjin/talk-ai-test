@@ -602,13 +602,56 @@ window.togglePanel = function(panelId) {
 };
 
 // 화면 아무 곳이나 클릭하면 열려있는 패널 모두 닫기
-document.addEventListener('click', (e) => {
-    const nav = document.getElementById('globalNavWrapper');
-    const isClickInside = nav.contains(e.target);
+// 1. 에러 방지용: 함수가 정의되지 않았을 때를 대비한 방어 코드
+window.handleBodyClick = window.handleBodyClick || function(e) {
+    if (!e.target.classList.contains('word-span') && !e.target.classList.contains('exp-word-span') && !e.target.closest('#selectionTooltip') && !e.target.closest('button')) {
+        if(typeof clearSelection === 'function') clearSelection();
+    }
+    // 드롭다운 닫기
+    if (!e.target.closest('#inlineSettingsPanel')) {
+        ['drop-exp', 'drop-target', 'drop-stt', 'drop-gender'].forEach(id => {
+            const el = document.getElementById(id);
+            if(el) el.classList.add('hidden');
+        });
+    }
+};
+
+// 2. 언어 선택 셀렉트 박스 렌더링 (HTML 요소가 확실히 있을 때 실행)
+window.renderLanguageSelects = function() {
+    const ids = ['targetLanguage', 'sttInputLanguage', 'explanationLanguage'];
+    ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.innerHTML = SUPPORTED_LANGUAGES.map(lang => 
+                `<option value="${lang.code}" data-lang-name="${lang.name}">${lang.flag} ${lang.name}</option>`
+            ).join('');
+        }
+    });
+};
+
+// 3. 앱 시작 시 초기화
+document.addEventListener('DOMContentLoaded', () => {
+    // 순서: 언어 렌더링 -> 값 로드 -> UI 업데이트
+    window.renderLanguageSelects();
     
-    if (!isClickInside) {
-        const panels = ['inlinePagesPanel', 'inlineReportPanel', 'inlineMemoryPanel', 'inlineSparePanel', 'inlineSettingsPanel'];
-        panels.forEach(id => document.getElementById(id).classList.add('hidden'));
+    const targetSel = document.getElementById('targetLanguage');
+    const sttSel = document.getElementById('sttInputLanguage');
+    const expSel = document.getElementById('explanationLanguage');
+    
+    if(targetSel) targetSel.value = localStorage.getItem('target_language') || 'en-US';
+    if(sttSel) sttSel.value = localStorage.getItem('stt_input_language') || 'ko-KR';
+    if(expSel) expSel.value = localStorage.getItem('explanation_language') || 'ko-KR';
+
+    if (typeof window.populateDropdowns === 'function') window.populateDropdowns();
+    if (typeof window.updateLangDisplays === 'function') window.updateLangDisplays();
+    if (typeof window.autoLoadAlphabet === 'function') window.autoLoadAlphabet();
+    
+    // 폰트 설정 복구
+    const savedFontSize = localStorage.getItem('chat_font_size');
+    if (savedFontSize) {
+        document.documentElement.style.setProperty('--chat-font-size', savedFontSize + 'px');
+        const fontSlider = document.getElementById('fontSizeSlider');
+        if (fontSlider) fontSlider.value = savedFontSize;
     }
 });
 
