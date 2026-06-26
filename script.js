@@ -996,7 +996,7 @@ window.goHome = function() { window.navigate('screen-home'); };
                 if (playIdx >= sd.length) {
                     isScriptPlaying = false; playingScriptIndex = -1;
                     if(currentBtn) { currentBtn.innerHTML = '<i class="fa-solid fa-volume-high text-xs"></i>'; currentBtn.classList.replace('text-red-500', 'text-indigo-600'); currentBtn.classList.replace('border-red-200', 'border-indigo-200'); }
-                    
+                    window.markScriptAsLearned(index); // 🌟 여기서 학습 완료 기록!
                     window.addStudyMission('script'); 
                     window.updateStatus("✅ 대본 듣기 완료! (퀘스트 카운트 됨)");
                     return;
@@ -1492,6 +1492,17 @@ window.goHome = function() { window.navigate('screen-home'); };
             document.getElementById('streak-modal').classList.add('hidden'); 
         };
 
+        // 🌟 대본 학습 기록을 저장하는 함수
+window.markScriptAsLearned = function(scriptIndex) {
+    let learnedScripts = JSON.parse(localStorage.getItem('learned_scripts_log') || '[]');
+    // 중복 방지: 이미 학습한 대본인지 확인
+    if (!learnedScripts.includes(scriptIndex)) {
+        learnedScripts.push(scriptIndex);
+        localStorage.setItem('learned_scripts_log', JSON.stringify(learnedScripts));
+    }
+    window.updateDashboardUI(); // 리포트 즉시 갱신
+};
+
         // 🌟 1. 퀘스트 진행도 및 모달창 UI 업데이트 함수
         window.updateStreakUI = function() {
             const todayStr = new Date().toLocaleDateString();
@@ -1619,22 +1630,23 @@ window.goHome = function() { window.navigate('screen-home'); };
 
         window.updateDashboardUI = function() {
     let stats = JSON.parse(localStorage.getItem('user_learning_stats_v1')) || { sentences: 0, words: 0 };
-    // savedScripts는 이미 전역 변수로 선언되어 있으므로 이를 활용합니다.
-    let scriptsCount = (JSON.parse(localStorage.getItem('roleplay_scripts')) || []).length;
+    
+    // 🌟 수정: 전체 대본 개수가 아니라 '학습한 대본 기록'의 개수를 가져옴
+    const learnedScripts = JSON.parse(localStorage.getItem('learned_scripts_log') || '[]');
+    let scriptsLearnedCount = learnedScripts.length;
 
     const elSentences = document.getElementById('dash-total-sentences');
     const elWords = document.getElementById('dash-total-words');
-    const elScripts = document.getElementById('dash-total-scripts'); // 기존 태그 유지
+    const elScripts = document.getElementById('dash-total-scripts');
 
     if(elSentences) elSentences.innerText = stats.sentences;
     if(elWords) elWords.innerText = stats.words;
-    if(elScripts) elScripts.innerText = scriptsCount;
+    if(elScripts) elScripts.innerText = scriptsLearnedCount; // 변경된 카운트 반영
 
-    // 🌟 텍스트 라벨 번역 업데이트 (UI 언어 설정에 맞춰 변경되도록)
+    // 언어 레이블 번역 (기존 로직 유지)
     const baseLang = (document.getElementById('explanationLanguage').value || 'ko-KR').split('-')[0];
     const dict = UI_DICTIONARY[baseLang] || UI_DICTIONARY['en'];
-    
-    const labelScript = document.getElementById('ui_home_stat_rp');
+    const labelScript = document.getElementById('ui_home_stat_script');
     if(labelScript) labelScript.innerText = dict.ui_home_stat_script || "학습한 대본";
 };
 
