@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>TalkAI - 실시간 언어 튜터 & 롤플레잉</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    
+    
+</head>
+<body class="p-0 sm:p-4 bg-slate-900 overflow-hidden" onclick="handleBodyClick(event)">
+
+    <div class="w-full max-w-md h-full sm:h-[850px] max-h-full sm:rounded-3xl shadow-2xl overflow-hidden relative mx-auto bg-slate-900">
+        
+        <!-- 🌟 1. 공통 상단 헤더 (모든 화면 위에 떠 있음) -->
+        <header class="absolute top-0 left-0 right-0 h-14 bg-gradient-to-r from-indigo-600 via-blue-500 to-blue-400 backdrop-blur-md border-b border-white/20 z-[60] flex items-center justify-between px-4 sm:rounded-t-3xl shadow-md">
+            
+            <div class="flex flex-col justify-center">
+                <h1 class="text-lg font-black text-white tracking-tight drop-shadow-sm leading-none">TALK AI</h1>
+                <p class="text-[8px] text-blue-100 uppercase tracking-widest font-bold mt-1 drop-shadow-sm opacity-90">Smart Language Partner</p>
+            </div>
+            
+            <div class="flex items-center gap-2">
+                <div id="usageBadge"></div>
+                
+                <button onclick="openStreakModal()" class="flex items-center gap-1.5 bg-gradient-to-r from-orange-500 to-red-500 px-3 py-1.5 rounded-full shadow-[0_2px_10px_rgba(249,115,22,0.3)] border border-white/20 transform transition hover:scale-105">
+                    <span class="text-white text-xs"><i class="fa-solid fa-fire"></i></span>
+                    <span id="header-streak-count" class="text-white text-[11px] font-bold tracking-wide">0일 연속</span>
+                </button>
+            </div>
+
+            <select id="targetLanguage" class="hidden" onchange="targetLanguageChanged()"></select>
+            <select id="explanationLanguage" class="hidden"></select>
+
+            
+        </header>
+        <div id="globalNavWrapper" class="absolute top-[50px] sm:top-[60px] left-0 right-0 z-[9999] flex flex-col bg-[#e0f2fe] border-b-[3px] border-slate-300/50 pb-0">
+    
+    <div class="px-3 pt-1 flex justify-between items-center relative z-20">
+         <span id="ai_engine_label" class="text-slate-400 font-bold text-[8px] uppercase tracking-widest opacity-80">AI Engine</span>
+         <span class="text-blue-400/80 text-[8px] font-bold"><i class="fa-solid fa-shield-halved mr-0.5"></i> DeepSeek Secure</span>
+    </div>
+    
+    <div class="flex overflow-x-auto no-scrollbar w-full items-end pt-1 px-1 relative z-20">
+         <button onclick="navigate('screen-home')" class="shrink-0 w-[60px] py-2 bg-[#dcdcdc] text-slate-600 text-[10px] font-black rounded-t-xl z-10 relative border border-b-0 border-slate-400/30 truncate">HOME</button>
+         <button onclick="togglePanel('inlinePagesPanel')" class="shrink-0 w-[80px] py-2 bg-[#3232ff] text-white text-[10px] font-black rounded-t-xl -ml-2 z-20 relative hover:bg-blue-500 transition-colors border border-b-0 border-white/20 truncate">Pages</button>
+         <button onclick="togglePanel('inlineReportPanel')" class="shrink-0 w-[80px] py-2 bg-[#646eff] text-white text-[10px] font-black rounded-t-xl -ml-2 z-30 relative hover:bg-emerald-600 transition-colors border border-b-0 border-white/20 truncate">Report</button>
+         <button onclick="togglePanel('inlineMemoryPanel')" class="shrink-0 w-[80px] py-2 bg-[#6482ff] text-white text-[10px] font-black rounded-t-xl -ml-2 z-40 relative hover:bg-blue-600 transition-colors border border-b-0 border-white/20 truncate">AI Mind</button>
+         <button onclick="togglePanel('inlineSparePanel')" class="shrink-0 w-[80px] py-2 bg-[#6496ff] text-white text-[10px] font-black rounded-t-xl -ml-2 z-50 relative hover:bg-slate-500 transition-colors border border-b-0 border-white/20 truncate">AI Character</button>
+         <button onclick="togglePanel('inlineSettingsPanel')" class="shrink-0 w-[80px] py-2 bg-[#64aaff] text-slate-500 text-[10px] font-black rounded-t-xl -ml-2 z-[60] relative hover:bg-slate-200 transition-colors border border-b-0 border-white/50 truncate">Setting</button>
+    </div>
+    <!-- 1. 페이지 패널 -->
+                <div id="inlinePagesPanel" class="hidden panel-popup bg-white/95 backdrop-blur-md border-b border-x border-slate-200 rounded-b-xl shadow-lg p-3 mb-4 z-10 relative grid grid-cols-2 gap-2">
+                    <button onclick="openPage('screen-main')" class="bg-blue-50 py-2.5 rounded-xl text-[11px] font-bold text-blue-700 shadow-sm border border-blue-100 hover:bg-blue-100 flex items-center justify-center gap-1.5"><i class="fa-solid fa-comments"></i> 프리토킹</button>
+                    <button onclick="openPage('screen-roleplay')" class="bg-emerald-50 py-2.5 rounded-xl text-[11px] font-bold text-emerald-700 shadow-sm border border-emerald-100 hover:bg-emerald-100 flex items-center justify-center gap-1.5"><i class="fa-solid fa-masks-theater"></i> 롤플레잉</button>
+                    <button onclick="openPage('screen-vocab')" class="bg-indigo-50 py-2.5 rounded-xl text-[11px] font-bold text-indigo-700 shadow-sm border border-indigo-100 hover:bg-indigo-100 flex items-center justify-center gap-1.5"><i class="fa-solid fa-book"></i> 단어장</button>
+                    <button onclick="openPage('screen-alphabet')" class="bg-slate-100 py-2.5 rounded-xl text-[11px] font-bold text-slate-700 shadow-sm border border-slate-200 hover:bg-slate-200 flex items-center justify-center gap-1.5"><i class="fa-solid fa-font"></i> 기초발음</button>
+                </div>
+
+                <!-- 2. 학습리포트 패널 -->
+                <div id="inlineReportPanel" class="hidden panel-popup bg-white/95 backdrop-blur-md border-b border-x border-slate-200 rounded-b-xl shadow-lg p-4 mb-4 z-10 relative">
+                    <h2 class="text-sm font-extrabold text-slate-800 mb-2 px-1 flex items-center justify-between drop-shadow-sm">
+                        <span id="ui_home_report_title">내 학습 리포트 📊</span>
+                        <span id="dash-quest-status" class="text-[9px] text-orange-600 font-bold bg-orange-100 px-2 py-0.5 rounded-full shadow-sm border border-orange-200">퀘스트: 진행중</span>
+                    </h2>
+                    <div class="grid grid-cols-2 gap-2 mb-3">
+                        <div class="col-span-2 bg-gradient-to-br from-slate-50 to-white rounded-xl p-3 shadow-sm border border-slate-200 flex items-center justify-between">
+                            <div>
+                                <p id="ui_home_stat_sent" class="text-slate-500 text-[10px] font-bold mb-0.5">AI와 대화한 총 문장 수</p>
+                                <p class="text-2xl font-black text-slate-800"><span id="dash-total-sentences">0</span><span class="text-[10px] text-slate-500 ml-1">문장</span></p>
+                            </div>
+                            <div class="w-9 h-9 bg-purple-50 rounded-full flex items-center justify-center border border-purple-100"><i class="fa-solid fa-bolt text-purple-500"></i></div>
+                        </div>
+                        <div class="bg-gradient-to-br from-slate-50 to-white rounded-xl p-3 shadow-sm border border-slate-200">
+                            <p id="ui_home_stat_vocab" class="text-slate-500 text-[9px] font-bold mb-0.5">복습한 단어장</p>
+                            <p class="text-lg font-black text-slate-800"><span id="dash-total-words">0</span><span class="text-[10px] text-slate-500 ml-1">번</span></p>
+                        </div>
+                        <div class="bg-gradient-to-br from-slate-50 to-white rounded-xl p-3 shadow-sm border border-slate-200">
+                            <p id="ui_home_stat_rp" class="text-slate-500 text-[9px] font-bold mb-0.5">보관된 롤플레잉</p>
+                            <p class="text-lg font-black text-slate-800"><span id="dash-total-scripts">0</span><span class="text-[10px] text-slate-500 ml-1">개</span></p>
+                        </div>
+                    </div>
+                    
+                </div>
+
+                <!-- 3. AI 속마음 패널 -->
+                <div id="inlineMemoryPanel" class="hidden panel-popup bg-white/95 backdrop-blur-md border-b border-x border-slate-200 rounded-b-xl shadow-lg p-4 mb-4 z-10 relative">
+                    <div class="flex items-center gap-1.5 border-b border-slate-100 pb-2 mb-2">
+                        <div class="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center border border-purple-200"><i class="fa-solid fa-robot text-xs text-purple-600"></i></div>
+                        <p id="ui_home_memory_title" class="text-[11px] font-black text-slate-700">AI 튜터의 기억 🧠</p>
+                    </div>
+                    <div class="bg-slate-50 rounded-xl p-3 border border-slate-100 min-h-[100px] max-h-[250px] overflow-y-auto">
+                        <p id="ai_memory_display" class="text-[11px] text-slate-700 font-bold leading-relaxed whitespace-pre-wrap">데이터 로딩 중...</p>
+                    </div>
+                </div>
+
+                <!-- 4. 예비용 패널 -->
+                <div id="inlineSparePanel" class="hidden panel-popup bg-white/95 backdrop-blur-md border-b border-x border-slate-200 rounded-b-xl shadow-lg p-4 mb-4 z-10 relative">
+                    <p class="text-xs text-slate-400 font-bold text-center py-1">나만의 튜터는 사용자의 취향에 따라 생성하세요.</p>
+                    <div class="flex items-center justify-between w-full mb-3 z-50">
+                    <div class="flex gap-1">
+                        <button onclick="window.currentPersona='friend';" class="w-[70px] h-[32px] flex items-center justify-center bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 text-[10px] font-bold rounded shadow-sm transition-all px-1">
+                            <span id="ui_persona_friend" class="truncate w-full text-center">친근한 친구</span>
+                        </button>
+                        <button onclick="window.currentPersona='assistant';" class="w-[70px] h-[32px] flex items-center justify-center bg-green-50 hover:bg-green-100 border border-green-200 text-green-700 text-[10px] font-bold rounded shadow-sm transition-all px-1">
+                            <span id="ui_persona_assistant" class="truncate w-full text-center">개인 비서</span>
+                        </button>
+                        <button onclick="window.currentPersona='guide';" class="w-[70px] h-[32px] flex items-center justify-center bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-700 text-[10px] font-bold rounded shadow-sm transition-all px-1">
+                            <span id="ui_persona_guide" class="truncate w-full text-center">여행 가이드</span>
+                        </button>
+                        
+                        <button onclick="openCustomPersonaModal();" class="w-[80px] h-[32px] flex items-center justify-center bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 text-[10px] font-bold rounded shadow-sm transition-all px-1">
+                           <span class="truncate w-full text-center">✨ 나만의 튜터</span>
+                           
+                        </button>
+                    </div>
+                </div>
+                </div>
+
+                <!-- 5. 설정 패널 (언어 선택 + 목소리 성별) -->
+<div id="inlineSettingsPanel" class="hidden panel-popup bg-white/95 backdrop-blur-md border-b border-x border-slate-200 rounded-b-xl shadow-lg p-4 mb-4 z-10 relative flex flex-col gap-2">
+    
+    <!-- 1. 앱 표시 언어 (UI) -->
+    <div class="flex flex-col bg-slate-50 border border-slate-200 rounded-lg overflow-hidden">
+        <div class="flex justify-between items-center py-2.5 px-3 cursor-pointer hover:bg-slate-100 transition-colors" onclick="toggleDropdown('drop-exp')">
+            <span class="text-xs font-bold text-slate-500" id="ui_home_user_lang">앱 표시 언어</span>
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-black text-slate-700" id="disp-explanationLanguageHome">🇰🇷 한국어 (UI)</span>
+                <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
+            </div>
+        </div>
+        <!-- 펼쳐지는 드롭다운 영역 -->
+        <div id="drop-exp" class="hidden max-h-48 overflow-y-auto bg-white border-t border-slate-100 flex-col no-scrollbar"></div>
+    </div>
+    
+    <!-- 2. AI 언어 (AI) -->
+    <div class="flex flex-col bg-slate-50 border border-slate-200 rounded-lg overflow-hidden">
+        <div class="flex justify-between items-center py-2.5 px-3 cursor-pointer hover:bg-slate-100 transition-colors" onclick="toggleDropdown('drop-target')">
+            <span class="text-xs font-bold text-slate-500" id="ui_home_target_lang">AI 언어 (학습)</span>
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-black text-blue-600" id="disp-targetLanguageHome">🇺🇸 English (AI)</span>
+                <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
+            </div>
+        </div>
+        <div id="drop-target" class="hidden max-h-48 overflow-y-auto bg-white border-t border-slate-100 flex-col no-scrollbar"></div>
+    </div>
+
+    <!-- 3. 음성 입력 언어 (Me) -->
+    <div class="flex flex-col bg-slate-50 border border-slate-200 rounded-lg overflow-hidden">
+        <div class="flex justify-between items-center py-2.5 px-3 cursor-pointer hover:bg-slate-100 transition-colors" onclick="toggleDropdown('drop-stt')">
+            <span class="text-xs font-bold text-slate-500" id="ui_home_stt_lang">내 음성 언어</span>
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-black text-emerald-600" id="disp-sttInputLanguageHome">🇰🇷 한국어 (Me)</span>
+                <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
+            </div>
+        </div>
+        <div id="drop-stt" class="hidden max-h-48 overflow-y-auto bg-white border-t border-slate-100 flex-col no-scrollbar"></div>
+    </div>
+
+    <!-- 👇 기존 AI 목소리 성별 선택 영역 -->
+    <div class="flex flex-col bg-slate-50 border border-slate-200 rounded-lg overflow-hidden mt-1 relative z-50">
+        <div class="flex justify-between items-center py-2.5 px-3 cursor-pointer hover:bg-slate-100 transition-colors" onclick="document.getElementById('drop-gender').classList.toggle('hidden')">
+            <span class="text-xs font-bold text-slate-500" id="set_voice_gender">AI 목소리 성별</span>
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-black text-purple-600" id="disp-voiceGender">👩 여성</span>
+                <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
+            </div>
+        </div>
+        <div id="drop-gender" class="hidden bg-white border-t border-slate-100 flex-col">
+            <button onclick="changeVoiceGender('female')" class="w-full text-left px-4 py-2.5 text-[11px] font-bold text-slate-600 hover:bg-slate-100 border-b border-slate-50 flex items-center gap-2 transition-colors">
+                <span class="text-sm">👩</span> <span id="gender_f_text_drop">여성 (Female)</span>
+            </button>
+            <button onclick="changeVoiceGender('male')" class="w-full text-left px-4 py-2.5 text-[11px] font-bold text-slate-600 hover:bg-slate-100 border-b border-slate-50 flex items-center gap-2 transition-colors">
+                <span class="text-sm">👨</span> <span id="gender_m_text_drop">남성 (Male)</span>
+            </button>
+        </div>
+    </div>
+</div>
+</div>
+
+
+
+<div id="screen-home" class="absolute top-0 left-0 w-full h-full z-10 sm:rounded-3xl transition-transform duration-300 bg-[#e0f2fe] overflow-hidden flex flex-col">
+    
+    <div class="absolute inset-0 z-0 pointer-events-none bg-[#e0f2fe]">
+        <div class="absolute inset-0 bg-[url('app-bg-02.jpg')] bg-[length:100%_auto] bg-center bg-no-repeat opacity-[0.90] mix-blend-multiply"></div>
+        <div class="absolute inset-0 bg-gradient-to-b from-[#e0f2fe] from-25% via-transparent via-50% to-[#e0f2fe] to-75%"></div>
+    </div>
+
+    <div class="relative z-10 w-full h-full pb-6 px-1 overflow-y-auto no-scrollbar" id="homeScrollContainer">
+                
+                <!-- 🌟 하단에 고정된 멤버십 배너 -->
+            <div class="absolute bottom-4 left-4 right-4 z-50 pointer-events-none">
+                <div id="premiumBanner" class="bg-gradient-to-r from-indigo-600/95 via-blue-600/95 to-blue-500/95 backdrop-blur-md rounded-2xl p-3 shadow-lg cursor-pointer transform transition hover:-translate-y-1 border border-white/20 pointer-events-auto" onclick="window.showSubscriptionModal('upgrade')">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-yellow-300 border border-white/30 shrink-0 shadow-inner"><i class="fa-solid fa-crown text-sm"></i></div>
+                        <div>
+                            <p id="ui_home_premium_title" class="text-white font-bold text-sm tracking-tight">멤버십 업그레이드 ✨</p>
+                            <p id="ui_home_premium_desc" class="text-blue-100 text-[9px] mt-0.5 font-medium">베이직 / 프리미엄 요금제로 한도를 늘려보세요!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        </div>
+        <div id="screen-main" class="absolute top-0 left-0 w-full h-full flex flex-col z-20 bg-white overflow-hidden sm:rounded-3xl shadow-[0_0_20px_rgba(0,0,0,0.15)]" style="transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);">
+            
+            
+
+            <div id="inAppWarning" class="hidden flex-none bg-red-100 text-red-700 px-4 py-2 text-[11px] font-bold flex items-center justify-between z-10 border-b border-red-200 shadow-inner">
+                <span class="flex-1"><i class="fa-solid fa-triangle-exclamation mr-1 text-red-500"></i> <span id="mic_warning_text">브라우저 마이크 제한. '다른 브라우저로 열기'를 선택해 주세요.</span></span>
+                <button onclick="document.getElementById('inAppWarning').style.display='none'" class="ml-2 px-2 py-1 text-red-500 hover:text-red-800"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <div class="flex-none bg-slate-50/50 px-4 py-2 flex justify-between items-center border-b border-slate-300 text-[11px] shadow-sm z-10">
+                <label for="fontSizeSlider" class="text-slate-600 font-bold text-[10px] flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-text-height text-slate-400"></i> <span id="set_font_size">채팅 글자 크기</span>
+                </label>
+                <input type="range" id="fontSizeSlider" min="12" max="22" step="1" value="14" class="w-[140px] accent-blue-500 cursor-pointer" oninput="document.documentElement.style.setProperty('--chat-font-size', this.value + 'px'); localStorage.setItem('chat_font_size', this.value);">
+                
+                        
+                        <button onclick="document.getElementById('memoModal').classList.remove('hidden');" class="ml-auto w-[70px] h-[32px] flex items-center justify-center bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-700 text-[10px] font-bold rounded shadow-sm transition-all px-1 relative">
+                            <span id="ui_memo_text" class="truncate w-full text-center">메모장</span>
+                            <span id="memoCountBadge" class="absolute -top-1 -right-1 w-4 h-4 flex items-center justify-center bg-red-500 text-white text-[9px] font-bold rounded-full hidden">0</span>
+                        </button>
+                        
+             
+            </div>
+
+            <div class="relative w-full h-0 z-50 pointer-events-none">
+    <div class="absolute top-4 right-4 flex flex-col items-center pointer-events-auto">
+        <div id="avatarWrap" class="w-12 h-12 rounded-full bg-white border-[2px] border-blue-200 shadow-lg flex items-center justify-center transition-all duration-300">
+            <img id="aiAvatarImg" src="app-icon.png" class="w-8 h-8 object-contain drop-shadow-sm" alt="AI" onerror="this.src='https://cdn-icons-png.flaticon.com/512/4712/4712010.png'">
+        </div>
+        
+        <p id="statusText" class="mt-1.5 px-2.5 py-0.5 bg-white/90 backdrop-blur-sm border border-blue-200 rounded-full shadow-sm text-[9px] font-black text-blue-600 tracking-wide text-center min-w-[50px] transition-all">대기 중</p>
+    </div>
+</div>
+
+
+            <div id="chatContainer" class="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50 no-scrollbar pb-6 relative">
+                
+
+                <div id="welcomeWrapper" class="flex flex-col space-y-1">
+                    <div class="relative overflow-hidden bg-white/90 backdrop-blur-sm border border-blue-100 rounded-2xl rounded-tl-none p-4 max-w-[95%] shadow-md shadow-blue-900/5 self-start" id="welcomeMessage">
+                        <div class="absolute inset-0 z-0 pointer-events-none opacity-10 bg-[url('app-bg-02.jpg')] bg-[length:100%_auto] bg-center bg-no-repeat mix-blend-multiply"></div>
+                        <div class="relative z-10">
+                            <p class="chat-text-dynamic text-slate-800 font-extrabold mb-3 border-b border-slate-200/60 pb-2 flex items-center gap-2"><i class="fa-solid fa-robot text-blue-500"></i> <span id="welcome_title">당신의 AI 튜터입니다.</span></p>
+                            <div class="space-y-3 text-xs text-slate-700 leading-relaxed">
+                                <div class="flex items-start gap-2">
+                                    <div class="w-6 h-6 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 mt-0.5 border border-purple-100"><i class="fa-solid fa-masks-theater text-[10px]"></i></div>
+                                    <div>
+                                        <p id="welcome_f1_title" class="font-bold text-slate-800 mb-0.5">맞춤형 페르소나 & 언어 변경</p>
+                                        <p id="welcome_f1_desc" class="text-slate-600">상단의 버튼으로 AI의 성격을 바꾸고, 우측 상단의 버튼을 눌러 대화할 언어를 자유롭게 변경해 보세요.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-2">
+                                    <div class="w-6 h-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 mt-0.5 border border-blue-100"><i class="fa-solid fa-microphone text-[10px]"></i></div>
+                                    <div><p id="welcome_f2_title" class="font-bold text-slate-800 mb-0.5">실시간 대화 & 재생 멈춤</p><p id="welcome_f2_desc" class="text-slate-600">하단의 마이크를 눌러 말해보세요. 멈추고 싶다면 스피커 정지(🔇) 버튼을 누릅니다.</p></div>
+                                </div>
+                                <div class="flex items-start gap-2">
+                                    <div class="w-6 h-6 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5 border border-emerald-100"><i class="fa-solid fa-lightbulb text-[10px]"></i></div>
+                                    <div><p id="welcome_f3_title" class="font-bold text-slate-800 mb-0.5">심층 과외 해설 & 단어 선택</p><p id="welcome_f3_desc" class="text-slate-600">단어를 터치해 뜻을 확인하거나, 과외 해설(💡) 버튼을 눌러 문법 분석을 받으세요.</p></div>
+                                </div>
+                                <div class="flex items-start gap-2">
+                                    <div class="w-6 h-6 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 mt-0.5 border border-amber-100"><i class="fa-solid fa-note-sticky text-[10px]"></i></div>
+                                    <div><p id="welcome_f4_title" class="font-bold text-slate-800 mb-0.5">똑똑한 자동 메모장</p><p id="welcome_f4_desc" class="text-slate-600">대화 중 AI에게 '이거 메모해 줘'라고 말하면 일정을 꼼꼼히 기록해 둡니다.</p></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="selectionTooltip" class="hidden absolute z-50 bg-slate-800 text-white rounded-lg shadow-xl flex items-center px-1 py-1 tooltip-arrow transition-opacity duration-200 opacity-0 pointer-events-none border border-slate-700" style="transform: translate(-50%, -100%); margin-top: -8px;">
+                    <button onclick="readSelectedText()" class="hover:bg-slate-700 p-2 rounded-md transition-colors flex items-center justify-center text-blue-400" title="듣기"><i class="fa-solid fa-volume-high text-sm"></i></button>
+                    <div class="w-px h-5 bg-slate-600 mx-1"></div>
+                    <button onclick="explainSelectedText()" class="hover:bg-slate-700 p-2 rounded-md transition-colors flex items-center justify-center text-yellow-400" title="해설"><i class="fa-solid fa-lightbulb text-sm"></i></button>
+                </div>
+            </div>
+
+            <div class="flex-none bg-white border-t border-slate-200 pt-3 px-4 flex flex-col z-20 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)]" style="padding-bottom: max(16px, env(safe-area-inset-bottom));">
+                <div class="flex justify-between items-center gap-2 mb-3">
+                    <div class="bg-slate-100 rounded-xl flex-1 min-w-0 border border-slate-200 shadow-sm overflow-hidden">
+
+                        <div id="appModeContainer" class="flex gap-2 flex-1 min-w-0">
+                             <button id="modeTutorBtn" onclick="changeAppMode('tutor')" 
+                             class="flex-1 py-2 text-[11px] font-black rounded-xl border border-blue-600 bg-blue-600 text-white shadow-md transition-all">
+                            💬 대화
+                                </button>
+                             <button id="modeTranslateBtn" onclick="changeAppMode('translate')" 
+                             class="flex-1 py-2 text-[11px] font-black rounded-xl border border-slate-200 bg-slate-100 text-slate-500 hover:bg-slate-200 transition-all">
+                            🌐 번역
+                                </button>
+                        </div>
+                        
+                    </div>
+                    <div id="sttToggleContainer" class="bg-slate-100 rounded-xl flex-1 min-w-0 flex items-center border border-slate-200 shadow-sm pl-2 overflow-hidden">
+                        <span class="text-[10px] text-slate-500 font-bold pr-1 shrink-0">🗣️</span>
+                        <select id="sttInputLanguage" class="hidden" onchange="updateStatus('내 음성 언어 변경됨')"></select>
+                        <button id="btnSttInputLanguage" class="flex-1 min-w-0 bg-transparent text-[11px] sm:text-xs font-bold text-blue-600 py-2 px-1 border-l border-slate-200 w-full flex items-center justify-between gap-1 outline-none" onclick="togglePanel('inlineSettingsPanel'); toggleDropdown('drop-stt');">
+                            <span id="disp-sttInputLanguage" class="truncate">🇰🇷 한국어</span> 
+                            <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 shrink-0"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="flex gap-2 mb-3">
+                    <input type="text" id="textInput" placeholder="마이크가 안 될 때는 직접 입력해 보세요..." class="flex-1 min-w-0 h-10 rounded-xl bg-slate-50 border border-slate-300 px-4 text-[11px] sm:text-xs outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-inner" onkeypress="if(event.key==='Enter') sendTextMessage()">
+                    <button id="sendMsgBtn" class="w-10 h-10 shrink-0 rounded-xl bg-gradient-to-br from-blue-600 to-blue-800 text-white flex items-center justify-center hover:from-blue-700 shadow-md outline-none" onclick="sendTextMessage()"><i class="fa-solid fa-paper-plane text-xs"></i></button>
+                </div>
+                <div class="flex justify-center items-center gap-2">
+                    <button id="stopAudioBtn" class="flex-1 min-w-0 max-w-[80px] h-12 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-slate-200 transition-colors shadow-sm outline-none border border-slate-200 shrink-0" onclick="stopSpeaking()" disabled><i class="fa-solid fa-volume-xmark text-lg"></i></button>
+                    <button id="micBtn" class="w-16 h-16 shrink-0 rounded-full bg-gradient-to-b from-blue-400 to-blue-600 text-white flex items-center justify-center text-2xl hover:from-blue-500 transition-all transform hover:scale-105 shadow-lg shadow-blue-500/40 outline-none border-4 border-white" onclick="toggleListening()"><i id="micIcon" class="fa-solid fa-microphone drop-shadow-md"></i></button>
+                    <button id="expGlobalBtn" class="flex-1 min-w-0 max-w-[100px] h-12 rounded-xl bg-amber-50 text-amber-700 font-bold text-[11px] flex items-center justify-center gap-1.5 hover:bg-amber-100 transition-colors shadow-sm outline-none border border-amber-200" onclick="requestExplanationGlobal()">
+                        <i class="fa-solid fa-lightbulb text-amber-500 text-sm shrink-0"></i> 
+                        <span id="expGlobalBtnText" class="truncate">과외 해설</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 🎬 상황별 롤플레잉 화면 -->
+        <div id="screen-roleplay" class="absolute top-0 left-0 w-full h-full flex flex-col z-20 bg-[#f3f4f6] overflow-hidden sm:rounded-3xl" style="transform: translateX(100%); box-shadow: -10px 0 25px rgba(0,0,0,0.1); transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);">
+            
+            
+            <div id="scrollArea" class="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar pb-24">
+
+                <div id="rpWelcomeWrapper" class="flex flex-col space-y-1 mb-5">
+                    <div class="relative overflow-hidden bg-white/90 backdrop-blur-sm border border-purple-100 rounded-2xl rounded-tl-none p-4 max-w-[95%] shadow-md shadow-purple-900/5 self-start">
+                        <div class="absolute inset-0 z-0 pointer-events-none opacity-10 bg-[url('app-bg-02.jpg')] bg-[length:100%_auto] bg-center bg-no-repeat mix-blend-multiply"></div>
+                        <div class="relative z-10">
+                            <p class="text-[13px] text-slate-800 font-extrabold mb-3 border-b border-slate-200/60 pb-2 flex items-center gap-2"><i class="fa-solid fa-clapperboard text-purple-500"></i> <span id="rp_welcome_title">롤플레잉 100% 활용하기</span></p>
+                            <div class="space-y-3 text-xs text-slate-700 leading-relaxed">
+                                <div class="flex items-start gap-2">
+                                    <div class="w-6 h-6 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 mt-0.5 border border-purple-100"><i class="fa-solid fa-layer-group text-[10px]"></i></div>
+                                    <div><p id="rp_welcome_f1_title" class="font-bold text-slate-800 mb-0.5">레벨 및 상황 맞춤 설정</p><p id="rp_welcome_f1_desc" class="text-slate-600">원하는 난이도와 상황을 고르거나, 텍스트 창에 직접 원하는 롤플레잉 상황을 입력해 보세요.</p></div>
+                                </div>
+                                <div class="flex items-start gap-2">
+                                    <div class="w-6 h-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 mt-0.5 border border-blue-100"><i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i></div>
+                                    <div><p id="rp_welcome_f2_title" class="font-bold text-slate-800 mb-0.5">초고속 AI 대본 생성</p><p id="rp_welcome_f2_desc" class="text-slate-600">생성 버튼을 누르면 AI가 즉시 현지에서 쓰는 자연스러운 회화 대본을 만들어 줍니다.</p></div>
+                                </div>
+                                <div class="flex items-start gap-2">
+                                    <div class="w-6 h-6 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5 border border-emerald-100"><i class="fa-solid fa-microphone-lines text-[10px]"></i></div>
+                                    <div><p id="rp_welcome_f3_title" class="font-bold text-slate-800 mb-0.5">실전 말하기 & 섀도잉</p><p id="rp_welcome_f3_desc" class="text-slate-600">생성된 대본을 듣고, 하단의 마이크 버튼을 눌러 AI와 번갈아 가며 직접 말하기 연습을 해보세요.</p></div>
+                                </div>
+                                <div class="flex items-start gap-2">
+                                    <div class="w-6 h-6 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 mt-0.5 border border-amber-100"><i class="fa-solid fa-gamepad text-[10px]"></i></div>
+                                    <div><p id="rp_welcome_f4_title" class="font-bold text-slate-800 mb-0.5">다양한 복습 모드</p><p id="rp_welcome_f4_desc" class="text-slate-600">대본 우측 상단의 4가지 버튼을 눌러 전체 듣기(🔊), 실전 대화 게임(🎮), 빈칸 채우기 퀴즈(🧩) 등 다양한 방법으로 복습해 보세요.</p></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <section id="levelSection">
+                    <h2 class="text-xs font-bold text-slate-500 mb-2"><i class="fa-solid fa-layer-group text-blue-500 mr-1"></i> <span id="rp_level_text">1. 레벨 선택</span></h2>
+                    <div class="grid grid-cols-4 gap-1.5">
+                        <button id="rp_lv1" class="level-btn py-1.5 rounded-lg border-[1.5px] border-slate-100 bg-white text-[11px] font-bold text-slate-600 transition-all selected-card">입문</button>
+                        <button id="rp_lv2" class="level-btn py-1.5 rounded-lg border-[1.5px] border-slate-100 bg-white text-[11px] font-bold text-slate-600 transition-all">초급</button>
+                        <button id="rp_lv3" class="level-btn py-1.5 rounded-lg border-[1.5px] border-slate-100 bg-white text-[11px] font-bold text-slate-600 transition-all">중급</button>
+                        <button id="rp_lv4" class="level-btn py-1.5 rounded-lg border-[1.5px] border-slate-100 bg-white text-[11px] font-bold text-slate-600 transition-all">원어민</button>
+                    </div>
+                </section>
+
+                <section id="situationSection">
+                    <h2 class="text-xs font-bold text-slate-500 mb-2"><i class="fa-solid fa-masks-theater text-purple-500 mr-1"></i> <span id="rp_sit_text">2. 상황 선택</span></h2>
+                    <div class="flex gap-2 overflow-x-auto no-scrollbar pb-2 mb-2">
+                        <div id="rp_sit1" class="sit-card shrink-0 px-4 py-1.5 rounded-lg border-[1.5px] border-slate-100 bg-white text-[11px] font-bold text-slate-600 transition-all text-center cursor-pointer" data-situation="일상 랜덤">🎲 일상 랜덤</div>
+                        <div id="rp_sit2" class="sit-card shrink-0 px-4 py-1.5 rounded-lg border-[1.5px] border-slate-100 bg-white text-[11px] font-bold text-slate-600 transition-all text-center cursor-pointer selected-card" data-situation="카페 주문">☕ 카페 주문</div>
+                        <div id="rp_sit3" class="sit-card shrink-0 px-4 py-1.5 rounded-lg border-[1.5px] border-slate-100 bg-white text-[11px] font-bold text-slate-600 transition-all text-center cursor-pointer" data-situation="음식점">🍽️ 음식점</div>
+                        <div id="rp_sit4" class="sit-card shrink-0 px-4 py-1.5 rounded-lg border-[1.5px] border-slate-100 bg-white text-[11px] font-bold text-slate-600 transition-all text-center cursor-pointer" data-situation="입국 심사">🛂 입국 심사</div>
+                        <div id="rp_sit5" class="sit-card shrink-0 px-4 py-1.5 rounded-lg border-[1.5px] border-slate-100 bg-white text-[11px] font-bold text-slate-600 transition-all text-center cursor-pointer" data-situation="옷 쇼핑">🛍️ 옷 쇼핑</div>
+                        <div id="rp_sit6" class="sit-card shrink-0 px-4 py-1.5 rounded-lg border-[1.5px] border-slate-100 bg-white text-[11px] font-bold text-slate-600 transition-all text-center cursor-pointer" data-situation="택시 탑승">🚕 택시 탑승</div>
+                    </div>
+                    
+                    <input type="text" id="rp_custom_input" placeholder="예시) 이세계 상인과 가격 흥정하는 대본" class="w-full h-11 bg-slate-50 border border-slate-200 text-slate-700 text-[11px] font-bold rounded-xl px-4 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all shadow-inner mb-3" oninput="document.querySelectorAll('.sit-card').forEach(c => c.classList.remove('selected-card'))">
+                    
+                    <button id="generateBtn" onclick="generateScript()" class="w-full bg-slate-900 text-white text-sm font-bold py-3.5 rounded-xl shadow-md hover:bg-black transition-all flex items-center justify-center gap-2">
+                       <i class="fa-solid fa-wand-magic-sparkles"></i> <span>AI 대본 생성하기</span>
+                    </button>
+                </section>
+
+                <hr class="border-slate-200 border-dashed border-t-2 my-3">
+
+                <section id="scriptPlayer">
+                    <div class="bg-blue-50 rounded-xl p-3 mb-3 border border-blue-100">
+                        <p class="text-[11px] text-blue-600 font-bold mb-0.5" id="statusBoxTitle">상황 설명</p>
+                        <p class="text-xs text-slate-700 font-medium leading-relaxed" id="statusBoxText">레벨과 상황을 선택한 후 [AI 대본 생성하기]를 눌러주세요!</p>
+                    </div>
+                    <div class="space-y-3" id="scriptList"></div>
+                </section>
+                
+            </div>
+
+            <div class="absolute bottom-0 w-full bg-white border-t border-gray-200 px-4 py-4 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)] rounded-b-3xl" style="padding-bottom: max(16px, env(safe-area-inset-bottom));">
+                <button onclick="startShadowing()" id="roleplayMicBtn" class="w-full h-14 px-6 rounded-full bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold shadow-lg shadow-blue-200 flex items-center justify-center gap-2 transform transition-transform hover:scale-[1.02] min-w-0">
+                    <i class="fa-solid fa-microphone text-xl shrink-0" id="roleplayMicIcon"></i> 
+                    <span id="roleplayMicText" class="truncate min-w-0">말하기 시작 (마이크)</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="screen-vocab" class="absolute top-0 left-0 w-full h-full flex flex-col z-30 bg-[#f8fafc] overflow-hidden sm:rounded-3xl" style="transform: translateX(100%); box-shadow: -10px 0 25px rgba(0,0,0,0.1); transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);">
+            
+
+            <div class="flex-none bg-white px-4 py-3 border-b border-gray-100 shadow-sm z-10">
+                <div class="flex gap-2 overflow-x-auto no-scrollbar pb-2">
+                    <button id="vc_theme1" class="vocab-theme-btn shrink-0 bg-indigo-50 border border-indigo-500 text-indigo-700 text-xs font-bold px-4 py-2 rounded-xl shadow-sm transition-all" onclick="setVocabTheme(this)">✈️ 여행 필수</button>
+                    <button id="vc_theme2" class="vocab-theme-btn shrink-0 bg-white border border-slate-200 text-slate-500 text-xs font-bold px-4 py-2 rounded-xl hover:bg-slate-50 transition-all" onclick="setVocabTheme(this)">💼 비즈니스</button>
+                    <button id="vc_theme3" class="vocab-theme-btn shrink-0 bg-white border border-slate-200 text-slate-500 text-xs font-bold px-4 py-2 rounded-xl hover:bg-slate-50 transition-all" onclick="setVocabTheme(this)">❤️ 연애/감정</button>
+                    <button id="vc_theme4" class="vocab-theme-btn shrink-0 bg-white border border-slate-200 text-slate-500 text-xs font-bold px-4 py-2 rounded-xl hover:bg-slate-50 transition-all" onclick="setVocabTheme(this)">🍽️ 식당/카페</button>
+                </div>
+                <input type="text" id="vc_custom_input" placeholder="원하는 단어나 문장을 직접 입력해 보세요! (선택)" class="w-full h-11 bg-slate-50 border border-slate-200 text-slate-700 text-[11px] font-bold rounded-xl px-4 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all shadow-inner mb-2">
+                <button id="generateVocabBtn" class="w-full mt-1 bg-slate-900 text-white text-sm font-bold py-2.5 rounded-xl shadow-md hover:bg-black transition-all" onclick="generateVocab()">✨ AI 단어장 생성하기</button>
+            </div>
+
+            <div id="vocabScrollArea" class="flex-1 overflow-y-auto p-4 space-y-6 no-scrollbar pb-24 perspective-1000">
+
+                <div id="vcWelcomeWrapper" class="flex flex-col space-y-1 mb-5">
+                    <div class="relative overflow-hidden bg-white/90 backdrop-blur-sm border border-indigo-100 rounded-2xl rounded-tl-none p-4 max-w-[95%] shadow-md shadow-indigo-900/5 self-start">
+                        <div class="absolute inset-0 z-0 pointer-events-none opacity-10 bg-[url('app-bg-02.jpg')] bg-[length:100%_auto] bg-center bg-no-repeat mix-blend-multiply"></div>
+                        <div class="relative z-10">
+                            <p class="text-[13px] text-slate-800 font-extrabold mb-3 border-b border-slate-200/60 pb-2 flex items-center gap-2"><i class="fa-solid fa-book-open text-indigo-500"></i> <span id="vc_welcome_title">나만의 단어장 활용법</span></p>
+                            <div class="space-y-3 text-xs text-slate-700 leading-relaxed">
+                                <div class="flex items-start gap-2">
+                                    <div class="w-6 h-6 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 mt-0.5 border border-indigo-100"><i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i></div>
+                                    <div>
+                                        <p id="vc_welcome_f1_title" class="font-bold text-slate-800 mb-0.5">AI 맞춤 단어 생성</p>
+                                        <p id="vc_welcome_f1_desc" class="text-slate-600">상단의 테마를 선택하고 생성 버튼을 누르면, AI가 현재 학습 언어에 맞는 필수 단어 10개를 즉시 만들어 줍니다.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-2">
+                                    <div class="w-6 h-6 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 mt-0.5 border border-amber-100"><i class="fa-solid fa-arrows-rotate text-[10px]"></i></div>
+                                    <div>
+                                        <p id="vc_welcome_f2_title" class="font-bold text-slate-800 mb-0.5">플래시카드 암기 학습</p>
+                                        <p id="vc_welcome_f2_desc" class="text-slate-600">단어 카드를 터치하여 카드를 뒤집어가며 뜻과 실전 예문을 확인하고 효과적으로 암기해 보세요.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-2">
+                                    <div class="w-6 h-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 mt-0.5 border border-blue-100"><i class="fa-solid fa-volume-high text-[10px]"></i></div>
+                                    <div>
+                                        <p id="vc_welcome_f3_title" class="font-bold text-slate-800 mb-0.5">원어민 발음 듣기</p>
+                                        <p id="vc_welcome_f3_desc" class="text-slate-600">하단의 원어민 듣기 버튼을 눌러 정확한 현지 발음과 억양을 확인하며 학습 효과를 높이세요.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="mainFlashcardArea" class="hidden flex-col items-center">
+                    <!-- 🌟 꼼수 방지: 클릭 시 뒤집어지기만 하고 퀘스트는 안 오름! -->
+                    <div id="vocabFlashcard" class="w-full max-w-sm h-[320px] relative transform-style-3d cursor-pointer shadow-xl rounded-3xl" onclick="this.classList.toggle('rotate-y-180');">
+                        <div class="absolute w-full h-full bg-white rounded-3xl border-[3px] border-indigo-100 backface-hidden flex flex-col items-center justify-center p-6 text-center">
+                            <div class="absolute top-4 left-0 w-full flex justify-center"><span id="vcCount" class="text-[10px] text-indigo-500 font-bold bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">단어를 선택하세요</span></div>
+                            <h2 id="vcWord" class="text-4xl sm:text-5xl font-black text-slate-800 mb-2 tracking-tight"></h2>
+                            <p id="vcPron" class="text-lg text-indigo-500 font-extrabold"></p>
+                            <p id="vcPhonetic" class="text-sm text-slate-400 font-semibold mt-1"></p>
+                            <p class="absolute bottom-5 text-[10px] text-slate-400 font-medium animate-pulse"><i class="fa-solid fa-hand-pointer"></i> <span id="vc_flip_hint">터치해서 뒤집기</span></p>
+                        </div>
+                        <div class="absolute w-full h-full bg-indigo-600 rounded-3xl border-[3px] border-indigo-700 backface-hidden rotate-y-180 flex flex-col items-center justify-center p-6 text-center text-white">
+                            <h3 id="vcMeaning" class="text-3xl font-black mb-4"></h3>
+                            <div class="w-full h-px bg-indigo-400/50 mb-4"></div>
+                            <p id="vcExEn" class="text-sm font-medium text-indigo-100 mb-2"></p>
+                            <p id="vcExKo" class="text-xs text-indigo-200"></p>
+                        </div>
+                    </div>
+                    <div class="flex gap-3 w-full max-w-sm mt-4">
+                        <button onclick="prevVocab()" class="w-12 h-12 bg-white text-slate-400 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-center text-lg hover:bg-slate-50"><i class="fa-solid fa-chevron-left"></i></button>
+                        <button onclick="playVocabAudio()" class="flex-1 bg-white text-indigo-600 rounded-2xl shadow-sm border border-indigo-100 flex flex-col items-center justify-center gap-0.5 hover:bg-indigo-50 transition-colors"><i class="fa-solid fa-volume-high"></i><span id="vc_listen_btn" class="text-[10px] font-bold">원어민 듣기</span></button>
+                        <button onclick="nextVocab()" class="w-12 h-12 bg-white text-slate-400 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-center text-lg hover:bg-slate-50"><i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+                </div>
+
+                <div id="vocabListArea" class="space-y-6">
+                    <div id="vc_empty_text" class="text-center text-slate-400 text-sm mt-10 font-bold">위 버튼을 눌러 첫 단어장을 생성해 보세요!</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="screen-alphabet" class="absolute top-0 left-0 w-full h-full flex flex-col z-40 bg-[#e0f2fe] overflow-hidden sm:rounded-3xl" style="transform: translateX(100%); box-shadow: -10px 0 25px rgba(0,0,0,0.1); transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);">
+            
+            <div class="absolute inset-0 z-0 pointer-events-none bg-[#f0fdf4]">
+                <div class="absolute inset-0 bg-[url('app-bg-02.jpg')] bg-[length:100%_auto] bg-center bg-no-repeat opacity-[0.70] mix-blend-multiply"></div>
+                <div class="absolute inset-0 bg-gradient-to-b from-[#f0fdf4] from-25% via-transparent via-50% to-[#f0fdf4] to-75%"></div>
+            </div>
+
+            
+
+            <div class="relative z-10 flex-none bg-white/50 backdrop-blur-md px-4 py-3 border-b border-emerald-100 shadow-sm">
+                <button id="generateAlphaBtn" onclick="loadAlphabetData()" class="w-full bg-slate-900 text-white text-sm font-bold py-2.5 rounded-xl shadow-md hover:bg-black transition-all">✨ 선택한 언어의 AI 파닉스 가져오기</button>
+            </div>
+
+            <div class="relative z-10 flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar pb-24">
+                <div class="bg-white/70 backdrop-blur-md rounded-2xl p-4 border border-white/60 shadow-sm mb-2 flex items-center gap-3">
+                    <div class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 text-xl shrink-0"><i class="fa-solid fa-seedling"></i></div>
+                    <p id="alpha_desc" class="text-xs text-emerald-800 font-medium leading-relaxed">언어의 뼈대가 되는 기본 글자와 발음을 익혀보세요! 글자를 누르면 원어민 소리가 납니다.</p>
+                </div>
+                <div id="alphabetListArea" class="space-y-6">
+                    <div id="alpha_empty_text" class="text-center text-slate-500 text-sm mt-10 font-bold bg-white/50 backdrop-blur-sm p-4 rounded-xl shadow-sm border border-white/60 inline-block mx-auto flex items-center justify-center w-full">위 버튼을 눌러 기초 글자를 가져와 보세요!</div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="customLangModal" class="hidden absolute inset-0 bg-slate-900/60 flex items-end justify-center z-[110] backdrop-blur-sm transition-opacity">
+            <div id="customLangContent" class="bg-white w-full max-w-md rounded-t-3xl p-6 shadow-2xl transition-transform duration-300 translate-y-full border-t border-slate-100 pb-10 sm:pb-6">
+                <div class="flex justify-between items-center mb-5"><h3 id="customLangTitle" class="text-xl font-extrabold text-slate-800">언어 선택</h3><button onclick="closeCustomLangPicker()" class="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-200 transition-colors"><i class="fa-solid fa-xmark"></i></button></div>
+                <div id="customLangList" class="grid grid-cols-2 gap-3 max-h-[50vh] overflow-y-auto no-scrollbar"></div>
+            </div>
+        </div>
+
+        <div id="memoModal" class="fixed inset-0 bg-black/60 z-[999] hidden flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+            <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl relative flex flex-col max-h-[80vh]">
+                <div class="bg-amber-50 p-4 border-b border-amber-100 flex justify-between items-center shrink-0"><h2 class="text-base font-black text-amber-800"><i class="fa-solid fa-note-sticky text-amber-500 mr-1"></i> <span id="ui_memo_title">AI 비서의 메모장</span></h2><button onclick="toggleMemoModal(false)" class="text-amber-400 hover:text-amber-600"><i class="fa-solid fa-xmark text-xl"></i></button></div>
+                <div id="memoListArea" class="p-4 flex-1 overflow-y-auto space-y-3 bg-slate-50"></div>
+                <div class="p-3 border-t border-slate-100 shrink-0 bg-white"><button onclick="clearAllMemos()" class="w-full py-2 bg-slate-100 text-slate-500 text-xs font-bold rounded-xl hover:bg-slate-200 transition-colors">🗑️ <span id="ui_memo_clear">모든 메모 지우기</span></button></div>
+            </div>
+        </div>
+
+        <div id="paywallModal" class="hidden absolute inset-0 bg-slate-900/80 flex items-center justify-center z-[100] p-4 backdrop-blur-md">
+            <div class="bg-white w-full max-w-[320px] rounded-[2rem] p-8 shadow-2xl text-center relative overflow-hidden">
+                <div class="w-20 h-20 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-5 text-4xl shadow-inner border border-slate-100"><i class="fa-solid fa-lock"></i></div>
+                <h3 id="pw_title" class="text-2xl font-black text-slate-800 mb-2 tracking-tight">튜터링 종료</h3>
+                <p id="paywallReasonText" class="text-sm font-medium text-slate-500 mb-6">무료 튜터링 대화를 모두 소진하셨습니다.</p>
+                <button id="pw_upgrade_btn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black text-sm py-4 rounded-xl shadow-lg flex items-center justify-center gap-2" onclick="processUpgrade()"><i class="fa-brands fa-google-play"></i> <span id="pw_upgrade_text">프리미엄 결제하기</span></button>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="customPersonaModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-opacity">
+        <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden flex flex-col transform transition-all">
+            <div class="px-5 py-4 flex justify-between items-center border-b border-slate-100 bg-slate-50/50">
+                <h3 class="text-sm font-black text-slate-800 flex items-center gap-2">
+                    <span>✨ 나만의 튜터 만들기</span>
+                </h3>
+                <button onclick="closeCustomPersonaModal()" class="w-7 h-7 flex items-center justify-center rounded-full bg-slate-200/50 text-slate-500 hover:bg-slate-200 transition-colors">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+            
+            <div class="p-5 flex flex-col gap-4 bg-white">
+                <p class="text-[11px] text-slate-500 font-medium mb-1">좋아하는 연예인, 가상의 인물 등 원하는 설정을 자유롭게 입력해 보세요. (기기에만 안전하게 저장됩니다.)</p>
+                
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-[10px] font-bold text-slate-700 ml-1">이름 (Name)</label>
+                    <input type="text" id="input_custom_name" placeholder="예: 셀레나 고메즈" class="w-full h-11 bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl px-4 outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all shadow-inner">
+                </div>
+                
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-[10px] font-bold text-slate-700 ml-1">직업 (Job / Role)</label>
+                    <input type="text" id="input_custom_job" placeholder="예: 세계적인 팝 가수" class="w-full h-11 bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl px-4 outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all shadow-inner">
+                </div>
+
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-[10px] font-bold text-slate-700 ml-1">취미 및 관심사 (Hobby)</label>
+                    <input type="text" id="input_custom_hobby" placeholder="예: 요리, 노래 만들기" class="w-full h-11 bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl px-4 outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all shadow-inner">
+                </div>
+
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-[10px] font-bold text-slate-700 ml-1">성격 및 말투 (Personality)</label>
+                    <input type="text" id="input_custom_personality" placeholder="예: 아주 다정하고 활기차며 이모티콘을 자주 씀" class="w-full h-11 bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl px-4 outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all shadow-inner">
+                </div>
+            </div>
+
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex gap-2">
+                <button onclick="closeCustomPersonaModal()" class="flex-1 py-3 bg-white text-slate-600 text-xs font-bold rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors">취소</button>
+                <button onclick="saveCustomPersona()" class="flex-1 py-3 bg-rose-500 text-white text-xs font-bold rounded-xl shadow-md shadow-rose-500/20 hover:bg-rose-600 transition-colors">저장 후 적용하기</button>
+            </div>
+        </div>
+    </div>
+
+
+
+</body>
+
+<script src="data.js"></script>
+    <script src="script.js"></script>
+
+
+</html>
