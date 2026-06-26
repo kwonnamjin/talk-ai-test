@@ -1761,6 +1761,17 @@ document.addEventListener('click', (e) => {
 
 // 🌟 앱 실행 시 단 한 번만 호출되는 '초기화 마스터 블록'
 document.addEventListener('DOMContentLoaded', () => {
+    const langSelects = ['targetLanguage', 'sttInputLanguage', 'explanationLanguage'];
+langSelects.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+        el.onchange = function() {
+            localStorage.setItem(id === 'targetLanguage' ? 'target_language' : 
+                                 id === 'sttInputLanguage' ? 'stt_input_language' : 'explanation_language', this.value);
+            if (typeof window.updateLangDisplays === 'function') window.updateLangDisplays();
+        };
+    }
+});
     
     // ==========================================
     // 1. 즉시 적용해야 하는 설정 (UI 깜빡임 방지)
