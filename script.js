@@ -70,58 +70,61 @@ window.changeUILanguage = function(langCode) {
             if (typeof window.updateExtraUI === 'function') window.updateExtraUI();
         };
 
+// 🌟 2. 언어 및 UI 디스플레이 업데이트 (에러 방지 완벽 적용)
 window.updateLangDisplays = function() {
-    const tSel = document.getElementById('targetLanguage');
-    const eSel = document.getElementById('explanationLanguage');
-    const sSel = document.getElementById('sttInputLanguage');
+    if (typeof SUPPORTED_LANGUAGES === 'undefined') return;
 
-    // AI 언어
-    const dispT = document.getElementById('disp-targetLanguageHome');
-    if(tSel && dispT && tSel.options[tSel.selectedIndex]) {
-        const langData = SUPPORTED_LANGUAGES.find(l => l.code === tSel.value);
-        dispT.innerHTML = `${langData.flag} ${getLangName(langData.code)} (AI)`;
-    }
-    
-    // 앱 표시 언어
-    const dispE = document.getElementById('disp-explanationLanguageHome');
-    if(eSel && dispE && eSel.options[eSel.selectedIndex]) {
-        const langData = SUPPORTED_LANGUAGES.find(l => l.code === eSel.value);
-        dispE.innerHTML = `${langData.flag} ${getLangName(langData.code)} (UI)`;
-    }
-
-    // 음성 입력 언어 (Setting 창)
-    const dispS1 = document.getElementById('disp-sttInputLanguageHome');
-    if(sSel && dispS1 && sSel.options[sSel.selectedIndex]) {
-        const langData = SUPPORTED_LANGUAGES.find(l => l.code === sSel.value);
-        dispS1.innerHTML = `${langData.flag} ${getLangName(langData.code)} (Me)`;
-    }
-    
-    // 메인 채팅창 하단의 마이크 음성 버튼 (Me)
-    const dispS2 = document.getElementById('disp-sttInputLanguage');
-    if(sSel && dispS2 && sSel.options[sSel.selectedIndex]) {
-        const langData = SUPPORTED_LANGUAGES.find(l => l.code === sSel.value);
-        dispS2.innerHTML = `${langData.flag} ${getLangName(langData.code)} (Me)`;
-    }
+    // 1. 공통 상단/설정 패널 언어 표시 업데이트
     const setups = [
         { id: 'targetLanguage', disp: 'disp-targetLanguageHome', tag: '(AI)' },
         { id: 'explanationLanguage', disp: 'disp-explanationLanguageHome', tag: '(UI)' },
-        { id: 'sttInputLanguage', disp: 'disp-sttInputLanguageHome', tag: '(Me)' },
-        { id: 'sttInputLanguage', disp: 'disp-sttInputLanguage', tag: '(Me)' }
+        { id: 'sttInputLanguage', disp: 'disp-sttInputLanguageHome', tag: '(Me)' }
     ];
 
     setups.forEach(s => {
         const sel = document.getElementById(s.id);
         const disp = document.getElementById(s.disp);
-        if (sel && disp && sel.options[sel.selectedIndex]) {
+        // sel과 disp가 모두 존재하고, 옵션이 선택되어 있을 때만 실행
+        if (sel && disp && sel.options && sel.selectedIndex >= 0 && sel.options[sel.selectedIndex]) {
             const langData = SUPPORTED_LANGUAGES.find(l => l.code === sel.value);
-            if(langData) disp.innerHTML = `${langData.flag} ${window.getLangName(langData.code)} <span class="text-[9px] font-black opacity-70 ml-1">${s.tag}</span>`;
+            if(langData) {
+                const langName = typeof window.getLangName === 'function' ? window.getLangName(langData.code) : langData.name;
+                disp.innerHTML = `${langData.flag} ${langName} <span class="text-[9px] font-black opacity-70 ml-1">${s.tag}</span>`;
+            }
         }
     });
 
+    // 2. 하단 프리토킹 언어 맞바꾸기(Swap) 버튼 업데이트
+    const tSel = document.getElementById('targetLanguage');
+    const sSel = document.getElementById('sttInputLanguage');
+    const dispSwap = document.getElementById('disp-lang-swap');
+    
+    if(dispSwap && tSel && sSel && tSel.options[tSel.selectedIndex] && sSel.options[sSel.selectedIndex]) {
+        const tLangData = SUPPORTED_LANGUAGES.find(l => l.code === tSel.value);
+        const sLangData = SUPPORTED_LANGUAGES.find(l => l.code === sSel.value);
+        
+        if (tLangData && sLangData) {
+            const tName = typeof window.getLangName === 'function' ? window.getLangName(tLangData.code) : tLangData.name;
+            const sName = typeof window.getLangName === 'function' ? window.getLangName(sLangData.code) : sLangData.name;
+            dispSwap.innerHTML = `${sLangData.flag} ${sName}<span class="text-[9px] text-slate-400 font-bold ml-1">(Me)</span> <i class="fa-solid fa-arrows-rotate mx-1 text-blue-500"></i> ${tLangData.flag} ${tName}<span class="text-[9px] text-slate-400 font-bold ml-1">(AI)</span>`;
+        }
+    }
+
+    // 3. 성별 UI 다국어 번역 (Cannot read properties of undefined 에러 완벽 차단)
     const savedGender = localStorage.getItem('voice_gender') || 'female';
-    const baseLang = (document.getElementById('explanationLanguage').value || 'ko-KR').split('-')[0];
-    const dict = UI_DICTIONARY[baseLang] || UI_DICTIONARY["en"];
+    
+    // explanationLanguage가 아직 렌더링 전이라도 에러가 나지 않도록 방어
+    const expEl = document.getElementById('explanationLanguage');
+    const baseLang = (expEl && expEl.value) ? expEl.value.split('-')[0] : 'ko';
+    
+    // UI_DICTIONARY가 data.js에서 정상 로드되었는지 확인
+    let dict = {};
+    if (typeof UI_DICTIONARY !== 'undefined') {
+        dict = UI_DICTIONARY[baseLang] || UI_DICTIONARY["en"] || {};
+    }
+    
     const genderText = savedGender === 'female' ? (dict.gender_f_text || '여성') : (dict.gender_m_text || '남성');
+    
     const dispG = document.getElementById('disp-voiceGender');
     if (dispG) dispG.innerHTML = (savedGender === 'female' ? '👩 ' : '👨 ') + genderText;
 };
@@ -172,12 +175,21 @@ window.populateDropdowns = function() {
             return dict["lang_" + code] || SUPPORTED_LANGUAGES.find(l => l.code === code).name;
         }
 
-        window.renderLanguageSelects = function() {
-            const optionsHtml = SUPPORTED_LANGUAGES.map(lang => `<option value="${lang.code}" data-lang-name="${lang.name}">${lang.flag} ${lang.name}</option>`).join('');
-            document.getElementById('targetLanguage').innerHTML = optionsHtml;
-            document.getElementById('sttInputLanguage').innerHTML = optionsHtml;
-            document.getElementById('explanationLanguage').innerHTML = optionsHtml;
-        }
+        // 🌟 1. 언어 옵션 렌더링 (에러 방지 코드 추가)
+window.renderLanguageSelects = function() {
+    if (typeof SUPPORTED_LANGUAGES === 'undefined') return; // 데이터가 없으면 중단
+
+    const optionsHtml = SUPPORTED_LANGUAGES.map(lang => `<option value="${lang.code}" data-lang-name="${lang.name}">${lang.flag} ${lang.name}</option>`).join('');
+    
+    // 요소가 화면에 존재하는지(null이 아닌지) 확인 후 삽입
+    const tLang = document.getElementById('targetLanguage');
+    const sLang = document.getElementById('sttInputLanguage');
+    const eLang = document.getElementById('explanationLanguage');
+    
+    if (tLang) tLang.innerHTML = optionsHtml;
+    if (sLang) sLang.innerHTML = optionsHtml;
+    if (eLang) eLang.innerHTML = optionsHtml;
+};
         
 
 // 🌟 4. 목소리/성별/모드 설정
@@ -383,6 +395,30 @@ window.incrementLocalUsage = function() {
             alert("📡 AI 서버 통신 에러!\n에러 코드: " + lastStatus + "\n(현재 연결된 AI 서버에 트래픽이 몰려 과부하가 걸렸습니다. 잠시 후 다시 시도해 주세요!)");
             throw new Error("HTTP_ERROR_" + lastStatus);
         }
+
+        // 🌟 서로 말하는 언어를 맞바꾸는 기능 (Me <-> AI)
+window.swapLanguages = function() {
+    const sttSelect = document.getElementById('sttInputLanguage');
+    const targetSelect = document.getElementById('targetLanguage');
+    
+    // 서로의 값을 교환(Swap)
+    const tempValue = sttSelect.value;
+    sttSelect.value = targetSelect.value;
+    targetSelect.value = tempValue;
+
+    // 변경된 값을 로컬 스토리지에 저장
+    localStorage.setItem('stt_input_language', sttSelect.value);
+    localStorage.setItem('target_language', targetSelect.value);
+
+    // 언어 정보가 바뀌었으므로 대화 세션도 초기화 (필요시)
+    if (typeof window.clearChatSession === 'function') {
+        window.clearChatSession();
+    }
+
+    // UI 즉시 업데이트 및 알림
+    if (typeof window.updateLangDisplays === 'function') window.updateLangDisplays();
+    if (typeof window.updateStatus === 'function') window.updateStatus("언어 역할이 변경되었습니다 🔄");
+};
 
 
 
