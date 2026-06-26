@@ -634,6 +634,11 @@ window.initSpeechRecognition = function() {
             else synthesis.cancel(); 
         }
         async function handleUserMessage(text) {
+            const savedData = JSON.parse(localStorage.getItem('user_custom_persona') || '{}');
+            const customName = localStorage.getItem('custom_persona_name') || 'AI 튜터';
+            const customPrompt = localStorage.getItem('custom_persona_prompt') || '친절한 튜터';
+
+
             if(!text) return;
             if (!window.checkAndBlockAPI()) return;
 
@@ -672,7 +677,7 @@ window.initSpeechRecognition = function() {
                 assistant: `You are the user's smart, friendly personal assistant (native ${targetName}). Answer their questions, confirm their requests, and chat actively. Polite, clear, and approachable.`,
                 guide: `You are an engaging travel guide (native ${targetName}). Give great recommendations, answer questions actively, and share local insights.`,
                 special: `You are a sweet and popular ${starGender} (native ${targetName}). The user is your precious fan. Speak with a lot of warmth, gratitude, and cute emojis. Encourage them in their language learning. STRICT RULE: Keep the conversation polite, family-friendly (PG-13), and avoid overly romantic or explicit content.`,
-                custom: `You are a person named ${savedCustom.name} (native ${targetName}). Your profession is ${savedCustom.job}, your hobby is ${savedCustom.hobby}, and your personality is ${savedCustom.personality}. Act EXACTLY like this character. Speak naturally and reflect your personality and job in your responses. Keep it to 1-3 natural sentences.`
+                custom: `You are ${customName}. ${customPrompt}. Act EXACTLY like this character. Speak naturally and reflect your personality in your responses. Keep it to 1-3 natural sentences.`
             };
             
             const selectedPersona = personaInstructions[window.currentPersona] || personaInstructions['friend'];
@@ -1665,53 +1670,7 @@ window.addStudyMission = function(type) {
             if (dd && !e.target.closest('#genderDropdownContainer')) dd.classList.add('hidden');
         };
 
-        window.openCustomPersonaModal = function() {
-            // 기존에 저장된 설정이 있다면 불러와서 입력창에 미리 채워줍니다.
-            const savedCustom = JSON.parse(localStorage.getItem('user_custom_persona')) || { name: '', job: '', hobby: '', personality: '' };
-            
-            document.getElementById('input_custom_name').value = savedCustom.name;
-            document.getElementById('input_custom_job').value = savedCustom.job;
-            document.getElementById('input_custom_hobby').value = savedCustom.hobby;
-            document.getElementById('input_custom_personality').value = savedCustom.personality;
-            
-            // 모달창 보이기
-            document.getElementById('customPersonaModal').classList.remove('hidden');
-        };
-
-        // 🌟 나만의 튜터 모달창 닫기
-        window.closeCustomPersonaModal = function() {
-            document.getElementById('customPersonaModal').classList.add('hidden');
-        };
-
-        // 🌟 사용자 설정 저장 및 적용하기
-        window.saveCustomPersona = function() {
-            const customName = document.getElementById('input_custom_name').value.trim() || 'AI 튜터';
-            const customJob = document.getElementById('input_custom_job').value.trim() || '언어 선생님';
-            const customHobby = document.getElementById('input_custom_hobby').value.trim() || '대화하기';
-            const customPersonality = document.getElementById('input_custom_personality').value.trim() || '매우 친절하고 상냥함';
-
-            const customData = {
-                name: customName,
-                job: customJob,
-                hobby: customHobby,
-                personality: customPersonality
-            };
-
-            // 기기(로컬스토리지)에 저장
-            localStorage.setItem('user_custom_persona', JSON.stringify(customData));
-            
-            // 현재 페르소나를 'custom'으로 변경
-            window.currentPersona = 'custom';
-            
-            // 모달창 닫기
-            window.closeCustomPersonaModal();
-            
-            // 사용자에게 알림 표시
-            alert(`[${customName}] 튜터 설정이 완료되었습니다!\\n이제 대화를 시작해 보세요.`);
-            
-            // (선택 사항) 만약 버튼 색상을 바꾸는 UI 로직이 있다면 여기서 호출
-            // updatePersonaButtonsUI('custom'); 
-        };
+        
 
         // 🌟 새로운 목소리 성별 변경 로직 (드롭다운용)
         window.changeVoiceGender = function(gender) {
@@ -1822,43 +1781,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
-// 🌟 나만의 AI 설정값을 완벽하게 적용하고 뇌를 리셋하는 함수
 window.applyCustomAi = function() {
     const nameInput = document.getElementById('customAiNameInput').value.trim();
     const promptInput = document.getElementById('customAiPromptInput').value.trim();
 
     if (!nameInput || !promptInput) {
-        alert('AI의 이름과 성격을 모두 입력해주세요!');
+        alert('이름과 성격을 모두 입력해주세요!');
         return;
     }
 
-    // 1. 임시 메모리 업데이트
-    window.currentPersona = 'custom';
-    window.customPersonaName = nameInput;
-    window.customPersonaPrompt = promptInput;
+    // 객체 하나로 통합 관리 (이렇게 하면 관리가 훨씬 쉬워집니다)
+    const customPersonaData = {
+        name: nameInput,
+        prompt: promptInput
+    };
 
-    // 2. 🌟 핵심: 영구 저장소(localStorage)에도 확실하게 덮어쓰기! (새로고침해도 유지됨)
-    localStorage.setItem('currentPersona', 'custom');
-    localStorage.setItem('customPersonaName', nameInput);
-    localStorage.setItem('customPersonaPrompt', promptInput);
+    // 통합된 키 하나로만 저장
+    localStorage.setItem('user_custom_persona', JSON.stringify(customPersonaData));
+    localStorage.setItem('current_persona', 'custom');
 
-    // 3. 적용 알림
+    // 상태 업데이트
     if (typeof window.updateStatus === 'function') {
         window.updateStatus(`${nameInput} 모드 적용!`);
     }
 
-    // 4. 🌟 핵심: 페르소나가 완전히 바뀌었으므로, 예전 성격으로 대화하던 기억을 깔끔하게 지우고 새 출발!
-    if (typeof window.clearChatSession === 'function') {
-        window.clearChatSession();
-    }
-
-    // 5. 패널 닫기
+    // 대화 초기화 및 UI 닫기
+    if (typeof window.clearChatSession === 'function') window.clearChatSession();
     document.getElementById('customAiDropdown').classList.add('hidden');
-    if (typeof window.togglePanel === 'function') {
-        window.togglePanel('inlineSparePanel');
-    }
+    window.togglePanel('inlineSparePanel');
 };
-
 
 if (uiChatHistory.length > 0) uiChatHistory.forEach(msg => window.addMessageToChat(msg.sender, msg.text, msg.translation, msg.targetLangCode, true));
 

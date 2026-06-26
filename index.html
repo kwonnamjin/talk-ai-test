@@ -559,48 +559,7 @@
     </div>
 
 
-    <div id="customPersonaModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-opacity">
-        <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden flex flex-col transform transition-all">
-            <div class="px-5 py-4 flex justify-between items-center border-b border-slate-100 bg-slate-50/50">
-                <h3 class="text-sm font-black text-slate-800 flex items-center gap-2">
-                    <span>✨ 나만의 튜터 만들기</span>
-                </h3>
-                <button onclick="closeCustomPersonaModal()" class="w-7 h-7 flex items-center justify-center rounded-full bg-slate-200/50 text-slate-500 hover:bg-slate-200 transition-colors">
-                    <i class="fa-solid fa-xmark text-sm"></i>
-                </button>
-            </div>
-            
-            <div class="p-5 flex flex-col gap-4 bg-white">
-                <p class="text-[11px] text-slate-500 font-medium mb-1">좋아하는 연예인, 가상의 인물 등 원하는 설정을 자유롭게 입력해 보세요. (기기에만 안전하게 저장됩니다.)</p>
-                
-                <div class="flex flex-col gap-1.5">
-                    <label class="text-[10px] font-bold text-slate-700 ml-1">이름 (Name)</label>
-                    <input type="text" id="input_custom_name" placeholder="예: 셀레나 고메즈" class="w-full h-11 bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl px-4 outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all shadow-inner">
-                </div>
-                
-                <div class="flex flex-col gap-1.5">
-                    <label class="text-[10px] font-bold text-slate-700 ml-1">직업 (Job / Role)</label>
-                    <input type="text" id="input_custom_job" placeholder="예: 세계적인 팝 가수" class="w-full h-11 bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl px-4 outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all shadow-inner">
-                </div>
-
-                <div class="flex flex-col gap-1.5">
-                    <label class="text-[10px] font-bold text-slate-700 ml-1">취미 및 관심사 (Hobby)</label>
-                    <input type="text" id="input_custom_hobby" placeholder="예: 요리, 노래 만들기" class="w-full h-11 bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl px-4 outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all shadow-inner">
-                </div>
-
-                <div class="flex flex-col gap-1.5">
-                    <label class="text-[10px] font-bold text-slate-700 ml-1">성격 및 말투 (Personality)</label>
-                    <input type="text" id="input_custom_personality" placeholder="예: 아주 다정하고 활기차며 이모티콘을 자주 씀" class="w-full h-11 bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl px-4 outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all shadow-inner">
-                </div>
-            </div>
-
-            <div class="p-4 bg-slate-50 border-t border-slate-100 flex gap-2">
-                <button onclick="closeCustomPersonaModal()" class="flex-1 py-3 bg-white text-slate-600 text-xs font-bold rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors">취소</button>
-                <button onclick="saveCustomPersona()" class="flex-1 py-3 bg-rose-500 text-white text-xs font-bold rounded-xl shadow-md shadow-rose-500/20 hover:bg-rose-600 transition-colors">저장 후 적용하기</button>
-            </div>
-        </div>
-    </div>
-
+    
 
 
 </body>
