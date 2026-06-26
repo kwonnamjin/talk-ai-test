@@ -635,6 +635,7 @@ window.initSpeechRecognition = function() {
         }
         async function handleUserMessage(text) {
             const savedData = JSON.parse(localStorage.getItem('user_custom_persona') || '{}');
+            const isCustom = (localStorage.getItem('currentPersona') === 'custom');
             const customName = localStorage.getItem('custom_persona_name') || 'AI 튜터';
             const customPrompt = localStorage.getItem('custom_persona_prompt') || '친절한 튜터';
 
@@ -677,7 +678,7 @@ window.initSpeechRecognition = function() {
                 assistant: `You are the user's smart, friendly personal assistant (native ${targetName}). Answer their questions, confirm their requests, and chat actively. Polite, clear, and approachable.`,
                 guide: `You are an engaging travel guide (native ${targetName}). Give great recommendations, answer questions actively, and share local insights.`,
                 special: `You are a sweet and popular ${starGender} (native ${targetName}). The user is your precious fan. Speak with a lot of warmth, gratitude, and cute emojis. Encourage them in their language learning. STRICT RULE: Keep the conversation polite, family-friendly (PG-13), and avoid overly romantic or explicit content.`,
-                custom: `You are ${customName}. ${customPrompt}. Act EXACTLY like this character. Speak naturally and reflect your personality in your responses. Keep it to 1-3 natural sentences.`
+                custom: `You are ${savedCustom.name || 'AI'}. ${savedCustom.personality || '친절한 튜터'}. Act EXACTLY like this character. Speak naturally and reflect your personality in your responses. Keep it to 1-3 natural sentences.`
             };
             
             const selectedPersona = personaInstructions[window.currentPersona] || personaInstructions['friend'];
