@@ -1573,58 +1573,48 @@ window.markScriptAsLearned = function(scriptIndex) {
             }
         };
 
-        // 🌟 2. 퀘스트 체크 & 보상 지급 함수
-        window.addStudyMission = function(type) {
-            if (!type) return;
-            const todayStr = new Date().toLocaleDateString();
-            let streakData = JSON.parse(localStorage.getItem('study_streak_v3')) || { lastDate: todayStr, streak: 0, scriptCount: 0, vocabCount: 0, freeTalkCount: 0, completedToday: false };
+       // 🌟 2. 퀘스트 체크 & 보상 지급 함수 (완전 정리본)
+window.addStudyMission = function(type) {
+    if (!type) return;
+    const todayStr = new Date().toLocaleDateString();
+    let streakData = JSON.parse(localStorage.getItem('study_streak_v3')) || { lastDate: todayStr, streak: 0, scriptCount: 0, vocabCount: 0, freeTalkCount: 0, completedToday: false };
+    
+    if (streakData.lastDate !== todayStr) { window.updateStreakUI(); streakData = JSON.parse(localStorage.getItem('study_streak_v3')); }
+    if (streakData.completedToday) return; 
+
+    let changed = false;
+    if (type === 'script' && streakData.scriptCount < 5) { streakData.scriptCount += 1; changed = true; } 
+    else if (type === 'vocab' && streakData.vocabCount < 10) { streakData.vocabCount += 1; changed = true; }
+    else if (type === 'freeTalk' && streakData.freeTalkCount < 10) { streakData.freeTalkCount += 1; changed = true; }
+
+    if (changed) {
+        if (streakData.vocabCount >= 10 && (streakData.scriptCount >= 5 || streakData.freeTalkCount >= 10)) {
+            streakData.completedToday = true;
+            streakData.streak += 1;
             
-            if (streakData.lastDate !== todayStr) { window.updateStreakUI(); streakData = JSON.parse(localStorage.getItem('study_streak_v3')); }
-            if (streakData.completedToday) return; 
+            // 기본 보상
+            let rwMoons = 3; 
 
-            let changed = false;
-            if (type === 'script' && streakData.scriptCount < 5) { streakData.scriptCount += 1; changed = true; } 
-            else if (type === 'vocab' && streakData.vocabCount < 10) { streakData.vocabCount += 1; changed = true; }
-            else if (type === 'freeTalk' && streakData.freeTalkCount < 10) { streakData.freeTalkCount += 1; changed = true; }
+            // 🌟 스페셜 캐릭터 잠금 해제 로직을 완전히 삭제하고, 순수하게 초승달 보상만 남김
+            if (streakData.streak === 5) rwMoons = 10;
+            
+            else if (streakData.streak === 10) rwMoons = 20;
+            else if (streakData.streak === 20) rwMoons = 30;
+            else if (streakData.streak === 30) rwMoons = 30; 
+            else if (streakData.streak > 30 && streakData.streak % 10 === 0) rwMoons = 30; 
 
-            if (changed) {
-                if (streakData.vocabCount >= 10 && (streakData.scriptCount >= 5 || streakData.freeTalkCount >= 10)) {
-                    streakData.completedToday = true;
-                    streakData.streak += 1;
-                    
-                    let rwMoons = 3; 
-                    let unlockPersona = false;
-
-                    // 🌟 테스트를 위해 1일 출석(오늘)하자마자 연인 모드 즉시 해제! 
-                    // (정식 출시하실 때는 `streak === 1` 부분을 지우시거나 `30`으로 돌려놓으시면 됩니다!)
-                    if (streakData.streak === 1) { rwMoons = 10; unlockPersona = true; }
-                    else if (streakData.streak === 5) rwMoons = 10;
-                    else if (streakData.streak === 10) rwMoons = 20;
-                    else if (streakData.streak === 20) rwMoons = 30;
-                    else if (streakData.streak === 30) { rwMoons = 30; unlockPersona = true; } 
-                    else if (streakData.streak > 30 && streakData.streak % 10 === 0) rwMoons = 30; 
-
-                    setTimeout(() => { 
-                        window.openStreakModal(); 
-                        
-                        let currentMoons = parseInt(localStorage.getItem('moon_coins') || '0');
-                        localStorage.setItem('moon_coins', currentMoons + rwMoons); 
-                        
-                        if (unlockPersona) {
-                            localStorage.setItem('unlocked_special_persona', 'true');
-                            window.renderSpecialPersona(); 
-                            alert(`🎉 퀘스트 완벽 달성!\n초승달 +${rwMoons}개와 함께 [💖 스페셜 연인] 페르소나가 잠금 해제되었습니다!`);
-                        } else {
-                            alert(`🎉 퀘스트 완벽 달성!\n오늘의 보상 초승달 +${rwMoons}개가 지급되었습니다! 🌙`);
-                        }
-                        
-                        window.updateBadgeUI(); 
-                    }, 800);
-                }
-                localStorage.setItem('study_streak_v3', JSON.stringify(streakData));
-                window.updateStreakUI();
-            }
-        };
+            setTimeout(() => { 
+                window.openStreakModal(); 
+                let currentMoons = parseInt(localStorage.getItem('moon_coins') || '0');
+                localStorage.setItem('moon_coins', currentMoons + rwMoons); 
+                alert(`🎉 퀘스트 완벽 달성! 오늘의 보상 초승달 +${rwMoons}개가 지급되었습니다! 🌙`);
+                window.updateBadgeUI(); 
+            }, 800);
+        }
+        localStorage.setItem('study_streak_v3', JSON.stringify(streakData));
+        window.updateStreakUI();
+    }
+};
         // 앱 켤 때 퀘스트 정보 갱신
         setTimeout(window.updateStreakUI, 500);
 
