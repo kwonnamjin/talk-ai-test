@@ -401,21 +401,19 @@ window.swapLanguages = function() {
     const sttSelect = document.getElementById('sttInputLanguage');
     const targetSelect = document.getElementById('targetLanguage');
     
-    // 서로의 값을 교환(Swap)
+    // 태그가 없으면 함수를 즉시 종료하여 에러 방지
+    if (!sttSelect || !targetSelect) {
+        console.error("언어 선택 태그를 찾을 수 없습니다.");
+        return;
+    }
+    
     const tempValue = sttSelect.value;
     sttSelect.value = targetSelect.value;
     targetSelect.value = tempValue;
 
-    // 변경된 값을 로컬 스토리지에 저장
     localStorage.setItem('stt_input_language', sttSelect.value);
     localStorage.setItem('target_language', targetSelect.value);
 
-    // 언어 정보가 바뀌었으므로 대화 세션도 초기화 (필요시)
-    if (typeof window.clearChatSession === 'function') {
-        window.clearChatSession();
-    }
-
-    // UI 즉시 업데이트 및 알림
     if (typeof window.updateLangDisplays === 'function') window.updateLangDisplays();
     if (typeof window.updateStatus === 'function') window.updateStatus("언어 역할이 변경되었습니다 🔄");
 };

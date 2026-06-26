@@ -31,12 +31,15 @@
                     <span id="header-streak-count" class="text-white text-[11px] font-bold tracking-wide">0일 연속</span>
                 </button>
             </div>
-
-            <select id="targetLanguage" class="hidden" onchange="targetLanguageChanged()"></select>
-            <select id="explanationLanguage" class="hidden"></select>
-
-            
         </header>
+
+        <div style="display: none;">
+    <select id="targetLanguage"></select>
+    <select id="explanationLanguage"></select>
+    <select id="sttInputLanguage"></select>
+</div>
+
+
         <div id="globalNavWrapper" class="absolute top-[50px] sm:top-[60px] left-0 right-0 z-[9999] flex flex-col bg-[#e0f2fe] border-b-[3px] border-slate-300/50 pb-0">
     
     <div class="px-3 pt-1 flex justify-between items-center relative z-20">
