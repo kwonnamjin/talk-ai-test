@@ -132,40 +132,7 @@ window.updateLangDisplays = function() {
     if (dispG) dispG.innerHTML = (savedGender === 'female' ? '👩 ' : '👨 ') + genderText;
 };
 
-    // 2. 하단 프리토킹 언어 맞바꾸기(Swap) 버튼 업데이트
-    const tSel = document.getElementById('targetLanguage');
-    const sSel = document.getElementById('sttInputLanguage');
-    const dispSwap = document.getElementById('disp-lang-swap');
     
-    if(dispSwap && tSel && sSel && tSel.options[tSel.selectedIndex] && sSel.options[sSel.selectedIndex]) {
-        const tLangData = SUPPORTED_LANGUAGES.find(l => l.code === tSel.value);
-        const sLangData = SUPPORTED_LANGUAGES.find(l => l.code === sSel.value);
-        
-        if (tLangData && sLangData) {
-            const tName = typeof window.getLangName === 'function' ? window.getLangName(tLangData.code) : tLangData.name;
-            const sName = typeof window.getLangName === 'function' ? window.getLangName(sLangData.code) : sLangData.name;
-            dispSwap.innerHTML = `${sLangData.flag} ${sName}<span class="text-[9px] text-slate-400 font-bold ml-1">(Me)</span> <i class="fa-solid fa-arrows-rotate mx-1 text-blue-500"></i> ${tLangData.flag} ${tName}<span class="text-[9px] text-slate-400 font-bold ml-1">(AI)</span>`;
-        }
-    }
-
-    // 3. 성별 UI 다국어 번역 (Cannot read properties of undefined 에러 완벽 차단)
-    const savedGender = localStorage.getItem('voice_gender') || 'female';
-    
-    // explanationLanguage가 아직 렌더링 전이라도 에러가 나지 않도록 방어
-    const expEl = document.getElementById('explanationLanguage');
-    const baseLang = (expEl && expEl.value) ? expEl.value.split('-')[0] : 'ko';
-    
-    // UI_DICTIONARY가 data.js에서 정상 로드되었는지 확인
-    let dict = {};
-    if (typeof UI_DICTIONARY !== 'undefined') {
-        dict = UI_DICTIONARY[baseLang] || UI_DICTIONARY["en"] || {};
-    }
-    
-    const genderText = savedGender === 'female' ? (dict.gender_f_text || '여성') : (dict.gender_m_text || '남성');
-    
-    const dispG = document.getElementById('disp-voiceGender');
-    if (dispG) dispG.innerHTML = (savedGender === 'female' ? '👩 ' : '👨 ') + genderText;
-};
 
 window.populateDropdowns = function() {
     const setups = [
