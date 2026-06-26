@@ -832,19 +832,31 @@ window.initSpeechRecognition = function() {
         }
         window.currentPersona = localStorage.getItem('ai_persona') || 'friend';
         window.changePersona = function(type, isInit = false) {
-            window.currentPersona = type; localStorage.setItem('ai_persona', type);
-            ['friend', 'assistant', 'guide'].forEach(p => {
-                const btn = document.getElementById('btn_persona_' + p);
-                if(btn) {
-                    btn.className = (p === type) 
-                        ? "shrink-0 px-4 py-1.5 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-[11px] font-extrabold shadow-md transform scale-105 transition-all duration-300" 
-                        : "shrink-0 px-4 py-1.5 rounded-full border border-slate-200 bg-white text-slate-400 text-[11px] font-bold transition-all duration-300 hover:bg-slate-50 hover:text-slate-600 shadow-sm";
-                }
-            });
-            if(!isInit) { clearChatSession(); window.updateStatus("새로운 페르소나가 적용되었습니다!"); }
-        };
-        setTimeout(() => { if (typeof window.changePersona === 'function') window.changePersona(window.currentPersona, true); }, 500);
+    // 1. 🌟 [수정된 부분] 상태 변수 확실하게 덮어쓰기 (커스텀 고정 풀기)
+    window.currentPersona = type; 
+    localStorage.setItem('ai_persona', type); // 기존 유지
+    localStorage.setItem('current_persona', type); // AI가 읽도록 추가
+    localStorage.setItem('currentPersona', type); // 방어코드 추가
 
+    // 2. [유지할 부분] UI 버튼 스타일 변경 로직 (회원님 코드 그대로 적용)
+    ['friend', 'assistant', 'guide'].forEach(p => {
+        const btn = document.getElementById('btn_persona_' + p);
+        if(btn) {
+            btn.className = (p === type) 
+                ? "shrink-0 px-4 py-1.5 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-[11px] font-extrabold shadow-md transform scale-105 transition-all duration-300" 
+                : "shrink-0 px-4 py-1.5 rounded-full border border-slate-200 bg-white text-slate-400 text-[11px] font-bold transition-all duration-300 hover:bg-slate-50 hover:text-slate-600 shadow-sm";
+        }
+    });
+
+    // 3. [유지할 부분] 채팅 초기화 및 알림
+    if(!isInit) { 
+        if (typeof clearChatSession === 'function') clearChatSession(); 
+        if (typeof window.updateStatus === 'function') window.updateStatus("새로운 페르소나가 적용되었습니다!"); 
+    }
+};
+
+// [유지할 부분] 초기화 타이머
+setTimeout(() => { if (typeof window.changePersona === 'function') window.changePersona(window.currentPersona || 'friend', true); }, 500);
         window.targetLanguageChanged = function() { 
             localStorage.setItem('target_language', document.getElementById('targetLanguage').value);
             clearChatSession(); 
