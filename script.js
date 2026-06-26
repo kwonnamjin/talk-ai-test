@@ -1742,24 +1742,6 @@ window.addStudyMission = function(type) {
             if (disp) disp.innerHTML = (savedGender === 'female' ? '👩 ' : '👨 ') + genderText;
         }, 300);
 
-
-        
-
-
-
-        
-
-
-
-
-
-
-
-
-
-
-
-
 // 화면 아무 곳이나 클릭하면 열려있는 패널 모두 닫기
 document.addEventListener('click', (e) => {
     const nav = document.getElementById('globalNavWrapper');
@@ -1839,6 +1821,43 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 600);
 
 });
+
+// 🌟 나만의 AI 설정값을 완벽하게 적용하고 뇌를 리셋하는 함수
+window.applyCustomAi = function() {
+    const nameInput = document.getElementById('customAiNameInput').value.trim();
+    const promptInput = document.getElementById('customAiPromptInput').value.trim();
+
+    if (!nameInput || !promptInput) {
+        alert('AI의 이름과 성격을 모두 입력해주세요!');
+        return;
+    }
+
+    // 1. 임시 메모리 업데이트
+    window.currentPersona = 'custom';
+    window.customPersonaName = nameInput;
+    window.customPersonaPrompt = promptInput;
+
+    // 2. 🌟 핵심: 영구 저장소(localStorage)에도 확실하게 덮어쓰기! (새로고침해도 유지됨)
+    localStorage.setItem('currentPersona', 'custom');
+    localStorage.setItem('customPersonaName', nameInput);
+    localStorage.setItem('customPersonaPrompt', promptInput);
+
+    // 3. 적용 알림
+    if (typeof window.updateStatus === 'function') {
+        window.updateStatus(`${nameInput} 모드 적용!`);
+    }
+
+    // 4. 🌟 핵심: 페르소나가 완전히 바뀌었으므로, 예전 성격으로 대화하던 기억을 깔끔하게 지우고 새 출발!
+    if (typeof window.clearChatSession === 'function') {
+        window.clearChatSession();
+    }
+
+    // 5. 패널 닫기
+    document.getElementById('customAiDropdown').classList.add('hidden');
+    if (typeof window.togglePanel === 'function') {
+        window.togglePanel('inlineSparePanel');
+    }
+};
 
 
 if (uiChatHistory.length > 0) uiChatHistory.forEach(msg => window.addMessageToChat(msg.sender, msg.text, msg.translation, msg.targetLangCode, true));

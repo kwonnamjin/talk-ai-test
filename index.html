@@ -55,33 +55,29 @@
          <button onclick="togglePanel('inlineSparePanel')" class="shrink-0 w-[80px] py-2 bg-[#6496ff] text-white text-[10px] font-black rounded-t-xl -ml-2 z-50 relative hover:bg-slate-500 transition-colors border border-b-0 border-white/20 truncate">AI Character</button>
          <button onclick="togglePanel('inlineSettingsPanel')" class="shrink-0 w-[80px] py-2 bg-[#64aaff] text-slate-500 text-[10px] font-black rounded-t-xl -ml-2 z-[60] relative hover:bg-slate-200 transition-colors border border-b-0 border-white/50 truncate">Setting</button>
     </div>
-    <!-- 1. 페이지 패널 -->
-                <div id="inlinePagesPanel" class="hidden panel-popup bg-white/95 backdrop-blur-md border-b border-x border-slate-200 rounded-b-xl shadow-lg p-3 mb-4 z-10 relative flex flex-col gap-2">
-    <button onclick="navigate('screen-main'); togglePanel('inlinePagesPanel');" class="w-full flex items-center p-3 hover:bg-slate-50 transition-colors border-b border-slate-100">
-        <div class="flex-1 text-left">
-            <p class="text-xs font-black text-blue-700">프리토킹</p>
-            <p class="text-[9px] text-slate-500 font-bold">AI와 자유롭게 대화 및 통번역을 합니다.</p>
-        </div>
+<!-- 1. Pages 패널 (하위 목록) -->
+<div id="inlinePagesPanel" class="hidden panel-popup bg-white/95 backdrop-blur-md border-b border-x border-slate-200 rounded-b-xl shadow-lg p-3 mb-4 z-10 relative flex flex-col gap-2">
+    <!-- 프리토킹 박스 -->
+    <button onclick="navigate('screen-main'); togglePanel('inlinePagesPanel');" class="w-full flex items-center justify-between p-3 bg-sky-50 hover:bg-sky-100 border border-sky-100 rounded-lg transition-colors">
+        <span class="text-xs font-black text-blue-700 whitespace-nowrap">프리토킹</span>
+        <span class="text-[10px] text-slate-500 font-bold text-right ml-3 break-keep">AI와 자유롭게 대화 및 통번역</span>
     </button>
-    <button onclick="navigate('screen-roleplay'); togglePanel('inlinePagesPanel');" class="w-full flex items-center p-3 hover:bg-slate-50 transition-colors border-b border-slate-100">
-        <div class="flex-1 text-left">
-            <p class="text-xs font-black text-emerald-700">롤플레잉</p>
-            <p class="text-[9px] text-slate-500 font-bold">상황별 대본으로 실전 연습을 합니다.</p>
-        </div>
+    <!-- 롤플레잉 박스 -->
+    <button onclick="navigate('screen-roleplay'); togglePanel('inlinePagesPanel');" class="w-full flex items-center justify-between p-3 bg-sky-50 hover:bg-sky-100 border border-sky-100 rounded-lg transition-colors">
+        <span class="text-xs font-black text-emerald-700 whitespace-nowrap">롤플레잉</span>
+        <span class="text-[10px] text-slate-500 font-bold text-right ml-3 break-keep">상황별 대본으로 실전 연습</span>
     </button>
-    <button onclick="navigate('screen-vocab'); togglePanel('inlinePagesPanel');" class="w-full flex items-center p-3 hover:bg-slate-50 transition-colors border-b border-slate-100">
-        <div class="flex-1 text-left">
-            <p class="text-xs font-black text-indigo-700">단어장</p>
-            <p class="text-[9px] text-slate-500 font-bold">필수 단어를 플래시카드로 학습합니다.</p>
-        </div>
+    <!-- 단어장 박스 -->
+    <button onclick="navigate('screen-vocab'); togglePanel('inlinePagesPanel');" class="w-full flex items-center justify-between p-3 bg-sky-50 hover:bg-sky-100 border border-sky-100 rounded-lg transition-colors">
+        <span class="text-xs font-black text-indigo-700 whitespace-nowrap">단어장</span>
+        <span class="text-[10px] text-slate-500 font-bold text-right ml-3 break-keep">필수 단어를 플래시카드로 학습</span>
     </button>
-    <button onclick="navigate('screen-alphabet'); togglePanel('inlinePagesPanel');" class="w-full flex items-center p-3 hover:bg-slate-50 transition-colors">
-        <div class="flex-1 text-left">
-            <p class="text-xs font-black text-slate-700">기초발음</p>
-            <p class="text-[9px] text-slate-500 font-bold">언어의 뼈대인 발음을 익힙니다.</p>
-        </div>
+    <!-- 기초발음 박스 -->
+    <button onclick="navigate('screen-alphabet'); togglePanel('inlinePagesPanel');" class="w-full flex items-center justify-between p-3 bg-sky-50 hover:bg-sky-100 border border-sky-100 rounded-lg transition-colors">
+        <span class="text-xs font-black text-slate-700 whitespace-nowrap">기초발음</span>
+        <span class="text-[10px] text-slate-500 font-bold text-right ml-3 break-keep">언어의 뼈대인 발음 익히기</span>
     </button>
-</div>
+</div> <!-- 🌟 Pages 패널 닫기 완료 -->
 
                 <!-- 2. 학습리포트 패널 -->
                 <div id="inlineReportPanel" class="hidden panel-popup bg-white/95 backdrop-blur-md border-b border-x border-slate-200 rounded-b-xl shadow-lg p-4 mb-4 z-10 relative">
@@ -120,24 +116,36 @@
                     </div>
                 </div>
 
-                <!-- 4. 예비용 패널 -->
-                <div id="inlineSparePanel" class="hidden panel-popup bg-white/95 backdrop-blur-md border-b border-x border-slate-200 rounded-b-xl shadow-lg p-3 mb-4 z-10 relative flex flex-col gap-2">
-                  <button onclick="window.currentPersona='friend'; window.updateStatus('친구 모드 적용!');" class="w-full flex items-center p-3 hover:bg-slate-50 transition-colors border-b border-slate-100">
-                <div class="flex-1 text-left"><p class="text-xs font-black text-blue-700">친구</p><p class="text-[9px] text-slate-500 font-bold">친근한 언어 튜터입니다.</p></div>
-                  </button>
-                  <button onclick="window.currentPersona='assistant'; window.updateStatus('비서 모드 적용!');" class="w-full flex items-center p-3 hover:bg-slate-50 transition-colors border-b border-slate-100">
-                <div class="flex-1 text-left"><p class="text-xs font-black text-green-700">비서</p><p class="text-[9px] text-slate-500 font-bold">업무를 돕는 똑똑한 비서입니다.</p></div>
-                  </button>
-                  <button onclick="window.currentPersona='guide'; window.updateStatus('가이드 모드 적용!');" class="w-full flex items-center p-3 hover:bg-slate-50 transition-colors border-b border-slate-100">
-                <div class="flex-1 text-left"><p class="text-xs font-black text-purple-700">여행가이드</p><p class="text-[9px] text-slate-500 font-bold">여행 정보를 알려주는 전문가입니다.</p></div>
-                  </button>
-                  <button onclick="window.currentPersona='special'; window.updateStatus('아이돌 모드 적용!');" class="w-full flex items-center p-3 hover:bg-slate-50 transition-colors border-b border-slate-100">
-                <div class="flex-1 text-left"><p class="text-xs font-black text-pink-700">아이돌</p><p class="text-[9px] text-slate-500 font-bold">매력적인 톱스타와 대화합니다.</p></div>
-                  </button>
-                  <button onclick="openCustomPersonaModal();" class="w-full flex items-center p-3 hover:bg-slate-50 transition-colors">
-                <div class="flex-1 text-left"><p class="text-xs font-black text-rose-700">나만의 AI</p><p class="text-[9px] text-slate-500 font-bold">직접 페르소나를 설정합니다.</p></div>
-                  </button>
-                </div>
+                <!-- 2. AI Character 패널 (하위 목록) -->
+<div id="inlineSparePanel" class="hidden panel-popup bg-white/95 backdrop-blur-md border-b border-x border-slate-200 rounded-b-xl shadow-lg p-3 mb-4 z-10 relative flex flex-col gap-2">
+    <button onclick="window.currentPersona='friend'; window.updateStatus('친구 모드 적용!'); togglePanel('inlineSparePanel');" class="w-full flex items-center justify-between p-3 bg-sky-50 hover:bg-sky-100 border border-sky-100 rounded-lg transition-colors">
+        <span class="text-xs font-black text-blue-700 whitespace-nowrap">친구</span>
+        <span class="text-[10px] text-slate-500 font-bold text-right ml-3 break-keep">친근하고 편안한 언어 튜터</span>
+    </button>
+    <button onclick="window.currentPersona='assistant'; window.updateStatus('비서 모드 적용!'); togglePanel('inlineSparePanel');" class="w-full flex items-center justify-between p-3 bg-sky-50 hover:bg-sky-100 border border-sky-100 rounded-lg transition-colors">
+        <span class="text-xs font-black text-green-700 whitespace-nowrap">비서</span>
+        <span class="text-[10px] text-slate-500 font-bold text-right ml-3 break-keep">업무를 돕는 똑똑한 비서</span>
+    </button>
+    <button onclick="window.currentPersona='guide'; window.updateStatus('가이드 모드 적용!'); togglePanel('inlineSparePanel');" class="w-full flex items-center justify-between p-3 bg-sky-50 hover:bg-sky-100 border border-sky-100 rounded-lg transition-colors">
+        <span class="text-xs font-black text-purple-700 whitespace-nowrap">여행가이드</span>
+        <span class="text-[10px] text-slate-500 font-bold text-right ml-3 break-keep">현지 맞춤 여행 전문가</span>
+    </button>
+    <button onclick="window.currentPersona='special'; window.updateStatus('아이돌 모드 적용!'); togglePanel('inlineSparePanel');" class="w-full flex items-center justify-between p-3 bg-sky-50 hover:bg-sky-100 border border-sky-100 rounded-lg transition-colors">
+        <span class="text-xs font-black text-pink-700 whitespace-nowrap">아이돌</span>
+        <span class="text-[10px] text-slate-500 font-bold text-right ml-3 break-keep">매력적인 톱스타와 대화</span>
+    </button>
+    
+    <button onclick="document.getElementById('customAiDropdown').classList.toggle('hidden'); event.stopPropagation();" class="w-full flex items-center justify-between p-3 bg-rose-50 hover:bg-rose-100 border border-rose-100 rounded-lg transition-colors">
+        <span class="text-xs font-black text-rose-700 whitespace-nowrap">나만의 AI</span>
+        <span class="text-[10px] text-slate-500 font-bold text-right ml-3 flex items-center gap-1 break-keep">직접 페르소나 설정하기 <i class="fa-solid fa-chevron-down text-[8px]"></i></span>
+    </button>
+
+    <div id="customAiDropdown" class="hidden bg-rose-50 border border-rose-100 rounded-lg p-3 flex flex-col gap-2" onclick="event.stopPropagation();">
+        <input type="text" id="customAiNameInput" placeholder="이름 (예: 블랙핑크 로제)" class="w-full p-2 text-[10px] border border-slate-200 rounded outline-none focus:border-rose-300">
+        <textarea id="customAiPromptInput" placeholder="성격 (예: 넌 지금부터 블랙핑크의 로제야. 이렇게 말하면 로제가 된 것처럼 말해줘)" class="w-full p-2 text-[10px] border border-slate-200 rounded outline-none focus:border-rose-300 h-16 resize-none"></textarea>
+        <button onclick="window.applyCustomAi();" class="w-full bg-rose-400 hover:bg-rose-500 text-white font-bold text-[10px] py-2 rounded transition-colors shadow-sm">이 설정으로 대화 시작하기</button>
+    </div>
+</div><!-- 🌟 AI Character 패널 닫기 완료 -->
          
 
                 <!-- 5. 설정 패널 (언어 선택 + 목소리 성별) -->
