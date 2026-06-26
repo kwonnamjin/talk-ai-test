@@ -63,52 +63,74 @@ window.toggleDropdown = function(dropId) {
 
 
 window.changeUILanguage = function(langCode) {
-            const baseLang = langCode.split('-')[0];
-            const currentDict = UI_DICTIONARY[baseLang] || UI_DICTIONARY["en"];
-            
-            for (const [id, text] of Object.entries(currentDict)) {
-                const element = document.getElementById(id);
-                if (element) {
-                    if (id === "textInputPlaceholder") document.getElementById("textInput").placeholder = text;
-                    else element.innerText = text;
-                }
-            }
+    const baseLang = langCode.split('-')[0];
+    const currentDict = UI_DICTIONARY[baseLang] || UI_DICTIONARY["en"];
+    
+    for (const [id, text] of Object.entries(currentDict)) {
+        const element = document.getElementById(id);
+        if (element) {
+            if (id === "textInputPlaceholder") document.getElementById("textInput").placeholder = text;
+            else element.innerText = text;
+        }
+    }
 
-            const tutorOpt = document.querySelector("#appMode option[value='tutor']");
-            const transOpt = document.querySelector("#appMode option[value='translate']");
-            if (tutorOpt) tutorOpt.text = currentDict["appMode_tutor"] || "Tutor";
-            if (transOpt) transOpt.text = currentDict["appMode_translate"] || "Translate";
+    const tutorOpt = document.querySelector("#appMode option[value='tutor']");
+    const transOpt = document.querySelector("#appMode option[value='translate']");
+    if (tutorOpt) tutorOpt.text = currentDict["appMode_tutor"] || "Tutor";
+    if (transOpt) transOpt.text = currentDict["appMode_translate"] || "Translate";
 
-            window.renderScripts();
-            window.renderVocabs();
-            window.updateLangDisplays();
-            
-            if (typeof window.updateExtraUI === 'function') window.updateExtraUI();
-        };
+    // 🌟 핵심 해결: UI 언어가 바뀌면 설정창 드롭다운도 즉시 다시 그려서 번역 반영!
+    if (typeof window.populateDropdowns === 'function') window.populateDropdowns();
+
+    window.renderScripts();
+    window.renderVocabs();
+    window.updateLangDisplays();
+    
+    if (typeof window.updateExtraUI === 'function') window.updateExtraUI();
+};
 
 // 🌟 2. 언어 및 UI 디스플레이 업데이트 (에러 방지 완벽 적용)
 window.updateLangDisplays = function() {
-    if (typeof SUPPORTED_LANGUAGES === 'undefined') return;
+    // 1. 에러의 주범인 숨겨진 태그 대신, 절대 변하지 않는 로컬 스토리지에서 직접 값을 꺼냅니다.
+    const tCode = localStorage.getItem('target_language') || 'en-US';
+    const sCode = localStorage.getItem('stt_input_language') || 'ko-KR';
+    const eCode = localStorage.getItem('explanation_language') || 'ko-KR';
 
-    // 1. 공통 상단/설정 패널 언어 표시 업데이트
-    const setups = [
-        { id: 'targetLanguage', disp: 'disp-targetLanguageHome', tag: '(AI)' },
-        { id: 'explanationLanguage', disp: 'disp-explanationLanguageHome', tag: '(UI)' },
-        { id: 'sttInputLanguage', disp: 'disp-sttInputLanguageHome', tag: '(Me)' }
-    ];
+    const tData = SUPPORTED_LANGUAGES.find(l => l.code === tCode) || SUPPORTED_LANGUAGES[1];
+    const sData = SUPPORTED_LANGUAGES.find(l => l.code === sCode) || SUPPORTED_LANGUAGES[0];
+    const eData = SUPPORTED_LANGUAGES.find(l => l.code === eCode) || SUPPORTED_LANGUAGES[0];
 
-    setups.forEach(s => {
-        const sel = document.getElementById(s.id);
-        const disp = document.getElementById(s.disp);
-        // sel과 disp가 모두 존재하고, 옵션이 선택되어 있을 때만 실행
-        if (sel && disp && sel.options && sel.selectedIndex >= 0 && sel.options[sel.selectedIndex]) {
-            const langData = SUPPORTED_LANGUAGES.find(l => l.code === sel.value);
-            if(langData) {
-                const langName = typeof window.getLangName === 'function' ? window.getLangName(langData.code) : langData.name;
-                disp.innerHTML = `${langData.flag} ${langName} <span class="text-[9px] font-black opacity-70 ml-1">${s.tag}</span>`;
-            }
-        }
-    });
+    // 2. 숨겨진 <select> 태그의 값이 날아갔더라도 강제로 일치시킵니다. (한국어 강제 초기화 완벽 차단)
+    const tSel = document.getElementById('targetLanguage'); if(tSel) tSel.value = tCode;
+    const sSel = document.getElementById('sttInputLanguage'); if(sSel) sSel.value = sCode;
+    const eSel = document.getElementById('explanationLanguage'); if(eSel) eSel.value = eCode;
+
+    // 3. UI 텍스트 업데이트 (상단 및 설정창)
+    const dispT = document.getElementById('disp-targetLanguageHome');
+    const dispE = document.getElementById('disp-explanationLanguageHome');
+    const dispS1 = document.getElementById('disp-sttInputLanguageHome');
+    const dispS2 = document.getElementById('disp-sttInputLanguage'); // 프리토킹 마이크 옆 버튼
+
+    if (dispT) dispT.innerHTML = `${tData.flag} ${window.getLangName(tData.code)} <span class="text-[9px] font-black opacity-70 ml-1">(AI)</span>`;
+    if (dispE) dispE.innerHTML = `${eData.flag} ${window.getLangName(eData.code)} <span class="text-[9px] font-black opacity-70 ml-1">(UI)</span>`;
+    if (dispS1) dispS1.innerHTML = `${sData.flag} ${window.getLangName(sData.code)} <span class="text-[9px] font-black opacity-70 ml-1">(Me)</span>`;
+    if (dispS2) dispS2.innerHTML = `${sData.flag} ${window.getLangName(sData.code)}`;
+
+    // 4. 새로 추가한 하단 Swap 버튼 글씨 실시간 업데이트
+    const dispSwap = document.getElementById('disp-lang-swap');
+    if (dispSwap) {
+        dispSwap.innerHTML = `${sData.flag} ${window.getLangName(sData.code)}<span class="text-[9px] text-slate-400 font-bold ml-1">(Me)</span> <i class="fa-solid fa-arrows-rotate mx-1 text-blue-500"></i> ${tData.flag} ${window.getLangName(tData.code)}<span class="text-[9px] text-slate-400 font-bold ml-1">(AI)</span>`;
+    }
+
+    // 5. 성별 UI 업데이트 (다국어 유지)
+    const savedGender = localStorage.getItem('voice_gender') || 'female';
+    const baseLang = eCode.split('-')[0];
+    const dict = UI_DICTIONARY[baseLang] || UI_DICTIONARY["en"] || {};
+    const genderText = savedGender === 'female' ? (dict.gender_f_text || '여성') : (dict.gender_m_text || '남성');
+    
+    const dispG = document.getElementById('disp-voiceGender');
+    if (dispG) dispG.innerHTML = (savedGender === 'female' ? '👩 ' : '👨 ') + genderText;
+};
 
     // 2. 하단 프리토킹 언어 맞바꾸기(Swap) 버튼 업데이트
     const tSel = document.getElementById('targetLanguage');
@@ -412,24 +434,21 @@ window.incrementLocalUsage = function() {
             throw new Error("HTTP_ERROR_" + lastStatus);
         }
 
-        // 🌟 서로 말하는 언어를 맞바꾸는 기능 (Me <-> AI)
+       
+// 🌟 서로 말하는 언어를 맞바꾸는 기능 (Me <-> AI)
 window.swapLanguages = function() {
-    const sttSelect = document.getElementById('sttInputLanguage');
-    const targetSelect = document.getElementById('targetLanguage');
-    
-    // 태그가 없으면 함수를 즉시 종료하여 에러 방지
-    if (!sttSelect || !targetSelect) {
-        console.error("언어 선택 태그를 찾을 수 없습니다.");
-        return;
-    }
-    
-    const tempValue = sttSelect.value;
-    sttSelect.value = targetSelect.value;
-    targetSelect.value = tempValue;
+    // 로컬 스토리지에서 현재 값을 가져옴
+    const tCode = localStorage.getItem('target_language') || 'en-US';
+    const sCode = localStorage.getItem('stt_input_language') || 'ko-KR';
 
-    localStorage.setItem('stt_input_language', sttSelect.value);
-    localStorage.setItem('target_language', targetSelect.value);
+    // 1. 값 서로 교환해서 저장
+    localStorage.setItem('target_language', sCode);
+    localStorage.setItem('stt_input_language', tCode);
 
+    // 2. 대화 세션 초기화 (언어가 바뀌었으므로 대화도 리셋하는 것이 안전함)
+    if (typeof window.clearChatSession === 'function') window.clearChatSession();
+
+    // 3. UI 즉시 업데이트 및 알림
     if (typeof window.updateLangDisplays === 'function') window.updateLangDisplays();
     if (typeof window.updateStatus === 'function') window.updateStatus("언어 역할이 변경되었습니다 🔄");
 };
