@@ -69,8 +69,12 @@ window.changeUILanguage = function(langCode) {
     for (const [id, text] of Object.entries(currentDict)) {
         const element = document.getElementById(id);
         if (element) {
-            if (id === "textInputPlaceholder") document.getElementById("textInput").placeholder = text;
-            else element.innerText = text;
+            // 🌟 input이나 textarea면 placeholder를 바꾸고, 아니면 innerText를 바꿈
+            if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+                element.placeholder = text;
+            } else {
+                element.innerText = text;
+            }
         }
     }
 
@@ -79,13 +83,10 @@ window.changeUILanguage = function(langCode) {
     if (tutorOpt) tutorOpt.text = currentDict["appMode_tutor"] || "Tutor";
     if (transOpt) transOpt.text = currentDict["appMode_translate"] || "Translate";
 
-    // 🌟 핵심 해결: UI 언어가 바뀌면 설정창 드롭다운도 즉시 다시 그려서 번역 반영!
     if (typeof window.populateDropdowns === 'function') window.populateDropdowns();
-
     window.renderScripts();
     window.renderVocabs();
     window.updateLangDisplays();
-    
     if (typeof window.updateExtraUI === 'function') window.updateExtraUI();
 };
 

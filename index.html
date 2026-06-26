@@ -57,27 +57,23 @@
     </div>
 <!-- 1. Pages 패널 (하위 목록) -->
 <div id="inlinePagesPanel" class="hidden panel-popup bg-white/95 backdrop-blur-md border-b border-x border-slate-200 rounded-b-xl shadow-lg p-3 mb-4 z-10 relative flex flex-col gap-2">
-    <!-- 프리토킹 박스 -->
     <button onclick="navigate('screen-main'); togglePanel('inlinePagesPanel');" class="w-full flex items-center justify-between p-3 bg-sky-50 hover:bg-sky-100 border border-sky-100 rounded-lg transition-colors">
-        <span class="text-xs font-black text-blue-700 whitespace-nowrap">프리토킹</span>
-        <span class="text-[10px] text-slate-500 font-bold text-right ml-3 break-keep">AI와 자유롭게 대화 및 통번역</span>
+        <span id="ui_pages_freetalk" class="text-xs font-black text-blue-700 whitespace-nowrap">프리토킹</span>
+        <span id="ui_pages_freetalk_desc" class="text-[10px] text-slate-500 font-bold text-right ml-3 break-keep">AI와 자유롭게 대화 및 통번역</span>
     </button>
-    <!-- 롤플레잉 박스 -->
     <button onclick="navigate('screen-roleplay'); togglePanel('inlinePagesPanel');" class="w-full flex items-center justify-between p-3 bg-sky-50 hover:bg-sky-100 border border-sky-100 rounded-lg transition-colors">
-        <span class="text-xs font-black text-emerald-700 whitespace-nowrap">롤플레잉</span>
-        <span class="text-[10px] text-slate-500 font-bold text-right ml-3 break-keep">상황별 대본으로 실전 연습</span>
+        <span id="ui_pages_roleplay" class="text-xs font-black text-emerald-700 whitespace-nowrap">롤플레잉</span>
+        <span id="ui_pages_roleplay_desc" class="text-[10px] text-slate-500 font-bold text-right ml-3 break-keep">상황별 대본으로 실전 연습</span>
     </button>
-    <!-- 단어장 박스 -->
     <button onclick="navigate('screen-vocab'); togglePanel('inlinePagesPanel');" class="w-full flex items-center justify-between p-3 bg-sky-50 hover:bg-sky-100 border border-sky-100 rounded-lg transition-colors">
-        <span class="text-xs font-black text-indigo-700 whitespace-nowrap">단어장</span>
-        <span class="text-[10px] text-slate-500 font-bold text-right ml-3 break-keep">필수 단어를 플래시카드로 학습</span>
+        <span id="ui_pages_vocab" class="text-xs font-black text-indigo-700 whitespace-nowrap">단어장</span>
+        <span id="ui_pages_vocab_desc" class="text-[10px] text-slate-500 font-bold text-right ml-3 break-keep">필수 단어를 플래시카드로 학습</span>
     </button>
-    <!-- 기초발음 박스 -->
     <button onclick="navigate('screen-alphabet'); togglePanel('inlinePagesPanel');" class="w-full flex items-center justify-between p-3 bg-sky-50 hover:bg-sky-100 border border-sky-100 rounded-lg transition-colors">
-        <span class="text-xs font-black text-slate-700 whitespace-nowrap">기초발음</span>
-        <span class="text-[10px] text-slate-500 font-bold text-right ml-3 break-keep">언어의 뼈대인 발음 익히기</span>
+        <span id="ui_pages_alpha" class="text-xs font-black text-slate-700 whitespace-nowrap">기초발음</span>
+        <span id="ui_pages_alpha_desc" class="text-[10px] text-slate-500 font-bold text-right ml-3 break-keep">언어의 뼈대인 발음 익히기</span>
     </button>
-</div> <!-- 🌟 Pages 패널 닫기 완료 -->
+</div><!-- 🌟 Pages 패널 닫기 완료 -->
 
                 <!-- 2. 학습리포트 패널 -->
                 <div id="inlineReportPanel" class="hidden panel-popup bg-white/95 backdrop-blur-md border-b border-x border-slate-200 rounded-b-xl shadow-lg p-4 mb-4 z-10 relative">
@@ -109,7 +105,7 @@
                 <div id="inlineMemoryPanel" class="hidden panel-popup bg-white/95 backdrop-blur-md border-b border-x border-slate-200 rounded-b-xl shadow-lg p-4 mb-4 z-10 relative">
                     <div class="flex items-center gap-1.5 border-b border-slate-100 pb-2 mb-2">
                         <div class="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center border border-purple-200"><i class="fa-solid fa-robot text-xs text-purple-600"></i></div>
-                        <p id="ui_home_memory_title" class="text-[11px] font-black text-slate-700">AI 튜터의 기억 🧠</p>
+                        <p id="ui_home_memory_title" class="text-[11px] font-black text-slate-700">AI의 기억 🧠</p>
                     </div>
                     <div class="bg-slate-50 rounded-xl p-3 border border-slate-100 min-h-[100px] max-h-[250px] overflow-y-auto">
                         <p id="ai_memory_display" class="text-[11px] text-slate-700 font-bold leading-relaxed whitespace-pre-wrap">데이터 로딩 중...</p>
@@ -119,31 +115,30 @@
                 <!-- 2. AI Character 패널 (하위 목록) -->
 <div id="inlineSparePanel" class="hidden panel-popup bg-white/95 backdrop-blur-md border-b border-x border-slate-200 rounded-b-xl shadow-lg p-3 mb-4 z-10 relative flex flex-col gap-2">
     <button onclick="window.currentPersona='friend'; window.updateStatus('친구 모드 적용!'); togglePanel('inlineSparePanel');" class="w-full flex items-center justify-between p-3 bg-sky-50 hover:bg-sky-100 border border-sky-100 rounded-lg transition-colors">
-        <span class="text-xs font-black text-blue-700 whitespace-nowrap">친구</span>
-        <span class="text-[10px] text-slate-500 font-bold text-right ml-3 break-keep">친근하고 편안한 언어 튜터</span>
+        <span id="ui_char_friend" class="text-xs font-black text-blue-700 whitespace-nowrap">친구</span>
+        <span id="ui_char_friend_desc" class="text-[10px] text-slate-500 font-bold text-right ml-3 break-keep">친근하고 편안한 언어 튜터</span>
     </button>
     <button onclick="window.currentPersona='assistant'; window.updateStatus('비서 모드 적용!'); togglePanel('inlineSparePanel');" class="w-full flex items-center justify-between p-3 bg-sky-50 hover:bg-sky-100 border border-sky-100 rounded-lg transition-colors">
-        <span class="text-xs font-black text-green-700 whitespace-nowrap">비서</span>
-        <span class="text-[10px] text-slate-500 font-bold text-right ml-3 break-keep">업무를 돕는 똑똑한 비서</span>
+        <span id="ui_char_assistant" class="text-xs font-black text-green-700 whitespace-nowrap">비서</span>
+        <span id="ui_char_assistant_desc" class="text-[10px] text-slate-500 font-bold text-right ml-3 break-keep">업무를 돕는 똑똑한 비서</span>
     </button>
     <button onclick="window.currentPersona='guide'; window.updateStatus('가이드 모드 적용!'); togglePanel('inlineSparePanel');" class="w-full flex items-center justify-between p-3 bg-sky-50 hover:bg-sky-100 border border-sky-100 rounded-lg transition-colors">
-        <span class="text-xs font-black text-purple-700 whitespace-nowrap">여행가이드</span>
-        <span class="text-[10px] text-slate-500 font-bold text-right ml-3 break-keep">현지 맞춤 여행 전문가</span>
+        <span id="ui_char_guide" class="text-xs font-black text-purple-700 whitespace-nowrap">여행가이드</span>
+        <span id="ui_char_guide_desc" class="text-[10px] text-slate-500 font-bold text-right ml-3 break-keep">현지 맞춤 여행 전문가</span>
     </button>
     <button onclick="window.currentPersona='special'; window.updateStatus('아이돌 모드 적용!'); togglePanel('inlineSparePanel');" class="w-full flex items-center justify-between p-3 bg-sky-50 hover:bg-sky-100 border border-sky-100 rounded-lg transition-colors">
-        <span class="text-xs font-black text-pink-700 whitespace-nowrap">아이돌</span>
-        <span class="text-[10px] text-slate-500 font-bold text-right ml-3 break-keep">매력적인 톱스타와 대화</span>
+        <span id="ui_char_idol" class="text-xs font-black text-pink-700 whitespace-nowrap">아이돌</span>
+        <span id="ui_char_idol_desc" class="text-[10px] text-slate-500 font-bold text-right ml-3 break-keep">매력적인 톱스타와 대화</span>
     </button>
-    
     <button onclick="document.getElementById('customAiDropdown').classList.toggle('hidden'); event.stopPropagation();" class="w-full flex items-center justify-between p-3 bg-rose-50 hover:bg-rose-100 border border-rose-100 rounded-lg transition-colors">
-        <span class="text-xs font-black text-rose-700 whitespace-nowrap">나만의 AI</span>
-        <span class="text-[10px] text-slate-500 font-bold text-right ml-3 flex items-center gap-1 break-keep">직접 페르소나 설정하기 <i class="fa-solid fa-chevron-down text-[8px]"></i></span>
+        <span id="ui_char_custom" class="text-xs font-black text-rose-700 whitespace-nowrap">나만의 AI</span>
+        <span class="text-[10px] text-slate-500 font-bold text-right ml-3 flex items-center gap-1 break-keep"><span id="ui_char_custom_desc">직접 페르소나 설정하기</span> <i class="fa-solid fa-chevron-down text-[8px]"></i></span>
     </button>
 
     <div id="customAiDropdown" class="hidden bg-rose-50 border border-rose-100 rounded-lg p-3 flex flex-col gap-2" onclick="event.stopPropagation();">
-        <input type="text" id="customAiNameInput" placeholder="이름 (예: 블랙핑크 로제)" class="w-full p-2 text-[10px] border border-slate-200 rounded outline-none focus:border-rose-300">
-        <textarea id="customAiPromptInput" placeholder="성격 (예: 넌 지금부터 블랙핑크의 로제야. 이렇게 말하면 로제가 된 것처럼 말해줘)" class="w-full p-2 text-[10px] border border-slate-200 rounded outline-none focus:border-rose-300 h-16 resize-none"></textarea>
-        <button onclick="window.applyCustomAi();" class="w-full bg-rose-400 hover:bg-rose-500 text-white font-bold text-[10px] py-2 rounded transition-colors shadow-sm">이 설정으로 대화 시작하기</button>
+        <input type="text" id="ui_ph_custom_name" placeholder="이름 (예: 로버트)" class="w-full p-2 text-[10px] border border-slate-200 rounded outline-none focus:border-rose-300">
+        <textarea id="ui_ph_custom_prompt" placeholder="성격 (예: 넌 지금부터 유명 로펌 변호사 로버트야. 이렇게 말하면 변호사가 된 것처럼 말해줘)" class="w-full p-2 text-[10px] border border-slate-200 rounded outline-none focus:border-rose-300 h-16 resize-none"></textarea>
+        <button id="ui_custom_start" onclick="window.applyCustomAi();" class="w-full bg-rose-400 hover:bg-rose-500 text-white font-bold text-[10px] py-2 rounded transition-colors shadow-sm">이 설정으로 대화 시작하기</button>
     </div>
 </div><!-- 🌟 AI Character 패널 닫기 완료 -->
          
@@ -314,16 +309,8 @@
                 <div class="flex justify-between items-center gap-2 mb-3">
                     <div class="bg-slate-100 rounded-xl flex-1 min-w-0 border border-slate-200 shadow-sm overflow-hidden">
 
-                        <div id="appModeContainer" class="flex gap-2 flex-1 min-w-0">
-                             <button id="modeTutorBtn" onclick="changeAppMode('tutor')" 
-                             class="flex-1 py-2 text-[11px] font-black rounded-xl border border-blue-600 bg-blue-600 text-white shadow-md transition-all">
-                            💬 대화
-                                </button>
-                             <button id="modeTranslateBtn" onclick="changeAppMode('translate')" 
-                             class="flex-1 py-2 text-[11px] font-black rounded-xl border border-slate-200 bg-slate-100 text-slate-500 hover:bg-slate-200 transition-all">
-                            🌐 번역
-                                </button>
-                        </div>
+                        <button id="modeTutorBtn" onclick="changeAppMode('tutor')" class="flex-1 py-2 text-[11px] font-black rounded-xl border border-blue-600 bg-blue-600 text-white shadow-md transition-all" id="ui_tab_chat">💬 대화</button>
+                        <button id="modeTranslateBtn" onclick="changeAppMode('translate')" class="flex-1 py-2 text-[11px] font-black rounded-xl border border-slate-200 bg-slate-100 text-slate-500 hover:bg-slate-200 transition-all" id="ui_tab_translate">🌐 번역</button>
                         
                     </div>
                     <div id="sttToggleContainer" class="bg-slate-50 rounded-xl flex-2 min-w-0 flex items-center border border-slate-200 shadow-sm overflow-hidden transform transition-transform hover:scale-[1.02]">
@@ -336,7 +323,7 @@
                 </div>
                 
                 <div class="flex gap-2 mb-3">
-                    <input type="text" id="textInput" placeholder="마이크가 안 될 때는 직접 입력해 보세요..." class="flex-1 min-w-0 h-10 rounded-xl bg-slate-50 border border-slate-300 px-4 text-[11px] sm:text-xs outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-inner" onkeypress="if(event.key==='Enter') sendTextMessage()">
+                    <input type="text" id="ui_ph_chat" placeholder="마이크가 안 될 때는 직접 입력해 보세요..." class="flex-1 min-w-0 h-10 rounded-xl bg-slate-50 border border-slate-300 px-4 text-[11px] sm:text-xs outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-inner" onkeypress="if(event.key==='Enter') sendTextMessage()">
                     <button id="sendMsgBtn" class="w-10 h-10 shrink-0 rounded-xl bg-gradient-to-br from-blue-600 to-blue-800 text-white flex items-center justify-center hover:from-blue-700 shadow-md outline-none" onclick="sendTextMessage()"><i class="fa-solid fa-paper-plane text-xs"></i></button>
                 </div>
                 <div class="flex justify-center items-center gap-2">
@@ -404,7 +391,7 @@
                         <div id="rp_sit6" class="sit-card shrink-0 px-4 py-1.5 rounded-lg border-[1.5px] border-slate-100 bg-white text-[11px] font-bold text-slate-600 transition-all text-center cursor-pointer" data-situation="택시 탑승">🚕 택시 탑승</div>
                     </div>
                     
-                    <input type="text" id="rp_custom_input" placeholder="예시) 이세계 상인과 가격 흥정하는 대본" class="w-full h-11 bg-slate-50 border border-slate-200 text-slate-700 text-[11px] font-bold rounded-xl px-4 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all shadow-inner mb-3" oninput="document.querySelectorAll('.sit-card').forEach(c => c.classList.remove('selected-card'))">
+                    <input type="text" id="ui_ph_roleplay" placeholder="예시) 블랙핑크의 노래를 주제로 대화 " class="w-full h-11 bg-slate-50 border border-slate-200 text-slate-700 text-[11px] font-bold rounded-xl px-4 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all shadow-inner mb-3" oninput="document.querySelectorAll('.sit-card').forEach(c => c.classList.remove('selected-card'))">
                     
                     <button id="generateBtn" onclick="generateScript()" class="w-full bg-slate-900 text-white text-sm font-bold py-3.5 rounded-xl shadow-md hover:bg-black transition-all flex items-center justify-center gap-2">
                        <i class="fa-solid fa-wand-magic-sparkles"></i> <span>AI 대본 생성하기</span>
@@ -441,7 +428,7 @@
                     <button id="vc_theme3" class="vocab-theme-btn shrink-0 bg-white border border-slate-200 text-slate-500 text-xs font-bold px-4 py-2 rounded-xl hover:bg-slate-50 transition-all" onclick="setVocabTheme(this)">❤️ 연애/감정</button>
                     <button id="vc_theme4" class="vocab-theme-btn shrink-0 bg-white border border-slate-200 text-slate-500 text-xs font-bold px-4 py-2 rounded-xl hover:bg-slate-50 transition-all" onclick="setVocabTheme(this)">🍽️ 식당/카페</button>
                 </div>
-                <input type="text" id="vc_custom_input" placeholder="원하는 단어나 문장을 직접 입력해 보세요! (선택)" class="w-full h-11 bg-slate-50 border border-slate-200 text-slate-700 text-[11px] font-bold rounded-xl px-4 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all shadow-inner mb-2">
+                <input type="text" id="ui_ph_vocab" placeholder="원하는 단어나 문장을 직접 입력해 보세요! (선택)" class="w-full h-11 bg-slate-50 border border-slate-200 text-slate-700 text-[11px] font-bold rounded-xl px-4 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all shadow-inner mb-2">
                 <button id="generateVocabBtn" class="w-full mt-1 bg-slate-900 text-white text-sm font-bold py-2.5 rounded-xl shadow-md hover:bg-black transition-all" onclick="generateVocab()">✨ AI 단어장 생성하기</button>
             </div>
 
