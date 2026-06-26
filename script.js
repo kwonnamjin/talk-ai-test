@@ -634,121 +634,140 @@ window.initSpeechRecognition = function() {
             else synthesis.cancel(); 
         }
         async function handleUserMessage(text) {
-            const savedData = JSON.parse(localStorage.getItem('user_custom_persona') || '{}');
-            const isCustom = (localStorage.getItem('currentPersona') === 'custom');
-            const customName = localStorage.getItem('custom_persona_name') || 'AI 튜터';
-            const customPrompt = localStorage.getItem('custom_persona_prompt') || '친절한 튜터';
+    if(!text) return;
+    if (typeof window.checkAndBlockAPI === 'function' && !window.checkAndBlockAPI()) return;
 
+    addMessageToChat('user', text);
+    if (typeof updateStatus === 'function') updateStatus("생각하는 중..."); 
+    const avatarWrap = document.getElementById('avatarWrap');
+    if(avatarWrap) avatarWrap.style.borderColor = "#94a3b8";
+    
+    const mode = localStorage.getItem('app_mode') || 'tutor';
+    const tLang = document.getElementById('targetLanguage');
+    const targetLang = tLang ? tLang.value : 'en-US';
+    const targetName = tLang ? tLang.options[tLang.selectedIndex].dataset.langName : 'English';
+    const sttLang = document.getElementById('sttInputLanguage');
+    const inputName = sttLang ? sttLang.options[sttLang.selectedIndex].dataset.langName : 'Korean';
 
-            if(!text) return;
-            if (!window.checkAndBlockAPI()) return;
+    const expLang = document.getElementById('explanationLanguage');
+    const expLangCode = expLang ? expLang.value : 'ko-KR';
+    const aiLangNames = { "ko-KR": "Korean", "en-US": "English", "ja-JP": "Japanese", "zh-CN": "Simplified Chinese (Mandarin)", "es-ES": "Spanish", "th-TH": "Thai", "vi-VN": "Vietnamese", "fr-FR": "French", "de-DE": "German", "ru-RU": "Russian" };
+    const exactAiLang = aiLangNames[expLangCode] || expLangCode;
 
-            addMessageToChat('user', text);
-            updateStatus("생각하는 중..."); 
-            const avatarWrap = document.getElementById('avatarWrap');
-            if(avatarWrap) avatarWrap.style.borderColor = "#94a3b8";
+    const savedMemory = localStorage.getItem('user_compressed_memory') || '';
+    const memoryPrompt = savedMemory ? `\n\n[User's Core Memory: ${savedMemory}]` : '';
+    const criticalRule = `\n\n🚨 CRITICAL RULE: The 'translation' MUST be in ${exactAiLang}.`;
+
+    const starGender = (typeof currentVoiceGender !== 'undefined' && currentVoiceGender === 'male') ? "male idol/actor" : "female idol/actress";
+    
+    // 🌟 [수정된 핵심 부분] 현재 어떤 페르소나인지, 커스텀 설정값은 무엇인지 완벽하게 불러오기
+    const currentMode = localStorage.getItem('current_persona') || localStorage.getItem('currentPersona') || 'friend';
+    
+    let customName = 'AI 튜터';
+    let customPrompt = '친절한 튜터';
+    
+    try {
+        const rawData = localStorage.getItem('user_custom_persona');
+        if (rawData) {
+            const parsed = JSON.parse(rawData);
+            customName = parsed.name || customName;
+            customPrompt = parsed.prompt || customPrompt;
+        } else {
+            customName = localStorage.getItem('custom_persona_name') || localStorage.getItem('customPersonaName') || customName;
+            customPrompt = localStorage.getItem('custom_persona_prompt') || localStorage.getItem('customPersonaPrompt') || customPrompt;
+        }
+    } catch(e) {
+        console.warn("커스텀 데이터 읽기 오류, 기본값 사용");
+    }
+
+    // 🌟 페르소나 리스트 재설정
+    const personaInstructions = {
+        friend: `You are the user's cheerful best friend (native ${targetName}). Use lots of emojis! Ask questions back to keep the conversation going smoothly. Keep it to 1-2 natural sentences.`,
+        assistant: `You are the user's smart, friendly personal assistant (native ${targetName}). Answer their questions, confirm their requests, and chat actively. Polite, clear, and approachable.`,
+        guide: `You are an engaging travel guide (native ${targetName}). Give great recommendations, answer questions actively, and share local insights.`,
+        special: `You are a sweet and popular ${starGender} (native ${targetName}). The user is your precious fan. Speak with a lot of warmth, gratitude, and cute emojis. Encourage them in their language learning. STRICT RULE: Keep the conversation polite, family-friendly (PG-13), and avoid overly romantic or explicit content.`,
+        custom: `You are ${customName}. ${customPrompt}. Act EXACTLY like this character. Speak naturally and reflect your personality in your responses. Keep it to 1-3 natural sentences.`
+    };
+    
+    // 🌟 강제로 현재 모드에 맞는 지시사항 선택
+    const selectedPersona = personaInstructions[currentMode] || personaInstructions['friend'];
+    
+    const memoRule = `\n🚨 CRITICAL: If the user asks to save, note, or remember a schedule/task, extract it into the "save_memo" key (in ${exactAiLang}). Otherwise, "save_memo" MUST be "".`;          
+    const antiParrotRule = `\n🚨 CRITICAL: DO NOT just translate the user's input. You must act as your persona and REPLY to their message contextually. Keep the conversation flowing naturally in ${targetName}.`;
+
+    let sysPrompt = mode === 'translate' 
+        ? `You are a strict professional translator. Your ONLY job is to translate the user's input into ${targetName}. DO NOT answer questions, DO NOT continue the conversation, and DO NOT repeat the original text. Respond in JSON: {"foreign_text":"[The translated text in ${targetName}]", "translation":"[The exact meaning in ${exactAiLang}]", "save_memo":""}` + memoryPrompt + criticalRule + memoRule
+        : selectedPersona + antiParrotRule + ` Respond in JSON: {"foreign_text":"Your conversational reply in ${targetName}","translation":"A simple, direct, and natural translation of your 'foreign_text' in ${exactAiLang}. DO NOT add any grammar explanations, notes, or corrections! Just the translation.","save_memo":"..."}` + memoryPrompt + criticalRule + memoRule;
+
+    try {
+        let ctx = mode==='tutor' ? [...conversationHistory] : [{role:"system",content:sysPrompt},{role:"user",content:text}];
+        if(mode==='tutor') {
+            if(ctx.length===0) ctx.push({role:"system",content:sysPrompt});
+            ctx[0] = {role:"system", content:sysPrompt}; 
+            ctx.push({role:"user",content:`[입력:${inputName}] ${text}`});
+            conversationHistory = ctx; 
+            sessionStorage.setItem('llmHistory', JSON.stringify(conversationHistory));
+        }
+        
+        let res = await fetchAPI(WORKER_URL, { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json', 'X-Device-ID': typeof myDeviceId !== 'undefined' ? myDeviceId : '' }, 
+            body: JSON.stringify({ model: "deepseek-chat", messages: ctx, response_format: { type: "json_object" } }) 
+        });
+        
+        let data = await res.json();
+        let rawContent = data.choices[0].message.content.replace(/```json/g, "").replace(/```/g, "").trim();
+        const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
+        
+        let parsed;
+        if (jsonMatch) parsed = JSON.parse(jsonMatch[0]); else throw new Error("JSON_NOT_FOUND");
+        
+        if (typeof window.incrementLocalUsage === 'function') window.incrementLocalUsage();
+        
+        if(mode==='tutor') { 
+            conversationHistory.push({role:"assistant",content:JSON.stringify(parsed)}); 
+            sessionStorage.setItem('llmHistory', JSON.stringify(conversationHistory)); 
+            if(typeof window.compressMemory === 'function') window.compressMemory(); 
+        }
+
+        if(parsed.save_memo && parsed.save_memo.trim() !== "") {
+            let currentMemos = JSON.parse(localStorage.getItem('ai_auto_memos')) || [];
+            let finalMemoText = parsed.save_memo; 
             
-            const mode = localStorage.getItem('app_mode') || 'tutor';
-            const tLang = document.getElementById('targetLanguage');
-            const targetLang = tLang.value, targetName = tLang.options[tLang.selectedIndex].dataset.langName;
-            const inputName = document.getElementById('sttInputLanguage').options[document.getElementById('sttInputLanguage').selectedIndex].dataset.langName;
-
-            const expLangCode = document.getElementById('explanationLanguage').value || 'ko-KR';
-            const aiLangNames = { "ko-KR": "Korean", "en-US": "English", "ja-JP": "Japanese", "zh-CN": "Simplified Chinese (Mandarin)", "es-ES": "Spanish", "th-TH": "Thai", "vi-VN": "Vietnamese", "fr-FR": "French", "de-DE": "German", "ru-RU": "Russian" };
-            const exactAiLang = aiLangNames[expLangCode] || expLangCode;
-
-            const savedMemory = localStorage.getItem('user_compressed_memory') || '';
-            const memoryPrompt = savedMemory ? `\n\n[User's Core Memory: ${savedMemory}]` : '';
-            const criticalRule = `\n\n🚨 CRITICAL RULE: The 'translation' MUST be in ${exactAiLang}.`;
-
-            const starGender = currentVoiceGender === 'male' ? "male idol/actor" : "female idol/actress";
-            
-            // 🌟 [수정된 부분] 안전하게 페르소나 데이터 불러오기 (에러 완벽 차단)
-            let savedCustom = { name: '튜터', job: '강사', hobby: '독서', personality: '친절한' };
-            try {
-                const rawData = localStorage.getItem('user_custom_persona');
-                if (rawData) savedCustom = JSON.parse(rawData);
-            } catch(e) {
-                console.warn("커스텀 페르소나 데이터 오류, 기본값으로 대체합니다.");
+            if (parsed.alarm_time && typeof window.flutter_inappwebview !== 'undefined') {
+                let alarmDate = new Date(parsed.alarm_time);
+                let diffMs = alarmDate.getTime() - Date.now();
+                if (diffMs > 0) {
+                    finalMemoText = "⏰ [알림] " + parsed.save_memo; 
+                    let delayHours = diffMs / (1000 * 60 * 60); 
+                    window.flutter_inappwebview.callHandler('scheduleLocalPush', { id: Math.floor(Math.random() * 100000), title: "⏰ 튜터의 리마인더", body: parsed.save_memo, delayHours: delayHours });
+                    if (typeof updateStatus === 'function') updateStatus("⏰ 알림과 함께 메모가 저장되었습니다!"); 
+                } else {
+                    finalMemoText = "📝 [메모] " + parsed.save_memo;
+                    if (typeof updateStatus === 'function') updateStatus("📝 일정 시간이 지나 메모로만 저장되었습니다.");
+                }
+            } else {
+                finalMemoText = "📝 [메모] " + parsed.save_memo;
+                if (typeof updateStatus === 'function') updateStatus("📝 AI가 메모장에 기록했습니다. (알림 없음)"); 
             }
 
-            // 🌟 페르소나 리스트 (쉼표 누락 및 구문 오류 방지)
-            const personaInstructions = {
-                friend: `You are the user's cheerful best friend (native ${targetName}). Use lots of emojis! Ask questions back to keep the conversation going smoothly. Keep it to 1-2 natural sentences.`,
-                assistant: `You are the user's smart, friendly personal assistant (native ${targetName}). Answer their questions, confirm their requests, and chat actively. Polite, clear, and approachable.`,
-                guide: `You are an engaging travel guide (native ${targetName}). Give great recommendations, answer questions actively, and share local insights.`,
-                special: `You are a sweet and popular ${starGender} (native ${targetName}). The user is your precious fan. Speak with a lot of warmth, gratitude, and cute emojis. Encourage them in their language learning. STRICT RULE: Keep the conversation polite, family-friendly (PG-13), and avoid overly romantic or explicit content.`,
-                custom: `You are ${savedCustom.name || 'AI'}. ${savedCustom.personality || '친절한 튜터'}. Act EXACTLY like this character. Speak naturally and reflect your personality in your responses. Keep it to 1-3 natural sentences.`
-            };
-            
-            const selectedPersona = personaInstructions[window.currentPersona] || personaInstructions['friend'];
-            const memoRule = `\n🚨 CRITICAL: If the user asks to save, note, or remember a schedule/task, extract it into the "save_memo" key (in ${exactAiLang}). Otherwise, "save_memo" MUST be "".`;          
-            const antiParrotRule = `\n🚨 CRITICAL: DO NOT just translate the user's input. You must act as your persona and REPLY to their message contextually. Keep the conversation flowing naturally in ${targetName}.`;
-
-            let sysPrompt = mode === 'translate' 
-                ? `You are a strict professional translator. Your ONLY job is to translate the user's input into ${targetName}. DO NOT answer questions, DO NOT continue the conversation, and DO NOT repeat the original text. Respond in JSON: {"foreign_text":"[The translated text in ${targetName}]", "translation":"[The exact meaning in ${exactAiLang}]", "save_memo":""}` + memoryPrompt + criticalRule + memoRule
-                : selectedPersona + antiParrotRule + ` Respond in JSON: {"foreign_text":"Your conversational reply in ${targetName}","translation":"A simple, direct, and natural translation of your 'foreign_text' in ${exactAiLang}. DO NOT add any grammar explanations, notes, or corrections! Just the translation.","save_memo":"..."}` + memoryPrompt + criticalRule + memoRule;
-
-            try {
-                let ctx = mode==='tutor' ? [...conversationHistory] : [{role:"system",content:sysPrompt},{role:"user",content:text}];
-                if(mode==='tutor') {
-                    if(ctx.length===0) ctx.push({role:"system",content:sysPrompt});
-                    ctx[0] = {role:"system", content:sysPrompt}; 
-                    ctx.push({role:"user",content:`[입력:${inputName}] ${text}`});
-                    conversationHistory = ctx; 
-                    sessionStorage.setItem('llmHistory', JSON.stringify(conversationHistory));
-                }
-                
-                let res = await fetchAPI(WORKER_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Device-ID': myDeviceId }, body: JSON.stringify({ model: "deepseek-chat", messages: ctx, response_format: { type: "json_object" } }) });
-                let data = await res.json();
-                let rawContent = data.choices[0].message.content.replace(/```json/g, "").replace(/```/g, "").trim();
-                const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
-                
-                let parsed;
-                if (jsonMatch) parsed = JSON.parse(jsonMatch[0]); else throw new Error("JSON_NOT_FOUND");
-                
-                window.incrementLocalUsage();
-                
-                if(mode==='tutor') { 
-                    conversationHistory.push({role:"assistant",content:JSON.stringify(parsed)}); 
-                    sessionStorage.setItem('llmHistory', JSON.stringify(conversationHistory)); 
-                    if(typeof window.compressMemory === 'function') window.compressMemory(); 
-                }
-
-                if(parsed.save_memo && parsed.save_memo.trim() !== "") {
-                    let currentMemos = JSON.parse(localStorage.getItem('ai_auto_memos')) || [];
-                    let finalMemoText = parsed.save_memo; 
-                    
-                    if (parsed.alarm_time && window.flutter_inappwebview) {
-                        let alarmDate = new Date(parsed.alarm_time);
-                        let diffMs = alarmDate.getTime() - Date.now();
-                        if (diffMs > 0) {
-                            finalMemoText = "⏰ [알림] " + parsed.save_memo; 
-                            let delayHours = diffMs / (1000 * 60 * 60); 
-                            window.flutter_inappwebview.callHandler('scheduleLocalPush', { id: Math.floor(Math.random() * 100000), title: "⏰ 튜터의 리마인더", body: parsed.save_memo, delayHours: delayHours });
-                            updateStatus("⏰ 알림과 함께 메모가 저장되었습니다!"); 
-                        } else {
-                            finalMemoText = "📝 [메모] " + parsed.save_memo;
-                            updateStatus("📝 일정 시간이 지나 메모로만 저장되었습니다.");
-                        }
-                    } else {
-                        finalMemoText = "📝 [메모] " + parsed.save_memo;
-                        updateStatus("📝 AI가 메모장에 기록했습니다. (알림 없음)"); 
-                    }
-
-                    currentMemos.unshift({ content: finalMemoText, timestamp: Date.now() });
-                    localStorage.setItem('ai_auto_memos', JSON.stringify(currentMemos));
-                    if(typeof window.renderMemos === 'function') window.renderMemos(); 
-                }
-                
-                if(parsed.foreign_text) { 
-                    addMessageToChat('ai', parsed.foreign_text, parsed.translation || parsed.korean_translation, targetLang); 
-                    speakText(parsed.foreign_text, targetLang); 
-                    window.addLearningStat('sentence', 2);
-                    window.addStudyMission('freeTalk'); 
-                }
-            } catch(e) { console.error(e); updateStatus("AI 서버 통신 에러"); if(avatarWrap) avatarWrap.style.borderColor="#f87171"; }
+            currentMemos.unshift({ content: finalMemoText, timestamp: Date.now() });
+            localStorage.setItem('ai_auto_memos', JSON.stringify(currentMemos));
+            if(typeof window.renderMemos === 'function') window.renderMemos(); 
         }
+        
+        if(parsed.foreign_text) { 
+            if (typeof addMessageToChat === 'function') addMessageToChat('ai', parsed.foreign_text, parsed.translation || parsed.korean_translation, targetLang); 
+            if (typeof speakText === 'function') speakText(parsed.foreign_text, targetLang); 
+            if (typeof window.addLearningStat === 'function') window.addLearningStat('sentence', 2);
+            if (typeof window.addStudyMission === 'function') window.addStudyMission('freeTalk'); 
+        }
+    } catch(e) { 
+        console.error(e); 
+        if (typeof updateStatus === 'function') updateStatus("AI 서버 통신 에러"); 
+        if(avatarWrap) avatarWrap.style.borderColor="#f87171"; 
+    }
+}
         window.handleUserMessage = handleUserMessage;
         window.requestExplanationGlobal = function() { 
             let lastAiMsg = "";
@@ -1787,29 +1806,42 @@ window.applyCustomAi = function() {
     const promptInput = document.getElementById('customAiPromptInput').value.trim();
 
     if (!nameInput || !promptInput) {
-        alert('이름과 성격을 모두 입력해주세요!');
+        alert('AI의 이름과 성격을 모두 입력해주세요!');
         return;
     }
 
-    // 객체 하나로 통합 관리 (이렇게 하면 관리가 훨씬 쉬워집니다)
+    // 1. 커스텀 데이터 확실하게 저장 (객체 통합 방식)
     const customPersonaData = {
         name: nameInput,
         prompt: promptInput
     };
-
-    // 통합된 키 하나로만 저장
     localStorage.setItem('user_custom_persona', JSON.stringify(customPersonaData));
-    localStorage.setItem('current_persona', 'custom');
 
-    // 상태 업데이트
+    // 2. 현재 모드를 'custom'으로 강력하게 고정 (오류 방지를 위해 두 가지 키 모두 저장)
+    localStorage.setItem('current_persona', 'custom');
+    localStorage.setItem('currentPersona', 'custom');
+    window.currentPersona = 'custom';
+
+    // 3. 상태 알림 업데이트
     if (typeof window.updateStatus === 'function') {
         window.updateStatus(`${nameInput} 모드 적용!`);
     }
 
-    // 대화 초기화 및 UI 닫기
-    if (typeof window.clearChatSession === 'function') window.clearChatSession();
-    document.getElementById('customAiDropdown').classList.add('hidden');
-    window.togglePanel('inlineSparePanel');
+    // 4. 채팅 내역 초기화 (페르소나 몰입을 위해 필수)
+    if (typeof window.clearChatSession === 'function') {
+        window.clearChatSession();
+    } else {
+        if (window.chatHistory) window.chatHistory = [];
+        const chatBox = document.getElementById('chat-box');
+        if (chatBox) chatBox.innerHTML = '';
+    }
+
+    // 5. 드롭다운 및 패널 닫기
+    const dropdown = document.getElementById('customAiDropdown');
+    if (dropdown) dropdown.classList.add('hidden');
+    if (typeof window.togglePanel === 'function') {
+        window.togglePanel('inlineSparePanel');
+    }
 };
 
 if (uiChatHistory.length > 0) uiChatHistory.forEach(msg => window.addMessageToChat(msg.sender, msg.text, msg.translation, msg.targetLangCode, true));
