@@ -122,24 +122,23 @@
 
                 <!-- 4. 예비용 패널 -->
                 <div id="inlineSparePanel" class="hidden panel-popup bg-white/95 backdrop-blur-md border-b border-x border-slate-200 rounded-b-xl shadow-lg p-3 mb-4 z-10 relative flex flex-col gap-2">
-    <button onclick="window.currentPersona='friend'; window.updateStatus('친구 모드 적용!');" class="w-full flex items-center p-3 hover:bg-slate-50 transition-colors border-b border-slate-100">
-        <div class="flex-1 text-left"><p class="text-xs font-black text-blue-700">친구</p><p class="text-[9px] text-slate-500 font-bold">친근한 언어 튜터입니다.</p></div>
-    </button>
-    <button onclick="window.currentPersona='assistant'; window.updateStatus('비서 모드 적용!');" class="w-full flex items-center p-3 hover:bg-slate-50 transition-colors border-b border-slate-100">
-        <div class="flex-1 text-left"><p class="text-xs font-black text-green-700">비서</p><p class="text-[9px] text-slate-500 font-bold">업무를 돕는 똑똑한 비서입니다.</p></div>
-    </button>
-    <button onclick="window.currentPersona='guide'; window.updateStatus('가이드 모드 적용!');" class="w-full flex items-center p-3 hover:bg-slate-50 transition-colors border-b border-slate-100">
-        <div class="flex-1 text-left"><p class="text-xs font-black text-purple-700">여행가이드</p><p class="text-[9px] text-slate-500 font-bold">여행 정보를 알려주는 전문가입니다.</p></div>
-    </button>
-    <button onclick="window.currentPersona='special'; window.updateStatus('아이돌 모드 적용!');" class="w-full flex items-center p-3 hover:bg-slate-50 transition-colors border-b border-slate-100">
-        <div class="flex-1 text-left"><p class="text-xs font-black text-pink-700">아이돌</p><p class="text-[9px] text-slate-500 font-bold">매력적인 톱스타와 대화합니다.</p></div>
-    </button>
-    <button onclick="openCustomPersonaModal();" class="w-full flex items-center p-3 hover:bg-slate-50 transition-colors">
-        <div class="flex-1 text-left"><p class="text-xs font-black text-rose-700">나만의 AI</p><p class="text-[9px] text-slate-500 font-bold">직접 페르소나를 설정합니다.</p></div>
-    </button>
-</div>
+                  <button onclick="window.currentPersona='friend'; window.updateStatus('친구 모드 적용!');" class="w-full flex items-center p-3 hover:bg-slate-50 transition-colors border-b border-slate-100">
+                <div class="flex-1 text-left"><p class="text-xs font-black text-blue-700">친구</p><p class="text-[9px] text-slate-500 font-bold">친근한 언어 튜터입니다.</p></div>
+                  </button>
+                  <button onclick="window.currentPersona='assistant'; window.updateStatus('비서 모드 적용!');" class="w-full flex items-center p-3 hover:bg-slate-50 transition-colors border-b border-slate-100">
+                <div class="flex-1 text-left"><p class="text-xs font-black text-green-700">비서</p><p class="text-[9px] text-slate-500 font-bold">업무를 돕는 똑똑한 비서입니다.</p></div>
+                  </button>
+                  <button onclick="window.currentPersona='guide'; window.updateStatus('가이드 모드 적용!');" class="w-full flex items-center p-3 hover:bg-slate-50 transition-colors border-b border-slate-100">
+                <div class="flex-1 text-left"><p class="text-xs font-black text-purple-700">여행가이드</p><p class="text-[9px] text-slate-500 font-bold">여행 정보를 알려주는 전문가입니다.</p></div>
+                  </button>
+                  <button onclick="window.currentPersona='special'; window.updateStatus('아이돌 모드 적용!');" class="w-full flex items-center p-3 hover:bg-slate-50 transition-colors border-b border-slate-100">
+                <div class="flex-1 text-left"><p class="text-xs font-black text-pink-700">아이돌</p><p class="text-[9px] text-slate-500 font-bold">매력적인 톱스타와 대화합니다.</p></div>
+                  </button>
+                  <button onclick="openCustomPersonaModal();" class="w-full flex items-center p-3 hover:bg-slate-50 transition-colors">
+                <div class="flex-1 text-left"><p class="text-xs font-black text-rose-700">나만의 AI</p><p class="text-[9px] text-slate-500 font-bold">직접 페르소나를 설정합니다.</p></div>
+                  </button>
                 </div>
-                </div>
+         
 
                 <!-- 5. 설정 패널 (언어 선택 + 목소리 성별) -->
 <div id="inlineSettingsPanel" class="hidden panel-popup bg-white/95 backdrop-blur-md border-b border-x border-slate-200 rounded-b-xl shadow-lg p-4 mb-4 z-10 relative flex flex-col gap-2">
