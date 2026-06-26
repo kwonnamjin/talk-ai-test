@@ -1747,11 +1747,6 @@ document.addEventListener('click', (e) => {
 // 🌟 앱 실행 시 단 한 번만 호출되는 '초기화 마스터 블록'
 document.addEventListener('DOMContentLoaded', () => {
     
-    
-    // ==========================================
-    // 1. 즉시 적용해야 하는 설정 (UI 깜빡임 방지)
-    // ==========================================
-    
     // 1-1. 언어 선택 드롭다운 옵션 채우기
     if (typeof window.renderLanguageSelects === 'function') window.renderLanguageSelects();
 
@@ -1790,11 +1785,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (typeof window.changeAppMode === 'function') window.changeAppMode(localStorage.getItem('app_mode') || 'tutor');
     if (typeof window.updateLangDisplays === 'function') window.updateLangDisplays();
 
-
-    // ==========================================
-    // 2. 화면 로딩 후 순차적으로 실행되는 후속 작업 (Timeouts)
-    // ==========================================
-
     // 100ms 후: 기초 발음 데이터 불러오기 (UI 렌더링 방해 방지)
     setTimeout(() => {
         if (typeof window.autoLoadAlphabet === 'function') window.autoLoadAlphabet();
@@ -1810,6 +1800,22 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         if (typeof window.renderSpecialPersona === 'function') window.renderSpecialPersona();
     }, 600);
+
+    // 🌟 [추가된 부분] Pages 패널 하위 항목 클릭 시 자동 닫기 기능
+    const pagesPanel = document.getElementById('inlinePagesPanel');
+    if (pagesPanel) {
+        // 패널 안의 모든 링크(a), 버튼(button), 리스트(li) 요소 찾기
+        const menuItems = pagesPanel.querySelectorAll('a, button, li');
+        menuItems.forEach(item => {
+            item.addEventListener('click', () => {
+                // 클릭하면 즉시 패널에 hidden 클래스를 추가하여 숨김
+                pagesPanel.classList.add('hidden');
+                
+                // 만약 배경을 어둡게 하는 overlay도 있다면 함께 숨김 (선택사항)
+                // document.getElementById('overlay_id')?.classList.add('hidden');
+            });
+        });
+    }
 
 });
 
