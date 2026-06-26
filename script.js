@@ -38,11 +38,27 @@ window.togglePanel = function(panelId) {
 
 
 window.toggleDropdown = function(dropId) {
+    // 1. 모든 드롭다운 목록을 순회하며
     ['drop-exp', 'drop-target', 'drop-stt', 'drop-gender'].forEach(id => {
-        if (id !== dropId) { const el = document.getElementById(id); if(el) el.classList.add('hidden'); }
+        const el = document.getElementById(id);
+        if (el) {
+            // 방금 클릭한 게 아니면 무조건 닫음
+            if (id !== dropId) {
+                el.classList.add('hidden');
+            }
+        }
     });
+
+    // 2. 내가 클릭한 드롭다운만 열기/닫기 토글
     const targetDrop = document.getElementById(dropId);
-    if(targetDrop) targetDrop.classList.toggle('hidden');
+    if(targetDrop) {
+        targetDrop.classList.toggle('hidden');
+        
+        // 🌟 추가 팁: 드롭다운이 열릴 때 언어 목록을 최신으로 갱신하는 기능 연결
+        if (!targetDrop.classList.contains('hidden')) {
+            window.renderLanguageSelects(); 
+        }
+    }
 };
 
 
@@ -1761,17 +1777,7 @@ document.addEventListener('click', (e) => {
 
 // 🌟 앱 실행 시 단 한 번만 호출되는 '초기화 마스터 블록'
 document.addEventListener('DOMContentLoaded', () => {
-    const langSelects = ['targetLanguage', 'sttInputLanguage', 'explanationLanguage'];
-langSelects.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) {
-        el.onchange = function() {
-            localStorage.setItem(id === 'targetLanguage' ? 'target_language' : 
-                                 id === 'sttInputLanguage' ? 'stt_input_language' : 'explanation_language', this.value);
-            if (typeof window.updateLangDisplays === 'function') window.updateLangDisplays();
-        };
-    }
-});
+    
     
     // ==========================================
     // 1. 즉시 적용해야 하는 설정 (UI 깜빡임 방지)
