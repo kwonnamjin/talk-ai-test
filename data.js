@@ -779,9 +779,10 @@ const SUPPORTED_LANGUAGES = [
             // 특수/소수 언어 영어 템플릿: 힌디어(hi), 폴란드어(pl), 스코틀랜드어(gd), 라틴어(la), 히브리어(he), 네팔어(ne), 몽골어(mn), 티베트어(bo), 스وا힐리어(sw) 등은 사용 빈도가 극히 낮고, 코드가 너무 길어져 파일이 잘리는 것을 방지하기 위해 핵심 키만 압축된 형태(영어 템플릿 기본값)
         };
 
+
 // 기본 언어가 없는 경우 영어를 폴백으로 사용하도록 복사
 const langs = ["es", "ja", "zh", "th", "vi", "fr", "de", "ru", "ar", "id", "hi", "pl", "gd", "la", "he", "ne", "mn", "bo", "sw"];
-langs.forEach(lang => { window.UI_DICTIONARY[lang] = { ...window.UI_DICTIONARY["en"] }; });
+langs.forEach(lang => { UI_DICTIONARY[lang] = { ...UI_DICTIONARY["en"] }; });
 
 const NEW_MAIN_UI_TRANS = {
             "ko": { 

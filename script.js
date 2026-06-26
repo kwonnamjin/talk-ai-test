@@ -66,17 +66,27 @@ window.changeUILanguage = function(langCode) {
     const baseLang = langCode.split('-')[0];
     const currentDict = UI_DICTIONARY[baseLang] || UI_DICTIONARY["en"];
     
+    // 1. 기존 ID 기반 텍스트 변경
     for (const [id, text] of Object.entries(currentDict)) {
         const element = document.getElementById(id);
         if (element) {
-            // 🌟 input이나 textarea면 placeholder를 바꾸고, 아니면 innerText를 바꿈
             if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
                 element.placeholder = text;
             } else {
-                element.innerText = text;
+                element.innerHTML = text;
             }
         }
     }
+
+    // 2. 🌟 앱 핵심 기능을 망가뜨리지 않는 안전한 번역 적용 방식 (새로 추가)
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (currentDict[key]) el.innerHTML = currentDict[key];
+    });
+    document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+        const key = el.getAttribute('data-i18n-ph');
+        if (currentDict[key]) el.placeholder = currentDict[key];
+    });
 
     const tutorOpt = document.querySelector("#appMode option[value='tutor']");
     const transOpt = document.querySelector("#appMode option[value='translate']");
@@ -84,9 +94,9 @@ window.changeUILanguage = function(langCode) {
     if (transOpt) transOpt.text = currentDict["appMode_translate"] || "Translate";
 
     if (typeof window.populateDropdowns === 'function') window.populateDropdowns();
-    window.renderScripts();
-    window.renderVocabs();
-    window.updateLangDisplays();
+    if (typeof window.renderScripts === 'function') window.renderScripts();
+    if (typeof window.renderVocabs === 'function') window.renderVocabs();
+    if (typeof window.updateLangDisplays === 'function') window.updateLangDisplays();
     if (typeof window.updateExtraUI === 'function') window.updateExtraUI();
 };
 

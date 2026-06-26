@@ -309,8 +309,12 @@
                 <div class="flex justify-between items-center gap-2 mb-3">
                     <div class="bg-slate-100 rounded-xl flex-1 min-w-0 border border-slate-200 shadow-sm overflow-hidden">
 
-                        <button id="modeTutorBtn" onclick="changeAppMode('tutor')" class="flex-1 py-2 text-[11px] font-black rounded-xl border border-blue-600 bg-blue-600 text-white shadow-md transition-all" id="ui_tab_chat">💬 대화</button>
-                        <button id="modeTranslateBtn" onclick="changeAppMode('translate')" class="flex-1 py-2 text-[11px] font-black rounded-xl border border-slate-200 bg-slate-100 text-slate-500 hover:bg-slate-200 transition-all" id="ui_tab_translate">🌐 번역</button>
+                        <button id="modeTutorBtn" onclick="changeAppMode('tutor')" class="flex-1 py-2 text-[11px] font-black rounded-xl border border-blue-600 bg-blue-600 text-white shadow-md transition-all">
+    <span data-i18n="ui_tab_chat">💬 대화</span>
+</button>
+<button id="modeTranslateBtn" onclick="changeAppMode('translate')" class="flex-1 py-2 text-[11px] font-black rounded-xl border border-slate-200 bg-slate-100 text-slate-500 hover:bg-slate-200 transition-all">
+    <span data-i18n="ui_tab_translate">🌐 번역</span>
+</button>
                         
                     </div>
                     <div id="sttToggleContainer" class="bg-slate-50 rounded-xl flex-2 min-w-0 flex items-center border border-slate-200 shadow-sm overflow-hidden transform transition-transform hover:scale-[1.02]">
@@ -323,7 +327,7 @@
                 </div>
                 
                 <div class="flex gap-2 mb-3">
-                    <input type="text" id="ui_ph_chat" placeholder="마이크가 안 될 때는 직접 입력해 보세요..." class="flex-1 min-w-0 h-10 rounded-xl bg-slate-50 border border-slate-300 px-4 text-[11px] sm:text-xs outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-inner" onkeypress="if(event.key==='Enter') sendTextMessage()">
+                    <input type="text" id="textInput" data-i18n-ph="ui_ph_chat" placeholder="마이크가 안 될 때는 직접 입력해 보세요..." class="flex-1 min-w-0 h-10 rounded-xl bg-slate-50 border border-slate-300 px-4 text-[11px] sm:text-xs outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-inner" onkeypress="if(event.key==='Enter') sendTextMessage()">
                     <button id="sendMsgBtn" class="w-10 h-10 shrink-0 rounded-xl bg-gradient-to-br from-blue-600 to-blue-800 text-white flex items-center justify-center hover:from-blue-700 shadow-md outline-none" onclick="sendTextMessage()"><i class="fa-solid fa-paper-plane text-xs"></i></button>
                 </div>
                 <div class="flex justify-center items-center gap-2">
@@ -391,7 +395,7 @@
                         <div id="rp_sit6" class="sit-card shrink-0 px-4 py-1.5 rounded-lg border-[1.5px] border-slate-100 bg-white text-[11px] font-bold text-slate-600 transition-all text-center cursor-pointer" data-situation="택시 탑승">🚕 택시 탑승</div>
                     </div>
                     
-                    <input type="text" id="ui_ph_roleplay" placeholder="예시) 블랙핑크의 노래를 주제로 대화 " class="w-full h-11 bg-slate-50 border border-slate-200 text-slate-700 text-[11px] font-bold rounded-xl px-4 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all shadow-inner mb-3" oninput="document.querySelectorAll('.sit-card').forEach(c => c.classList.remove('selected-card'))">
+                    <input type="text" id="rp_custom_input" data-i18n-ph="ui_ph_roleplay" placeholder="예시) 블랙핑크의 노래를 주제로 대화 " class="w-full h-11 bg-slate-50 border border-slate-200 text-slate-700 text-[11px] font-bold rounded-xl px-4 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all shadow-inner mb-3" oninput="document.querySelectorAll('.sit-card').forEach(c => c.classList.remove('selected-card'))">
                     
                     <button id="generateBtn" onclick="generateScript()" class="w-full bg-slate-900 text-white text-sm font-bold py-3.5 rounded-xl shadow-md hover:bg-black transition-all flex items-center justify-center gap-2">
                        <i class="fa-solid fa-wand-magic-sparkles"></i> <span>AI 대본 생성하기</span>
@@ -428,7 +432,7 @@
                     <button id="vc_theme3" class="vocab-theme-btn shrink-0 bg-white border border-slate-200 text-slate-500 text-xs font-bold px-4 py-2 rounded-xl hover:bg-slate-50 transition-all" onclick="setVocabTheme(this)">❤️ 연애/감정</button>
                     <button id="vc_theme4" class="vocab-theme-btn shrink-0 bg-white border border-slate-200 text-slate-500 text-xs font-bold px-4 py-2 rounded-xl hover:bg-slate-50 transition-all" onclick="setVocabTheme(this)">🍽️ 식당/카페</button>
                 </div>
-                <input type="text" id="ui_ph_vocab" placeholder="원하는 단어나 문장을 직접 입력해 보세요! (선택)" class="w-full h-11 bg-slate-50 border border-slate-200 text-slate-700 text-[11px] font-bold rounded-xl px-4 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all shadow-inner mb-2">
+                <input type="text" id="vc_custom_input" data-i18n-ph="ui_ph_vocab" placeholder="원하는 단어나 문장을 직접 입력해 보세요! (선택)" class="w-full h-11 bg-slate-50 border border-slate-200 text-slate-700 text-[11px] font-bold rounded-xl px-4 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all shadow-inner mb-2">
                 <button id="generateVocabBtn" class="w-full mt-1 bg-slate-900 text-white text-sm font-bold py-2.5 rounded-xl shadow-md hover:bg-black transition-all" onclick="generateVocab()">✨ AI 단어장 생성하기</button>
             </div>
 
