@@ -1618,17 +1618,25 @@ window.goHome = function() { window.navigate('screen-home'); };
         setTimeout(window.updateStreakUI, 500);
 
         window.updateDashboardUI = function() {
-            let stats = JSON.parse(localStorage.getItem('user_learning_stats_v1')) || { sentences: 0, words: 0 };
-            let scriptsCount = (JSON.parse(localStorage.getItem('roleplay_scripts')) || []).length;
+    let stats = JSON.parse(localStorage.getItem('user_learning_stats_v1')) || { sentences: 0, words: 0 };
+    // savedScripts는 이미 전역 변수로 선언되어 있으므로 이를 활용합니다.
+    let scriptsCount = (JSON.parse(localStorage.getItem('roleplay_scripts')) || []).length;
 
-            const elSentences = document.getElementById('dash-total-sentences');
-            const elWords = document.getElementById('dash-total-words');
-            const elScripts = document.getElementById('dash-total-scripts');
+    const elSentences = document.getElementById('dash-total-sentences');
+    const elWords = document.getElementById('dash-total-words');
+    const elScripts = document.getElementById('dash-total-scripts'); // 기존 태그 유지
 
-            if(elSentences) elSentences.innerText = stats.sentences;
-            if(elWords) elWords.innerText = stats.words;
-            if(elScripts) elScripts.innerText = scriptsCount;
-        };
+    if(elSentences) elSentences.innerText = stats.sentences;
+    if(elWords) elWords.innerText = stats.words;
+    if(elScripts) elScripts.innerText = scriptsCount;
+
+    // 🌟 텍스트 라벨 번역 업데이트 (UI 언어 설정에 맞춰 변경되도록)
+    const baseLang = (document.getElementById('explanationLanguage').value || 'ko-KR').split('-')[0];
+    const dict = UI_DICTIONARY[baseLang] || UI_DICTIONARY['en'];
+    
+    const labelScript = document.getElementById('ui_home_stat_rp');
+    if(labelScript) labelScript.innerText = dict.ui_home_stat_script || "학습한 대본";
+};
 
         window.addLearningStat = function(type, amount = 1) {
             let stats = JSON.parse(localStorage.getItem('user_learning_stats_v1')) || { sentences: 0, words: 0 };
