@@ -64,9 +64,18 @@ window.toggleDropdown = function(dropId) {
 
 window.changeUILanguage = function(langCode) {
     const baseLang = langCode.split('-')[0];
-    const currentDict = UI_DICTIONARY[baseLang] || UI_DICTIONARY["en"];
     
-    // 1. 기존 ID 기반 텍스트 변경
+    // 1. 사전 안전하게 불러오기 (에러 방지)
+    const dictionary = window.UI_DICTIONARY || (typeof UI_DICTIONARY !== 'undefined' ? UI_DICTIONARY : null);
+    if (!dictionary) {
+        console.error("번역 사전을 찾을 수 없습니다.");
+        return;
+    }
+
+    const currentDict = dictionary[baseLang] || dictionary["en"];
+    if (!currentDict) return;
+
+    // 2. 기존 ID 기반 텍스트 변경 (회원님 기존 코드)
     for (const [id, text] of Object.entries(currentDict)) {
         const element = document.getElementById(id);
         if (element) {
@@ -78,7 +87,7 @@ window.changeUILanguage = function(langCode) {
         }
     }
 
-    // 2. 🌟 앱 핵심 기능을 망가뜨리지 않는 안전한 번역 적용 방식 (새로 추가)
+    // 3. 앱 핵심 기능을 망가뜨리지 않는 안전한 번역 적용 방식
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
         if (currentDict[key]) el.innerHTML = currentDict[key];
@@ -88,16 +97,23 @@ window.changeUILanguage = function(langCode) {
         if (currentDict[key]) el.placeholder = currentDict[key];
     });
 
+    // 4. 앱 모드(select 옵션) 텍스트 변경
     const tutorOpt = document.querySelector("#appMode option[value='tutor']");
     const transOpt = document.querySelector("#appMode option[value='translate']");
     if (tutorOpt) tutorOpt.text = currentDict["appMode_tutor"] || "Tutor";
     if (transOpt) transOpt.text = currentDict["appMode_translate"] || "Translate";
 
+    // 5. 화면 업데이트 및 렌더링 (회원님 기존 핵심 코드 복구)
     if (typeof window.populateDropdowns === 'function') window.populateDropdowns();
     if (typeof window.renderScripts === 'function') window.renderScripts();
     if (typeof window.renderVocabs === 'function') window.renderVocabs();
     if (typeof window.updateLangDisplays === 'function') window.updateLangDisplays();
     if (typeof window.updateExtraUI === 'function') window.updateExtraUI();
+
+    // 6. 언어 선택 시 열려있던 모든 드롭다운 메뉴 닫기 (메뉴 닫힘 버그 해결)
+    document.querySelectorAll('#drop-exp, #drop-target, #drop-stt, #drop-gender').forEach(drop => {
+        if (drop) drop.classList.add('hidden');
+    });
 };
 
 // 🌟 2. 언어 및 UI 디스플레이 업데이트 (에러 방지 완벽 적용)
@@ -1830,48 +1846,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
-window.applyCustomAi = function() {
-    const nameInput = document.getElementById('customAiNameInput').value.trim();
-    const promptInput = document.getElementById('customAiPromptInput').value.trim();
+// script.js 파일 내부의 changeUILanguage 및 관련 연동부 전체 교체/추가
 
-    if (!nameInput || !promptInput) {
-        alert('AI의 이름과 성격을 모두 입력해주세요!');
+window.closeAllPanels = function() {
+    document.querySelectorAll('.panel-popup').forEach(p => p.classList.add('hidden'));
+};
+
+window.applyCustomAi = function() {
+    const nameInput = document.getElementById('customAiNameInput');
+    const promptInput = document.getElementById('customAiPromptInput');
+    
+    if (!nameInput || !promptInput) return;
+
+    const name = nameInput.value.trim();
+    const prompt = promptInput.value.trim();
+
+    if (!name || !prompt) {
+        alert("이름과 성격을 모두 입력해 주세요!");
         return;
     }
 
-    // 1. 커스텀 데이터 확실하게 저장 (객체 통합 방식)
-    const customPersonaData = {
-        name: nameInput,
-        prompt: promptInput
-    };
-    localStorage.setItem('user_custom_persona', JSON.stringify(customPersonaData));
-
-    // 2. 현재 모드를 'custom'으로 강력하게 고정 (오류 방지를 위해 두 가지 키 모두 저장)
-    localStorage.setItem('current_persona', 'custom');
-    localStorage.setItem('currentPersona', 'custom');
     window.currentPersona = 'custom';
+    window.customAiName = name;
+    window.customAiPrompt = prompt;
 
-    // 3. 상태 알림 업데이트
     if (typeof window.updateStatus === 'function') {
-        window.updateStatus(`${nameInput} 모드 적용!`);
+        window.updateStatus(`${name} 모드 적용!`);
     }
-
-    // 4. 채팅 내역 초기화 (페르소나 몰입을 위해 필수)
-    if (typeof window.clearChatSession === 'function') {
-        window.clearChatSession();
-    } else {
-        if (window.chatHistory) window.chatHistory = [];
-        const chatBox = document.getElementById('chat-box');
-        if (chatBox) chatBox.innerHTML = '';
-    }
-
-    // 5. 드롭다운 및 패널 닫기
-    const dropdown = document.getElementById('customAiDropdown');
-    if (dropdown) dropdown.classList.add('hidden');
-    if (typeof window.togglePanel === 'function') {
-        window.togglePanel('inlineSparePanel');
-    }
+    
+    window.closeAllPanels();
+    if (typeof navigate === 'function') navigate('screen-main');
 };
+
+
+
 
 if (uiChatHistory.length > 0) uiChatHistory.forEach(msg => window.addMessageToChat(msg.sender, msg.text, msg.translation, msg.targetLangCode, true));
 
