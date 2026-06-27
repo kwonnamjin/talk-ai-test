@@ -1250,7 +1250,7 @@ window.goHome = function() { window.navigate('screen-home'); };
     const btn = document.getElementById("generateVocabBtn");
     const theme = document.querySelector('.vocab-theme-btn.bg-indigo-50').innerText.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]|\n/g, '').trim();
     
-    // 🌟 [추가] 사용자가 입력한 단어 가져오기
+    // 🌟 [유지] 사용자가 입력한 단어 가져오기
     const customInput = document.getElementById('vc_custom_input');
     const userCustomWord = customInput ? customInput.value.trim() : "";
 
@@ -1266,29 +1266,45 @@ window.goHome = function() { window.navigate('screen-home'); };
     try {
         const res = await fetch(`${WORKER_URL}generate-vocab`, { 
             method: 'POST', headers: { 'Content-Type': 'application/json' }, 
-            // 🌟 [추가] userWord 파라미터를 워커로 전송!
             body: JSON.stringify({ theme: theme, language: targetLangName, expLanguage: expLangName, existingWords: myExistingWords, userWord: userCustomWord }) 
         });
         const data = await res.json(); 
+
+        // 🌟 [핵심 수정 1] 단어 중복 제거 로직 추가 (word 스펠링 기준)
+        const uniqueVocabData = data.vocabData.filter((v, index, self) => 
+            index === self.findIndex((t) => (
+                t.word.toLowerCase() === v.word.toLowerCase()
+            ))
+        );
+
         if (typeof window.incrementLocalUsage === 'function') window.incrementLocalUsage();
 
         let newId = savedVocabs.length > 0 ? savedVocabs[savedVocabs.length - 1].id + 1 : 1;
         if (savedVocabs.length >= 5) savedVocabs.shift(); 
 
-        // 🌟 [추가] 사용자가 입력한 단어가 있다면 테마 이름에 반영
-        let finalTheme = userCustomWord ? `[내 단어] ${theme}` : theme;
+        // 🌟 [핵심 수정 2] 사용자 입력값이 있을 때 테마명을 명확하게 변경하여 입력값 적용 확인
+        let finalTheme = userCustomWord ? `[검색] ${userCustomWord}` : theme;
 
-        savedVocabs.push({ id: newId, theme: finalTheme, langName: targetLangName, langCode: document.getElementById('targetLanguage').value, vocabData: data.vocabData });
+        // 🌟 [수정 적용] 중복 필터링된 배열(uniqueVocabData)을 사용
+        savedVocabs.push({ 
+            id: newId, 
+            theme: finalTheme, 
+            langName: targetLangName, 
+            langCode: document.getElementById('targetLanguage').value, 
+            vocabData: uniqueVocabData 
+        });
         localStorage.setItem('vocab_scripts', JSON.stringify(savedVocabs)); 
         window.showFlashcard(savedVocabs.length - 1, 0);
 
-        // 🌟 [추가] 생성 완료 후 입력창 초기화
         if (customInput) customInput.value = '';
 
         if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
             window.flutter_inappwebview.callHandler('scheduleLocalPush', { id: 999, title: "📚 학습 복습 시간!", body: `오늘 공부했던 내용들, 까먹기 전에 한 번 복습해 볼까요?`, delayHours: 24 });
         }
-    } catch (err) { alert("Fail"); } finally { 
+    } catch (err) { 
+        console.error(err);
+        alert("단어장 생성에 실패했습니다. 다시 시도해 주세요."); 
+    } finally { 
         const baseLang = (document.getElementById('explanationLanguage').value || 'ko-KR').split('-')[0];
         btn.innerHTML = UI_DICTIONARY[baseLang]?.generateVocabBtn || "✨ AI 단어장 생성하기"; btn.disabled = false; 
     }
