@@ -687,7 +687,6 @@ window.initSpeechRecognition = function() {
 
     const starGender = (typeof currentVoiceGender !== 'undefined' && currentVoiceGender === 'male') ? "male idol/actor" : "female idol/actress";
     
-    // 🌟 [수정된 핵심 부분] 현재 어떤 페르소나인지, 커스텀 설정값은 무엇인지 완벽하게 불러오기
     const currentMode = localStorage.getItem('current_persona') || localStorage.getItem('currentPersona') || 'friend';
     
     let customName = 'AI 튜터';
@@ -707,7 +706,6 @@ window.initSpeechRecognition = function() {
         console.warn("커스텀 데이터 읽기 오류, 기본값 사용");
     }
 
-    // 🌟 페르소나 리스트 재설정
     const personaInstructions = {
         friend: `You are the user's cheerful best friend (native ${targetName}). Use lots of emojis! Ask questions back to keep the conversation going smoothly. Keep it to 1-2 natural sentences.`,
         assistant: `You are the user's smart, friendly personal assistant (native ${targetName}). Answer their questions, confirm their requests, and chat actively. Polite, clear, and approachable.`,
@@ -716,7 +714,6 @@ window.initSpeechRecognition = function() {
         custom: `You are ${customName}. ${customPrompt}. Act EXACTLY like this character. Speak naturally and reflect your personality in your responses. Keep it to 1-3 natural sentences.`
     };
     
-    // 🌟 강제로 현재 모드에 맞는 지시사항 선택
     const selectedPersona = personaInstructions[currentMode] || personaInstructions['friend'];
     
     const memoRule = `\n🚨 CRITICAL: If the user asks to save, note, or remember a schedule/task, extract it into the "save_memo" key (in ${exactAiLang}). Otherwise, "save_memo" MUST be "".`;          
@@ -728,18 +725,30 @@ window.initSpeechRecognition = function() {
 
     try {
         let ctx = mode==='tutor' ? [...conversationHistory] : [{role:"system",content:sysPrompt},{role:"user",content:text}];
+        
         if(mode==='tutor') {
             if(ctx.length===0) ctx.push({role:"system",content:sysPrompt});
             ctx[0] = {role:"system", content:sysPrompt}; 
             ctx.push({role:"user",content:`[입력:${inputName}] ${text}`});
+            
+            // 🔥 원본 히스토리 저장 (화면과 다음 턴을 위해 꼬리표 없이 깨끗하게 저장)
             conversationHistory = ctx; 
             sessionStorage.setItem('llmHistory', JSON.stringify(conversationHistory));
         }
         
+        // 🌟 [추가된 핵심 코드] API 서버로 보낼 때만 꼬리표를 몰래 다는 복사본 생성
+        let apiMessages = JSON.parse(JSON.stringify(ctx));
+        if (mode === 'tutor' && apiMessages.length > 0) {
+            // 맨 마지막 메시지(방금 입력한 텍스트) 끝에 강력한 언어 통제 규칙 삽입
+            // 참고: JSON 포맷 중 "foreign_text"를 반드시 목표 언어로 쓰도록 강제함
+            apiMessages[apiMessages.length - 1].content += `\n\n[SYSTEM STRICT RULE: You MUST write the "foreign_text" ONLY in ${targetName}. NEVER use ${inputName} or any other language for "foreign_text". This is an absolute rule.]`;
+        }
+
+        // 🔥 ctx 대신 꼬리표가 달린 apiMessages를 서버로 전송합니다.
         let res = await fetchAPI(WORKER_URL, { 
             method: 'POST', 
             headers: { 'Content-Type': 'application/json', 'X-Device-ID': typeof myDeviceId !== 'undefined' ? myDeviceId : '' }, 
-            body: JSON.stringify({ model: "deepseek-chat", messages: ctx, response_format: { type: "json_object" } }) 
+            body: JSON.stringify({ model: "deepseek-chat", messages: apiMessages, response_format: { type: "json_object" } }) 
         });
         
         let data = await res.json();
