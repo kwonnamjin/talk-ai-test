@@ -638,20 +638,30 @@ window.initSpeechRecognition = function() {
             } else {
                 if(!synthesis) return; synthesis.cancel(); 
                 currentUtterance = new SpeechSynthesisUtterance(clean); 
-                currentUtterance.lang = langCode; 
+                
+                // 🌟 핵심 수정 1: 확실한 목표 언어 코드 가져오기 (매개변수가 없어도 무조건 로컬스토리지에서 땡겨옴)
+                const targetLangCode = langCode || localStorage.getItem('target_language') || 'en-US';
+                currentUtterance.lang = targetLangCode; 
                 currentUtterance.pitch = currentVoiceGender === 'female' ? 1.2 : 0.7;
+                
+                // 🌟 핵심 수정 2: OS(스마트폰/PC)에 설치된 목소리 중에서 원어민 목소리를 찾아 강제로 할당!
+                const voices = window.speechSynthesis.getVoices();
+                const nativeVoice = voices.find(v => v.lang.startsWith(targetLangCode.split('-')[0]));
+                if (nativeVoice) {
+                    currentUtterance.voice = nativeVoice;
+                }
                 
                 currentUtterance.onstart = () => { 
                     isSpeaking = true; 
                     if(avatarWrap) { avatarWrap.classList.add('speaking-pulse', 'speaking-bob'); avatarWrap.style.borderColor = "#60a5fa"; }
                     if(stopAudioBtn) { stopAudioBtn.disabled = false; stopAudioBtn.classList.replace('text-slate-500', 'text-red-500'); }
-                    window.updateStatus("말하는 중..."); 
+                    if(typeof window.updateStatus === 'function') window.updateStatus("말하는 중..."); 
                 };
                 currentUtterance.onend = currentUtterance.onerror = () => { 
                     isSpeaking = false; 
                     if(avatarWrap) { avatarWrap.classList.remove('speaking-pulse', 'speaking-bob'); }
                     if(stopAudioBtn) { stopAudioBtn.disabled = true; stopAudioBtn.classList.replace('text-red-500', 'text-slate-500'); }
-                    window.updateStatus("대기 중"); 
+                    if(typeof window.updateStatus === 'function') window.updateStatus("대기 중"); 
                 };
                 setTimeout(() => synthesis.speak(currentUtterance), 50);
             }
@@ -867,57 +877,7 @@ window.initSpeechRecognition = function() {
              });
         }
         window.currentPersona = localStorage.getItem('ai_persona') || 'friend';
-        window.changePersona = function(type, isInit = false) {
-    // 1. 🌟 [수정된 부분] 상태 변수 확실하게 덮어쓰기 (커스텀 고정 풀기)
-    window.currentPersona = type; 
-    localStorage.setItem('ai_persona', type); // 기존 유지
-    localStorage.setItem('current_persona', type); // AI가 읽도록 추가
-    localStorage.setItem('currentPersona', type); // 방어코드 추가
-
-    // 2. [유지할 부분] UI 버튼 스타일 변경 로직 (회원님 코드 그대로 적용)
-    ['friend', 'assistant', 'guide'].forEach(p => {
-        const btn = document.getElementById('btn_persona_' + p);
-        if(btn) {
-            btn.className = (p === type) 
-                ? "shrink-0 px-4 py-1.5 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-[11px] font-extrabold shadow-md transform scale-105 transition-all duration-300" 
-                : "shrink-0 px-4 py-1.5 rounded-full border border-slate-200 bg-white text-slate-400 text-[11px] font-bold transition-all duration-300 hover:bg-slate-50 hover:text-slate-600 shadow-sm";
-        }
-    });
-
-    // 3. [유지할 부분] 채팅 초기화 및 알림
-    if(!isInit) { 
-        if (typeof clearChatSession === 'function') clearChatSession(); 
-        if (typeof window.updateStatus === 'function') window.updateStatus("새로운 페르소나가 적용되었습니다!"); 
-    }
-};
-
-// [유지할 부분] 초기화 타이머
-setTimeout(() => { if (typeof window.changePersona === 'function') window.changePersona(window.currentPersona || 'friend', true); }, 500);
-        window.targetLanguageChanged = function() { 
-            localStorage.setItem('target_language', document.getElementById('targetLanguage').value);
-            clearChatSession(); 
-            window.updateStatus('학습 언어 변경 (대화 초기화됨)'); 
-            if (typeof window.autoLoadAlphabet === 'function') setTimeout(window.autoLoadAlphabet, 200);
-        }
-
-        window.selectGender = function(g) { 
-            tempGender = g;  currentVoiceGender = g; 
-            localStorage.setItem('voice_gender', g);
-               if (typeof updateGenderUI === 'function') {
-               updateGenderUI(g, false);
-               }
-    
-            const baseLang = (document.getElementById('explanationLanguage').value || 'ko-KR').split('-')[0];
-            const dict = UI_DICTIONARY[baseLang] || UI_DICTIONARY["en"];
-            const genderText = g === 'female' ? (dict.gender_f_text || '여성') : (dict.gender_m_text || '남성');
-            const icon = g === 'female' ? '👩' : '👨';
-    
-            const display = document.getElementById('currentGenderDisplay');
-               if (display) display.innerHTML = `${icon} ${genderText}`;
-    
-            const dd = document.getElementById('genderDropdown');
-               if(dd) dd.classList.add('hidden');
-        };
+       
 
         window.saveSettings = function() { 
             localStorage.setItem('chat_font_size', document.getElementById('fontSizeSlider').value); 
@@ -1848,11 +1808,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (typeof window.selectGender === 'function') window.selectGender(savedGender);
     }, 200);
 
-    // 600ms 후: 비밀 페르소나 해금 여부 확인 및 버튼 생성
-    setTimeout(() => {
-        if (typeof window.renderSpecialPersona === 'function') window.renderSpecialPersona();
-    }, 600);
-
     // 🌟 [추가된 부분] Pages 패널 하위 항목 클릭 시 자동 닫기 기능
     const pagesPanel = document.getElementById('inlinePagesPanel');
     if (pagesPanel) {
@@ -1877,32 +1832,125 @@ window.closeAllPanels = function() {
     document.querySelectorAll('.panel-popup').forEach(p => p.classList.add('hidden'));
 };
 
-window.applyCustomAi = function() {
-    const nameInput = document.getElementById('customAiNameInput');
-    const promptInput = document.getElementById('customAiPromptInput');
-    
-    if (!nameInput || !promptInput) return;
+
+// 🌟 1. 통합 페르소나 선택 함수
+window.selectPersona = function(mode, customId = null) {
+    window.currentPersona = mode;
+    localStorage.setItem('ai_persona', mode);
+    localStorage.setItem('current_persona', mode);
+
+    if (mode === 'custom' && customId) {
+        let chars = JSON.parse(localStorage.getItem('my_custom_characters') || '[]');
+        let selectedChar = chars.find(c => c.id === customId);
+        if (selectedChar) localStorage.setItem('user_custom_persona', JSON.stringify(selectedChar));
+    } else {
+        localStorage.removeItem('user_custom_persona'); 
+    }
+
+    // 스타일 초기화 후 선택된 것만 불 켜기
+    document.querySelectorAll('.persona-btn').forEach(btn => {
+        btn.classList.remove('bg-gradient-to-r', 'from-blue-500', 'to-indigo-500', 'text-white', 'border-transparent', 'scale-105');
+        btn.classList.add('bg-white', 'text-slate-400', 'border-slate-200');
+    });
+
+    let targetId = (mode === 'custom') ? `btn_persona_custom_${customId}` : `btn_persona_${mode}`;
+    let activeBtn = document.getElementById(targetId);
+    if (activeBtn) {
+        activeBtn.classList.remove('bg-white', 'text-slate-400', 'border-slate-200');
+        activeBtn.classList.add('bg-gradient-to-r', 'from-blue-500', 'to-indigo-500', 'text-white', 'border-transparent', 'scale-105');
+    }
+
+    window.clearChatSession();
+    window.updateStatus(`${mode === 'custom' ? '나만의 AI' : mode} 모드 적용!`);
+};
+
+// 🌟 2. 커스텀 캐릭터 생성 (슬롯 제한 및 클릭 방지)
+window.saveCustomCharacter = function() {
+    const nameInput = document.getElementById('newCharName');
+    const promptInput = document.getElementById('newCharPrompt');
+    if(!nameInput || !promptInput) return;
 
     const name = nameInput.value.trim();
     const prompt = promptInput.value.trim();
+    if (!name || !prompt) return alert("이름과 성격을 모두 입력해주세요!");
 
-    if (!name || !prompt) {
-        alert("이름과 성격을 모두 입력해 주세요!");
+    let chars = JSON.parse(localStorage.getItem('my_custom_characters') || '[]');
+    if (chars.length >= 3) {
+        alert("캐릭터 슬롯(3개)이 꽉 차서 가장 오래된 AI가 삭제되고 새 AI가 추가됩니다.");
+        chars.shift(); 
+    }
+
+    const newId = Date.now().toString();
+    chars.push({ id: newId, name: name, prompt: prompt });
+    localStorage.setItem('my_custom_characters', JSON.stringify(chars));
+
+    nameInput.value = ''; promptInput.value = '';
+    document.getElementById('newCharacterForm').classList.add('hidden');
+
+    window.renderCustomCharacters();
+    window.selectPersona('custom', newId);
+};
+
+// 🌟 3. 커스텀 캐릭터 삭제
+window.deleteCustomCharacter = function(id, event) {
+    event.stopPropagation(); 
+    if(!confirm("이 캐릭터를 삭제하시겠습니까?")) return;
+    let chars = JSON.parse(localStorage.getItem('my_custom_characters') || '[]');
+    chars = chars.filter(c => c.id !== id);
+    localStorage.setItem('my_custom_characters', JSON.stringify(chars));
+    
+    let currentUserCustom = JSON.parse(localStorage.getItem('user_custom_persona') || '{}');
+    if(window.currentPersona === 'custom' && currentUserCustom.id === id) window.selectPersona('friend');
+    window.renderCustomCharacters();
+};
+
+// 🌟 4. 캐릭터 리스트 화면 그리기
+window.renderCustomCharacters = function() {
+    const listArea = document.getElementById('customCharacterList');
+    if(!listArea) return;
+    let chars = JSON.parse(localStorage.getItem('my_custom_characters') || '[]');
+    listArea.innerHTML = ''; 
+    
+    if(chars.length === 0) {
+        listArea.innerHTML = '<div class="text-center p-4 bg-slate-50 rounded-xl border border-slate-100 border-dashed text-slate-400 text-[10px] font-bold">생성된 나만의 AI가 없습니다.</div>';
         return;
     }
 
-    window.currentPersona = 'custom';
-    window.customAiName = name;
-    window.customAiPrompt = prompt;
-
-    if (typeof window.updateStatus === 'function') {
-        window.updateStatus(`${name} 모드 적용!`);
-    }
+    chars.forEach(char => {
+        listArea.insertAdjacentHTML('beforeend', `
+            <button id="btn_persona_custom_${char.id}" onclick="window.selectPersona('custom', '${char.id}')" class="persona-btn flex justify-between items-center w-full p-3 border border-slate-200 bg-white rounded-xl transition-all shadow-sm">
+                <div class="flex flex-col text-left overflow-hidden">
+                    <span class="text-xs font-black text-slate-700">${char.name}</span>
+                    <span class="text-[9px] text-slate-400 truncate max-w-[200px] mt-0.5">${char.prompt}</span>
+                </div>
+                <div onclick="window.deleteCustomCharacter('${char.id}', event)" class="text-rose-300 p-2 bg-rose-50 rounded-lg hover:text-rose-600 hover:bg-rose-100 transition-colors ml-2">
+                    <i class="fa-solid fa-trash-can text-sm"></i>
+                </div>
+            </button>
+        `);
+    });
     
-    window.closeAllPanels();
-    if (typeof navigate === 'function') navigate('screen-main');
+    let savedMode = localStorage.getItem('current_persona') || 'friend';
+    let customData = JSON.parse(localStorage.getItem('user_custom_persona') || '{}');
+    if (savedMode === 'custom' && customData.id) {
+        let activeBtn = document.getElementById(`btn_persona_custom_${customData.id}`);
+        if(activeBtn) {
+            activeBtn.classList.remove('bg-white', 'text-slate-400', 'border-slate-200');
+            activeBtn.classList.add('bg-gradient-to-r', 'from-blue-500', 'to-indigo-500', 'text-white', 'border-transparent', 'scale-105');
+        }
+    }
 };
 
+// 앱 초기 로드 시 렌더링
+setTimeout(() => {
+    if(typeof window.renderCustomCharacters === 'function') {
+        window.renderCustomCharacters();
+        const savedMode = localStorage.getItem('current_persona') || 'friend';
+        const customData = JSON.parse(localStorage.getItem('user_custom_persona') || '{}');
+        if(savedMode === 'custom' && customData.id) window.selectPersona('custom', customData.id);
+        else window.selectPersona(savedMode);
+    }
+}, 500);
 
 
 

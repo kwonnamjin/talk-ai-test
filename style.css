@@ -32,3 +32,11 @@ body { display: flex; align-items: center; justify-content: center; }
 .panel-popup { position: absolute !important; top: 100% !important; left: 12px !important; right: 12px !important; z-index: 10000 !important; background-color: rgba(255, 255, 255, 0.98) !important; border-radius: 16px !important; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.2) !important; }
 
 #homeScrollContainer, #screen-main, #screen-roleplay, #screen-vocab, #screen-alphabet { padding-top: 115px !important; }
+
+/* style.css에 추가 */
+button#modeTutorBtn, button#modeTranslateBtn {
+    height: auto !important;
+    padding-top: 3px !important;
+    padding-bottom: 4px !important;
+    min-height: 0 !important;
+}
