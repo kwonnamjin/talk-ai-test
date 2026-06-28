@@ -214,23 +214,32 @@ window.populateDropdowns = function() {
             btn.innerHTML = `<div class="flex items-center gap-2"><span class="text-sm">${lang.flag}</span> <span>${window.getLangName(lang.code)}</span></div> <span class="text-[9px] text-slate-400 font-black">${setup.tag}</span>`;
             
             btn.onclick = (e) => {
-                e.stopPropagation(); 
-                document.getElementById(setup.target).value = lang.code;
-                
-                if (setup.target === 'explanationLanguage') {
-                    localStorage.setItem('explanation_language', lang.code);
-                    window.changeUILanguage(lang.code);
-                }
-                if (setup.target === 'targetLanguage') {
-                    localStorage.setItem('target_language', lang.code);
-                }
-                if (setup.target === 'sttInputLanguage') {
-                    localStorage.setItem('stt_input_language', lang.code);
-                }
-                
-                window.updateLangDisplays();
-                window.toggleDropdown(setup.id);
-            };
+    e.stopPropagation(); 
+    document.getElementById(setup.target).value = lang.code;
+    
+    if (setup.target === 'explanationLanguage') {
+        localStorage.setItem('explanation_language', lang.code);
+        window.changeUILanguage(lang.code);
+    }
+    
+    if (setup.target === 'targetLanguage') {
+        localStorage.setItem('target_language', lang.code);
+        
+        // 🌟 [여기에 추가!] AI 언어가 바뀌었으니 음성 드롭다운을 즉시 새로고침합니다!
+        if (window.deviceVoicesCache) {
+            window.loadVoicesToUI(JSON.stringify(window.deviceVoicesCache));
+        } else {
+            window.requestVoicesFromApp();
+        }
+    }
+    
+    if (setup.target === 'sttInputLanguage') {
+        localStorage.setItem('stt_input_language', lang.code);
+    }
+    
+    window.updateLangDisplays();
+    window.toggleDropdown(setup.id);
+};
             container.appendChild(btn);
         });
     });
@@ -671,29 +680,12 @@ window.initSpeechRecognition = function() {
                     window.updateStatus("대기 중");
                 }, 3000);
             } else {
-                if(!synthesis) return; synthesis.cancel(); 
-                currentUtterance = new SpeechSynthesisUtterance(clean); 
-                
-                const targetLangCode = langCode || localStorage.getItem('target_language') || 'en-US';
-                currentUtterance.lang = targetLangCode; 
-                
-                // 🌟 추가된 핵심 로직: 사용자가 드롭다운에서 선택한 기기 목소리 찾아서 적용하기!
-                const voices = window.speechSynthesis.getVoices();
-                const savedVoiceName = localStorage.getItem('selected_voice_name');
-                let selectedVoice = null;
-                
-                // 1순위: 사용자가 선택한 목소리
-                if (savedVoiceName) {
-                    selectedVoice = voices.find(v => v.name === savedVoiceName && v.lang.startsWith(targetLangCode.split('-')[0]));
-                }
-                // 2순위: 없으면 해당 언어의 기본 목소리
-                if (!selectedVoice) {
-                    selectedVoice = voices.find(v => v.lang.startsWith(targetLangCode.split('-')[0]));
-                }
-                
-                if (selectedVoice) {
-                    currentUtterance.voice = selectedVoice;
-                }
+    // 1. 언어 코드는 필요하니까 그대로 살려둡니다.
+    const targetLangCode = langCode || localStorage.getItem('target_language') || 'en-US';
+    
+    // 2. 복잡한 과정 싹 생략하고 플러터로 바로 텍스트(clean) 쏴주기! 끝!
+    VoiceManager.speak(clean, targetLangCode);
+}
                 
                 // 🌟 남/여 억지 톤 조절(pitch) 삭제하고 원본 목소리 톤(1.0) 유지
                 currentUtterance.pitch = 1.0; 
