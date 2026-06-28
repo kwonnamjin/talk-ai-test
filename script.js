@@ -479,18 +479,28 @@ window.incrementLocalUsage = function() {
        
 // 🌟 서로 말하는 언어를 맞바꾸는 기능 (Me <-> AI)
 window.swapLanguages = function() {
-    // 로컬 스토리지에서 현재 값을 가져옴
+    // 1. 기존 언어 교환 로직
     const tCode = localStorage.getItem('target_language') || 'en-US';
     const sCode = localStorage.getItem('stt_input_language') || 'ko-KR';
 
-    // 1. 값 서로 교환해서 저장
     localStorage.setItem('target_language', sCode);
     localStorage.setItem('stt_input_language', tCode);
 
-    // 2. 대화 세션 초기화 (언어가 바뀌었으므로 대화도 리셋하는 것이 안전함)
-    if (typeof window.clearChatSession === 'function') window.clearChatSession();
+    // 🌟 [핵심 추가] AI 언어가 바뀌었으므로 목소리 설정을 강제 초기화!
+    window.selectedTtsVoiceName = "";
+    localStorage.removeItem('saved_voice_name');
+    localStorage.removeItem('selected_voice_name');
+    
+    // UI 표시 이름도 '기본 음성'으로 변경
+    if (typeof window.updateVoiceDisplay === 'function') {
+        window.updateVoiceDisplay("기본 음성");
+    }
 
-    // 3. UI 즉시 업데이트 및 알림
+    // 🌟 리스트 새로고침 (이거 호출하면 앱에서 언어 바뀐 거 알고 리스트 싹 갱신됨)
+    window.requestVoicesFromApp();
+
+    // 2. 대화 세션 초기화 및 상태 업데이트 (기존 로직 유지)
+    if (typeof window.clearChatSession === 'function') window.clearChatSession();
     if (typeof window.updateLangDisplays === 'function') window.updateLangDisplays();
     if (typeof window.updateStatus === 'function') window.updateStatus("언어 역할이 변경되었습니다 🔄");
 };
