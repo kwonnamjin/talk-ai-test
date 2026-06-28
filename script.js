@@ -222,10 +222,21 @@ window.populateDropdowns = function() {
                     window.changeUILanguage(lang.code);
                 }
                 if (setup.target === 'targetLanguage') {
-                    localStorage.setItem('target_language', lang.code);
-                    // 🌟 핵심: 언어 변경 시 음성 리스트를 즉시 다시 받아오고 UI 갱신
-                    window.requestVoicesFromApp();
-                }
+    localStorage.setItem('target_language', lang.code);
+    
+    // 🌟 [여기가 추가된 핵심!] 언어가 바뀌면 기존 목소리 기억을 싹 지워버립니다.
+    window.selectedTtsVoiceName = "";
+    localStorage.removeItem('saved_voice_name');
+    localStorage.removeItem('selected_voice_name');
+    
+    // UI에 표시되는 이름도 즉시 '기본 음성'으로 바꿔줍니다.
+    if (typeof window.updateVoiceDisplay === 'function') {
+        window.updateVoiceDisplay("기본 음성");
+    }
+    
+    // 🌟 리스트 새로고침
+    window.requestVoicesFromApp(); 
+}
                 if (setup.target === 'sttInputLanguage') {
                     localStorage.setItem('stt_input_language', lang.code);
                 }
@@ -671,11 +682,6 @@ window.initSpeechRecognition = function() {
             window.selectedTtsVoiceName = voiceToUse ? voiceToUse.name : "";
         }
         window.flutter_inappwebview.callHandler('speak', clean, targetLangCode, window.selectedTtsVoiceName);
-
-        
-
-
-
     } else {
         // 웹 브라우저 엔진 (기존 방식)
         if(synthesis) synthesis.cancel();
