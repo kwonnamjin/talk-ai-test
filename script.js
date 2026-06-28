@@ -19,6 +19,41 @@ const WORKER_URL = "https://talkaitest.thin770.workers.dev/";
         const selectionTooltip = document.getElementById('selectionTooltip');
 
 
+
+        // [소리 먹통 해결 코드] 화면을 처음 터치할 때 폰의 '소리 차단'을 강제로 뚫어버립니다.
+document.addEventListener('touchstart', function() {
+    // 아무 소리도 안 나는 투명한 음성을 0.1초 재생해서 폰에게 허락을 받아냄
+    var silentUtt = new SpeechSynthesisUtterance('');
+    silentUtt.volume = 0;
+    window.speechSynthesis.speak(silentUtt);
+    console.log("웹뷰 소리 차단 해제 완료!");
+}, { once: true }); // 딱 한 번만 실행됨
+// ==========================================================
+// 🌟 [필수 추가] 모바일/PC 웹 브라우저 AI 목소리 차단 해제 마법사
+// ==========================================================
+let isTtsUnlocked = false;
+function unlockTtsEngine() {
+    if (isTtsUnlocked) return;
+    // 화면을 처음 터치할 때, 투명한(볼륨 0) 목소리를 재생해 브라우저 허락을 받아냅니다.
+    const silentUtt = new SpeechSynthesisUtterance('');
+    silentUtt.volume = 0; 
+    window.speechSynthesis.speak(silentUtt);
+    
+    isTtsUnlocked = true;
+    console.log("🔊 웹 브라우저 AI 음성 잠금 해제 완료!");
+    
+    // 한 번 허락받으면 더 이상 실행할 필요 없음
+    document.removeEventListener('click', unlockTtsEngine);
+    document.removeEventListener('touchstart', unlockTtsEngine);
+}
+// 사용자가 화면 아무 곳이나 터치/클릭하는 순간 작동!
+document.addEventListener('click', unlockTtsEngine);
+document.addEventListener('touchstart', unlockTtsEngine);
+// ==========================================================
+
+
+
+
 // 🌟 2. 공통 UI 조작 함수
 window.handleBodyClick = function(e) {
     if (!e.target.classList.contains('word-span') && !e.target.classList.contains('exp-word-span') && !e.target.closest('#selectionTooltip') && !e.target.closest('button')) {
@@ -1811,38 +1846,85 @@ window.renderVoiceList = function() {
     }
 };
 
+// ==========================================
+// 🎙️ 1. 통합 음성 엔진 마스터 (플러터 연동 버전)
+// ==========================================
+const VoiceManager = {
+    cachedVoices: [],
+    
+    // 플러터 앱에서 받은 목소리 데이터를 저장합니다.
+    updateVoices: function(voicesArray) {
+        this.cachedVoices = voicesArray;
+        console.log("🔄 VoiceManager 플러터 엔진 업데이트 완료 (총 " + voicesArray.length + "개)");
+    },
 
-// 🌟 1. 선택한 목소리 이름 기억
+    // 🌟 AI가 말할 때 무조건 이 함수를 호출하세요! (예: VoiceManager.speak("안녕", "ko-KR"); )
+    speak: function(text, targetLangCode) {
+        // 1. 기존 웹 브라우저 엔진은 입 다물게 강제 종료 (먹통 방지)
+        if(window.speechSynthesis) window.speechSynthesis.cancel();
+
+        console.log(`🔊 플러터 앱으로 말하기 요청: [${targetLangCode}] ${text}`);
+
+        // 2. 플러터 앱과 연결되어 있다면, 대표님의 플러터 코드에 맞춰 데이터 3개를 쏴줍니다!
+        if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
+            // 대표님 플러터 코드의 args[0]=text, args[1]=lang, args[2]=voiceName 순서와 100% 일치!
+            window.flutter_inappwebview.callHandler(
+                'speak', 
+                text, 
+                targetLangCode, 
+                window.selectedTtsVoiceName || ""
+            );
+        } else {
+            console.warn("⚠️ 앱과 연결되지 않았습니다. (웹 환경에서 테스트 중)");
+        }
+    },
+
+    // 🌟 AI 말을 중간에 끊고 싶을 때 호출하세요 (예: VoiceManager.stop(); )
+    stop: function() {
+        if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
+            window.flutter_inappwebview.callHandler('stop');
+        }
+    }
+};
+
+
+// ==========================================
+// 🌟 2. 앱 통신 및 UI 렌더링 로직
+// ==========================================
+
+// 1. 선택한 목소리 이름 기억 (로컬스토리지)
 window.selectedTtsVoiceName = localStorage.getItem('saved_voice_name') || ""; 
 
-// 🌟 1. 앱에서 목소리 데이터를 받아오고 UI에 뿌려주는 '마스터 함수'
+// 2. 플러터 앱에 "기기 목소리 리스트 좀 줘!" 라고 요청하는 함수
 window.requestVoicesFromApp = async function() {
-    // 앱과 연결되었는지 먼저 체크
     if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
         try {
+            // 플러터의 'getDeviceVoices' 핸들러 호출
             const voicesJson = await window.flutter_inappwebview.callHandler('getDeviceVoices');
             if (voicesJson) {
                 window.loadVoicesToUI(voicesJson);
             }
         } catch (e) {
-            console.log("잠시 대기 중...");
+            console.log("플러터 통신 대기 중...");
         }
     }
 };
-// 1초 뒤에 딱 한 번만 실행
-setTimeout(window.requestVoicesFromApp, 1000);
 
-// 🌟 2. 데이터를 받아서 드롭다운에 예쁘게 그려주는 함수
+// 3. 플러터에서 받은 JSON 데이터를 드롭다운 UI에 예쁘게 그려주는 함수
 window.loadVoicesToUI = function(voicesJson) {
-    // 앱에서 받은 JSON 데이터를 JS 객체로 변환
+    // 문자열을 객체로 변환
     window.deviceVoicesCache = JSON.parse(voicesJson);
+    
+    // VoiceManager에 데이터 전달
+    VoiceManager.updateVoices(window.deviceVoicesCache);
+
     const container = document.getElementById('voiceListContainer');
     if(!container) return;
 
     container.innerHTML = ''; // "로딩 중..." 텍스트 지우기
 
     const targetLang = localStorage.getItem('target_language') || 'en-US';
-    const langPrefix = targetLang.split('-')[0];
+    const langPrefix = targetLang.split('-')[0]; // "ko-KR" -> "ko"
 
     // 해당 언어(영어, 한국어 등) 목소리만 필터링
     const filteredVoices = window.deviceVoicesCache.filter(v => v.locale.startsWith(langPrefix));
@@ -1858,21 +1940,50 @@ window.loadVoicesToUI = function(voicesJson) {
         item.innerText = `${voice.locale} - ${voice.name}`;
         
         item.onclick = () => {
-            document.getElementById('disp-voiceName').innerText = voice.name;
+            window.updateVoiceDisplay(voice.name);
             document.getElementById('drop-voice').classList.add('hidden');
             
-            // 딥시크가 말할 때 이 목소리를 쓰도록 기억!
+            // 선택한 목소리 저장! 다음 번 speak() 호출 때 플러터로 전달됨
             window.selectedTtsVoiceName = voice.name;
             localStorage.setItem('saved_voice_name', voice.name);
+            console.log("✅ 목소리 선택 완료:", voice.name);
         };
         container.appendChild(item);
     });
 };
 
-// 🌟 3. 앱 켜지자마자 실행!
+// 4. 선택된 목소리 이름을 UI(화면)에 표시하는 함수
+window.updateVoiceDisplay = function(voiceName) {
+    const disp = document.getElementById('disp-voiceName');
+    if (disp) {
+        disp.innerText = voiceName ? voiceName : "시스템 기본 음성";
+    }
+};
+
+
+// ==========================================
+// 🚀 3. 초기화 (앱 켜질 때 자동 실행)
+// ==========================================
+
+// 브라우저 로딩 완료 시 통신 시도
 window.onload = function() {
     window.requestVoicesFromApp();
 };
+
+// 1초 뒤 보험용으로 한 번 더 시도 & UI 업데이트
+setTimeout(() => {
+    const savedVoice = localStorage.getItem('saved_voice_name');
+    window.updateVoiceDisplay(savedVoice);
+    window.requestVoicesFromApp();
+}, 1000);
+
+// 브라우저에서 목소리 로딩이 끝날 때 음성 리스트 동기화 (보험용 방어코드)
+if (window.speechSynthesis) {
+    window.speechSynthesis.onvoiceschanged = function() {
+        // VoiceManager 내부 엔진 최신화
+        VoiceManager.cachedVoices = window.speechSynthesis.getVoices();
+    };
+}
 
 
 
@@ -2142,3 +2253,4 @@ window.requestVoicesFromApp = function() {
 window.addEventListener('flutterInAppWebViewPlatformReady', function(event) {
     window.requestVoicesFromApp();
 });
+
