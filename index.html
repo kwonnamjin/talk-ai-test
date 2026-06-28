@@ -174,23 +174,24 @@
                     </div>
                     <div id="drop-stt" class="hidden max-h-48 overflow-y-auto bg-white border-t border-slate-100 flex-col no-scrollbar"></div>
                 </div>
-                <div class="flex flex-col bg-slate-50 border border-slate-200 rounded-lg overflow-hidden mt-1 relative z-50">
-                    <div class="flex justify-between items-center py-2.5 px-3 cursor-pointer hover:bg-slate-100 transition-colors" onclick="document.getElementById('drop-gender').classList.toggle('hidden')">
-                        <span class="text-xs font-bold text-slate-500" id="set_voice_gender">AI 목소리 성별</span>
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs font-black text-purple-600" id="disp-voiceGender">👩 여성</span>
-                            <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
-                        </div>
-                    </div>
-                    <div id="drop-gender" class="hidden bg-white border-t border-slate-100 flex-col">
-                        <button onclick="changeVoiceGender('female')" class="w-full text-left px-4 py-2.5 text-[11px] font-bold text-slate-600 hover:bg-slate-100 border-b border-slate-50 flex items-center gap-2 transition-colors">
-                            <span class="text-sm">👩</span> <span id="gender_f_text_drop">여성 (Female)</span>
-                        </button>
-                        <button onclick="changeVoiceGender('male')" class="w-full text-left px-4 py-2.5 text-[11px] font-bold text-slate-600 hover:bg-slate-100 border-b border-slate-50 flex items-center gap-2 transition-colors">
-                            <span class="text-sm">👨</span> <span id="gender_m_text_drop">남성 (Male)</span>
-                        </button>
-                    </div>
-                </div>
+<div class="flex flex-col bg-slate-50 border border-slate-200 rounded-lg overflow-hidden mt-1 relative z-50">
+    <div class="flex justify-between items-center py-2.5 px-3 cursor-pointer hover:bg-slate-100 transition-colors" onclick="document.getElementById('drop-voice').classList.toggle('hidden')">
+        <span class="text-xs font-bold text-slate-500" data-i18n="set_voice_gender">AI 목소리 선택</span>
+        <div class="flex items-center gap-2">
+            <span class="text-xs font-black text-purple-600 truncate max-w-[120px]" id="disp-voiceName">기본 음성</span>
+            <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
+        </div>
+    </div>
+    
+    <div id="drop-voice" class="hidden bg-white border-t border-slate-100 flex-col max-h-48 overflow-y-auto shadow-inner">
+        <div id="voiceListContainer" class="flex flex-col">
+            <div class="p-4 text-center text-[10px] text-slate-400 font-bold animate-pulse">
+                기기 목소리를 불러오는 중...
+            </div>
+        </div>
+    </div>
+</div>
+
             </div>
         </div>
 
@@ -500,6 +501,40 @@
             </div>
         </div>
     </div>
+
+<!--출석 모달창-->
+    <div id="streak-modal" class="hidden fixed inset-0 bg-black/70 z-[999] flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl relative animate-fade-in-up border border-slate-100">
+        
+        <button onclick="window.closeStreakModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 z-10 transition-colors">
+            <i class="fa-solid fa-xmark text-2xl"></i>
+        </button>
+        
+        <div class="p-6 text-center">
+            <div class="w-16 h-16 bg-gradient-to-br from-orange-50 to-red-50 rounded-full flex items-center justify-center mx-auto mb-3 border border-orange-100 shadow-sm">
+                <i class="fa-solid fa-fire text-3xl text-orange-500"></i>
+            </div>
+            <h2 class="text-xl font-black text-slate-800 mb-1">
+                <span id="modal-streak-count" class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-500">0</span>일 연속 달성!
+            </h2>
+            <p class="text-xs text-slate-500 mb-5 font-bold">매일 꾸준히 학습하고 초승달 보상을 받으세요 🌙</p>
+            
+            <div id="modal-quest-container" class="text-left mb-5">
+                </div>
+            
+            <div id="modal-target-box" class="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-left">
+                </div>
+            
+            <button onclick="window.closeStreakModal()" class="w-full mt-5 bg-slate-800 hover:bg-slate-900 text-white font-bold text-sm py-3.5 rounded-xl transition-colors shadow-md">
+                열심히 할게요! (닫기)
+            </button>
+        </div>
+    </div>
+</div>
+
+
+
+
 
     <script src="data.js"></script>
     <script src="script.js"></script>

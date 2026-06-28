@@ -628,7 +628,7 @@ window.initSpeechRecognition = function() {
                 if(avatarWrap) { avatarWrap.classList.add('speaking-pulse', 'speaking-bob'); avatarWrap.style.borderColor = "#60a5fa"; }
                 if(stopAudioBtn) { stopAudioBtn.disabled = false; stopAudioBtn.classList.replace('text-slate-500', 'text-red-500'); }
                 window.updateStatus("말하는 중...");
-                window.flutter_inappwebview.callHandler('speak', clean, langCode);
+                window.flutter_inappwebview.callHandler('speak', clean, langCode, window.selectedTtsVoiceName || "");
                 setTimeout(() => {
                     isSpeaking = false;
                     if(avatarWrap) { avatarWrap.classList.remove('speaking-pulse', 'speaking-bob'); }
@@ -639,17 +639,29 @@ window.initSpeechRecognition = function() {
                 if(!synthesis) return; synthesis.cancel(); 
                 currentUtterance = new SpeechSynthesisUtterance(clean); 
                 
-                // 🌟 핵심 수정 1: 확실한 목표 언어 코드 가져오기 (매개변수가 없어도 무조건 로컬스토리지에서 땡겨옴)
                 const targetLangCode = langCode || localStorage.getItem('target_language') || 'en-US';
                 currentUtterance.lang = targetLangCode; 
-                currentUtterance.pitch = currentVoiceGender === 'female' ? 1.2 : 0.7;
                 
-                // 🌟 핵심 수정 2: OS(스마트폰/PC)에 설치된 목소리 중에서 원어민 목소리를 찾아 강제로 할당!
+                // 🌟 추가된 핵심 로직: 사용자가 드롭다운에서 선택한 기기 목소리 찾아서 적용하기!
                 const voices = window.speechSynthesis.getVoices();
-                const nativeVoice = voices.find(v => v.lang.startsWith(targetLangCode.split('-')[0]));
-                if (nativeVoice) {
-                    currentUtterance.voice = nativeVoice;
+                const savedVoiceName = localStorage.getItem('selected_voice_name');
+                let selectedVoice = null;
+                
+                // 1순위: 사용자가 선택한 목소리
+                if (savedVoiceName) {
+                    selectedVoice = voices.find(v => v.name === savedVoiceName && v.lang.startsWith(targetLangCode.split('-')[0]));
                 }
+                // 2순위: 없으면 해당 언어의 기본 목소리
+                if (!selectedVoice) {
+                    selectedVoice = voices.find(v => v.lang.startsWith(targetLangCode.split('-')[0]));
+                }
+                
+                if (selectedVoice) {
+                    currentUtterance.voice = selectedVoice;
+                }
+                
+                // 🌟 남/여 억지 톤 조절(pitch) 삭제하고 원본 목소리 톤(1.0) 유지
+                currentUtterance.pitch = 1.0; 
                 
                 currentUtterance.onstart = () => { 
                     isSpeaking = true; 
@@ -729,10 +741,15 @@ window.initSpeechRecognition = function() {
     const memoRule = `\n🚨 CRITICAL: If the user asks to save, note, or remember a schedule/task, extract it into the "save_memo" key (in ${exactAiLang}). Otherwise, "save_memo" MUST be "".`;          
     const antiParrotRule = `\n🚨 CRITICAL: DO NOT just translate the user's input. You must act as your persona and REPLY to their message contextually. Keep the conversation flowing naturally in ${targetName}.`;
 
+// 🌟 [수정 1] 번역기 모드일 때 AI의 오지랖을 완벽 차단하고, 입/출력 언어를 명확히 고정합니다.
     let sysPrompt = mode === 'translate' 
-        ? `You are a strict professional translator. Your ONLY job is to translate the user's input into ${targetName}. DO NOT answer questions, DO NOT continue the conversation, and DO NOT repeat the original text. Respond in JSON: {"foreign_text":"[The translated text in ${targetName}]", "translation":"[The exact meaning in ${exactAiLang}]", "save_memo":""}` + memoryPrompt + criticalRule + memoRule
+        ? `You are a strict translation machine. Your ONLY purpose is to translate the user's input into [${targetName}]. 
+        CRITICAL RULES:
+        1. DO NOT converse, DO NOT answer questions, DO NOT agree or say "I'm here" or "Okay".
+        2. Even if the input is a conversational question like "How are you?", DO NOT answer it. Just translate the sentence itself into [${targetName}].
+        3. Provide the translation in the "foreign_text" field, and provide the original meaning in the "translation" field using [${inputName}].
+        Respond EXACTLY in JSON: {"foreign_text":"<translated text in ${targetName}>", "translation":"<meaning in ${inputName}>", "save_memo":""}`
         : selectedPersona + antiParrotRule + ` Respond in JSON: {"foreign_text":"Your conversational reply in ${targetName}","translation":"A simple, direct, and natural translation of your 'foreign_text' in ${exactAiLang}. DO NOT add any grammar explanations, notes, or corrections! Just the translation.","save_memo":"..."}` + memoryPrompt + criticalRule + memoRule;
-
     try {
         let ctx = mode==='tutor' ? [...conversationHistory] : [{role:"system",content:sysPrompt},{role:"user",content:text}];
         
@@ -749,9 +766,11 @@ window.initSpeechRecognition = function() {
         // 🌟 [추가된 핵심 코드] API 서버로 보낼 때만 꼬리표를 몰래 다는 복사본 생성
         let apiMessages = JSON.parse(JSON.stringify(ctx));
         if (mode === 'tutor' && apiMessages.length > 0) {
-            // 맨 마지막 메시지(방금 입력한 텍스트) 끝에 강력한 언어 통제 규칙 삽입
-            // 참고: JSON 포맷 중 "foreign_text"를 반드시 목표 언어로 쓰도록 강제함
+            // 튜터 모드 언어 고정
             apiMessages[apiMessages.length - 1].content += `\n\n[SYSTEM STRICT RULE: You MUST write the "foreign_text" ONLY in ${targetName}. NEVER use ${inputName} or any other language for "foreign_text". This is an absolute rule.]`;
+        } else if (mode === 'translate' && apiMessages.length > 0) {
+            // 🌟 [수정 2] 번역 모드일 때는 유저의 메시지 앞에 '절대 대답하지 말고 번역만 해'라는 협박문(?)을 씌웁니다.
+            apiMessages[apiMessages.length - 1].content = `[STRICT RULE: TRANSLATE the following text into ${targetName}. DO NOT answer the question or converse.]\n\n` + apiMessages[apiMessages.length - 1].content;
         }
 
         // 🔥 ctx 대신 꼬리표가 달린 apiMessages를 서버로 전송합니다.
@@ -1004,7 +1023,10 @@ window.goHome = function() { window.navigate('screen-home'); };
         };
 
         // 🌟 2. 롤플레잉 전체 듣기: 대본 읽을 때 이모지 안 읽음!
-        let activeScriptTimeout = null; let isScriptPlaying = false; let playingScriptIndex = -1;
+        let activeScriptTimeout = null; 
+        let isScriptPlaying = false; 
+        let playingScriptIndex = -1;
+        
         window.playSpecificScript = function(index) {
             isInteractiveTestActive = false; const currentBtn = document.getElementById(`play-btn-${index}`);
             if (isScriptPlaying && playingScriptIndex === index) {
@@ -1041,17 +1063,38 @@ window.goHome = function() { window.navigate('screen-home'); };
                 const pitch = (sd[playIdx].role.toLowerCase() === 'ai') ? 1.2 : 0.8;
                 
                 if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
-                    window.flutter_inappwebview.callHandler('speak', textToRead, savedScripts[index].langCode, pitch).then(() => {
+                    window.flutter_inappwebview.callHandler('speak', textToRead, savedScripts[index].langCode, window.selectedTtsVoiceName || "").then(() => {
                         if(!isScriptPlaying) return; 
                         playIdx++; 
                         playNext();
                     });
                 } else {
-                    const utt = new SpeechSynthesisUtterance(textToRead); 
-                    utt.lang = savedScripts[index].langCode; utt.pitch = pitch; 
-                    utt.onend = utt.onerror = () => { if(!isScriptPlaying) return; playIdx++; activeScriptTimeout = setTimeout(playNext, 500); }; 
-                    window.speechSynthesis.speak(utt);
+                const utt = new SpeechSynthesisUtterance(textToRead); 
+                utt.lang = savedScripts[index].langCode; 
+                
+                // 🌟 추가된 기기 목소리 적용 로직!
+                let voices = [];
+// 시스템에 speechSynthesis가 진짜로 존재하는지 먼저 확인하는 안전장치!
+if (window.speechSynthesis && typeof window.speechSynthesis.getVoices === 'function') {
+    voices = window.speechSynthesis.getVoices();
+}
+                const savedVoiceName = localStorage.getItem('selected_voice_name');
+                let selectedVoice = null;
+                
+                if (savedVoiceName) {
+                    selectedVoice = voices.find(v => v.name === savedVoiceName && v.lang.startsWith(utt.lang.split('-')[0]));
                 }
+                if (!selectedVoice) {
+                    selectedVoice = voices.find(v => v.lang.startsWith(utt.lang.split('-')[0]));
+                }
+                if (selectedVoice) {
+                    utt.voice = selectedVoice;
+                }
+
+                utt.pitch = pitch; // 대본은 AI와 내 목소리 톤이 달라야 하므로 기존 피치 유지
+                utt.onend = utt.onerror = () => { if(!isScriptPlaying) return; playIdx++; activeScriptTimeout = setTimeout(playNext, 500); }; 
+                window.speechSynthesis.speak(utt);
+            }
             }; playNext();
         };
                     
@@ -1098,7 +1141,7 @@ window.goHome = function() { window.navigate('screen-home'); };
                 const textToRead = line.en.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '').trim();
                 
                 if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
-                    window.flutter_inappwebview.callHandler('speak', textToRead, scriptItem.langCode, 1.2).then(() => {
+                    window.flutter_inappwebview.callHandler('speak', textToRead, scriptItem.langCode, window.selectedTtsVoiceName || "").then(() => {
                         activeTestLineIdx++; 
                         window.processNextTestLine();
                     });
@@ -1191,7 +1234,7 @@ window.goHome = function() { window.navigate('screen-home'); };
             const textToRead = isBackSide ? vocab.example_en : vocab.word;
             
             if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
-                window.flutter_inappwebview.callHandler('speak', textToRead, savedVocabs[currentVocabSetIdx].langCode);
+                window.flutter_inappwebview.callHandler('speak', textToRead, savedVocabs[currentVocabSetIdx].langCode, window.selectedTtsVoiceName || "");
             } else {
                 window.speechSynthesis.cancel();
                 const utt = new SpeechSynthesisUtterance(textToRead);
@@ -1368,7 +1411,7 @@ window.goHome = function() { window.navigate('screen-home'); };
 
         window.playAlphabetAudio = function(textToSpeak, langCode) { 
             if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
-                window.flutter_inappwebview.callHandler('speak', textToSpeak, langCode);
+                window.flutter_inappwebview.callHandler('speak', textToSpeak, langCode, window.selectedTtsVoiceName || "");
             } else {
                 window.speechSynthesis.cancel(); 
                 setTimeout(() => { const utt = new SpeechSynthesisUtterance(textToSpeak); utt.lang = langCode; utt.pitch = 1.1; utt.rate = 0.85; window.speechSynthesis.speak(utt); }, 50);
@@ -1532,14 +1575,23 @@ window.goHome = function() { window.navigate('screen-home'); };
         if (langSelector) langSelector.addEventListener('change', window.updateExtraUI);
         
 
-        // 🌟 출석 모달 열고 닫기 함수 명시적 추가 (버튼 먹통 버그 해결!)
-        window.openStreakModal = function() { 
-            document.getElementById('streak-modal').classList.remove('hidden'); 
-            window.updateStreakUI(); // 창 열 때 최신 상태 반영
-        };
-        window.closeStreakModal = function() { 
-            document.getElementById('streak-modal').classList.add('hidden'); 
-        };
+// 🌟 출석/퀘스트 모달 열고 닫기 스위치 함수
+window.openStreakModal = function() { 
+    const modal = document.getElementById('streak-modal');
+    if (modal) {
+        modal.classList.remove('hidden'); 
+        window.updateStreakUI(); // 창 열 때 최신 퀘스트 상태로 싹 업데이트!
+    } else {
+        console.error("streak-modal 창을 찾을 수 없습니다! HTML에 있는지 확인하세요.");
+    }
+};
+
+window.closeStreakModal = function() { 
+    const modal = document.getElementById('streak-modal');
+    if (modal) {
+        modal.classList.add('hidden'); 
+    }
+};
 
         // 🌟 대본 학습 기록을 저장하는 함수
 window.markScriptAsLearned = function(scriptIndex) {
@@ -1591,7 +1643,7 @@ window.markScriptAsLearned = function(scriptIndex) {
             }
 
             // 🌟 보상 타겟 로직 (테스트용: 시작하자마자 1일 타겟이 스페셜 페르소나!)
-            let nextTarget = 1, rewardText = "스페셜 페르소나 🎁";
+            let nextTarget = 30, rewardText = "스페셜 페르소나 🎁";
             if (streakData.streak >= 1 && streakData.streak < 5) { nextTarget = 5; rewardText = "초승달 10개 🌙"; }
             else if (streakData.streak >= 5 && streakData.streak < 10) { nextTarget = 10; rewardText = "초승달 20개 🌙"; }
             else if (streakData.streak >= 10 && streakData.streak < 20) { nextTarget = 20; rewardText = "초승달 30개 🌙"; }
@@ -1714,36 +1766,138 @@ window.addStudyMission = function(type) {
             if (dd && !e.target.closest('#genderDropdownContainer')) dd.classList.add('hidden');
         };
 
-        
+        // 🌟 1. 기기 목소리 리스트 불러오기 및 UI 렌더링
+window.renderVoiceList = function() {
+    const container = document.getElementById('voiceListContainer');
+    if (!container) return;
 
-        // 🌟 새로운 목소리 성별 변경 로직 (드롭다운용)
-        window.changeVoiceGender = function(gender) {
-            currentVoiceGender = gender;
-            localStorage.setItem('voice_gender', gender);
-            
-            const baseLang = (document.getElementById('explanationLanguage').value || 'ko-KR').split('-')[0];
-            const dict = UI_DICTIONARY[baseLang] || UI_DICTIONARY["en"];
-            const genderText = gender === 'female' ? (dict.gender_f_text || '여성') : (dict.gender_m_text || '남성');
-            
-            // 화면 텍스트 업데이트
-            const dispG = document.getElementById('disp-voiceGender');
-            if (dispG) {
-                dispG.innerHTML = (gender === 'female' ? '👩 ' : '👨 ') + genderText;
+    // 1. 앱이 던져준 목소리 데이터가 있는지 확인
+    // (이미 앱이 'getDeviceVoices' 핸들러로 던져준 데이터를 받아서 처리하는 로직으로 변경)
+    if (window.deviceVoicesCache && window.deviceVoicesCache.length > 0) {
+        const voices = window.deviceVoicesCache;
+        const targetLang = localStorage.getItem('target_language') || 'en-US';
+        const langPrefix = targetLang.split('-')[0]; // 예: 'en-US' -> 'en'
+
+        // 2. 해당 언어(en, ko 등)와 일치하는 목소리만 필터링
+        const filteredVoices = voices.filter(v => v.locale.startsWith(langPrefix));
+
+        container.innerHTML = ''; 
+
+        if (filteredVoices.length === 0) {
+            container.innerHTML = '<div class="p-4 text-center text-[10px] text-slate-400">해당 언어 목소리가 없습니다.</div>';
+            return;
+        }
+
+        filteredVoices.forEach(voice => {
+            const btn = document.createElement('button');
+            btn.className = "w-full text-left px-4 py-3 text-[11px] font-bold text-slate-700 hover:bg-slate-50 border-b border-slate-50 transition-colors truncate";
+            btn.innerText = `🗣️ ${voice.name}`;
+            btn.onclick = () => {
+                localStorage.setItem('selected_voice_name', voice.name);
+                localStorage.setItem('selected_voice_locale', voice.locale); // locale도 함께 저장!
+                
+                // UI 업데이트
+                document.getElementById('disp-voiceName').innerText = voice.name;
+                document.getElementById('drop-voice').classList.add('hidden');
+                
+                if(typeof window.updateStatus === 'function') window.updateStatus("AI 목소리가 변경되었습니다!");
+            };
+            container.appendChild(btn);
+        });
+    } else {
+        // 데이터가 아직 안 왔으면 0.5초 뒤에 다시 시도
+        container.innerHTML = '<div class="p-4 text-center text-[10px] text-slate-400 animate-pulse">목소리 불러오는 중...</div>';
+        setTimeout(window.renderVoiceList, 500);
+    }
+};
+
+
+// 🌟 1. 선택한 목소리 이름 기억
+window.selectedTtsVoiceName = localStorage.getItem('saved_voice_name') || ""; 
+
+// 🌟 1. 앱에서 목소리 데이터를 받아오고 UI에 뿌려주는 '마스터 함수'
+window.requestVoicesFromApp = async function() {
+    // 앱과 연결되었는지 먼저 체크
+    if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
+        try {
+            const voicesJson = await window.flutter_inappwebview.callHandler('getDeviceVoices');
+            if (voicesJson) {
+                window.loadVoicesToUI(voicesJson);
             }
+        } catch (e) {
+            console.log("잠시 대기 중...");
+        }
+    }
+};
+// 1초 뒤에 딱 한 번만 실행
+setTimeout(window.requestVoicesFromApp, 1000);
+
+// 🌟 2. 데이터를 받아서 드롭다운에 예쁘게 그려주는 함수
+window.loadVoicesToUI = function(voicesJson) {
+    // 앱에서 받은 JSON 데이터를 JS 객체로 변환
+    window.deviceVoicesCache = JSON.parse(voicesJson);
+    const container = document.getElementById('voiceListContainer');
+    if(!container) return;
+
+    container.innerHTML = ''; // "로딩 중..." 텍스트 지우기
+
+    const targetLang = localStorage.getItem('target_language') || 'en-US';
+    const langPrefix = targetLang.split('-')[0];
+
+    // 해당 언어(영어, 한국어 등) 목소리만 필터링
+    const filteredVoices = window.deviceVoicesCache.filter(v => v.locale.startsWith(langPrefix));
+
+    if(filteredVoices.length === 0) {
+        container.innerHTML = '<div class="p-4 text-center text-[10px] text-slate-400">해당 언어 목소리가 없습니다.</div>';
+        return;
+    }
+
+    filteredVoices.forEach(voice => {
+        const item = document.createElement('div');
+        item.className = 'py-2 px-3 text-xs text-slate-600 hover:bg-slate-50 cursor-pointer border-b border-slate-50';
+        item.innerText = `${voice.locale} - ${voice.name}`;
+        
+        item.onclick = () => {
+            document.getElementById('disp-voiceName').innerText = voice.name;
+            document.getElementById('drop-voice').classList.add('hidden');
             
-            // 선택 후 메뉴 닫기
-            document.getElementById('drop-gender').classList.add('hidden');
+            // 딥시크가 말할 때 이 목소리를 쓰도록 기억!
+            window.selectedTtsVoiceName = voice.name;
+            localStorage.setItem('saved_voice_name', voice.name);
         };
-        // 앱 켤 때 이전에 선택한 성별 글씨 유지하기
-        setTimeout(() => {
-            const savedGender = localStorage.getItem('voice_gender') || 'female';
-            const baseLang = (document.getElementById('explanationLanguage').value || 'ko-KR').split('-')[0];
-            const dict = UI_DICTIONARY[baseLang] || UI_DICTIONARY["en"];
-            const genderText = savedGender === 'female' ? (dict.gender_f_text || '여성') : (dict.gender_m_text || '남성');
-            
-            const disp = document.getElementById('disp-voiceGender');
-            if (disp) disp.innerHTML = (savedGender === 'female' ? '👩 ' : '👨 ') + genderText;
-        }, 300);
+        container.appendChild(item);
+    });
+};
+
+// 🌟 3. 앱 켜지자마자 실행!
+window.onload = function() {
+    window.requestVoicesFromApp();
+};
+
+
+
+
+// 🌟 2. 선택된 목소리 이름을 UI에 표시하는 함수
+window.updateVoiceDisplay = function(voiceName) {
+    const disp = document.getElementById('disp-voiceName');
+    if (disp) {
+        disp.innerText = voiceName ? voiceName : "기본 음성";
+    }
+};
+
+// 🌟 3. 브라우저에서 목소리 로딩이 끝날 때 리스트 새로고침 (필수 방어코드)
+if (window.speechSynthesis) {
+    window.speechSynthesis.onvoiceschanged = window.renderVoiceList;
+}
+
+// 🌟 4. 앱 초기화 시 목소리 UI 업데이트
+setTimeout(() => {
+    const savedVoice = localStorage.getItem('selected_voice_name');
+    window.updateVoiceDisplay(savedVoice);
+    window.renderVoiceList();
+}, 500);
+
+
 
 // 화면 아무 곳이나 클릭하면 열려있는 패널 모두 닫기
 document.addEventListener('click', (e) => {
@@ -1964,3 +2118,27 @@ window.clearSelection = function() {
         // 에러 방지용 안전 장치
 window.handleBodyClick = window.handleBodyClick || function(e) {};
 window.clearSelection = window.clearSelection || function() {};
+
+window.requestVoicesFromApp = function() {
+    // 1. 플러터 브릿지가 생성될 때까지 기다리는 안전장치
+    if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
+        console.log("✅ 앱 브릿지 연결 성공!");
+        
+        // 2. 앱에 getDeviceVoices 요청
+        window.flutter_inappwebview.callHandler('getDeviceVoices').then(function(voicesJson) {
+            if(voicesJson) {
+                console.log("📦 목소리 데이터 수신 성공!");
+                window.loadVoicesToUI(voicesJson);
+            }
+        });
+    } else {
+        // 3. 앱이 아직 안 켜졌으면 0.3초 뒤에 다시 호출
+        console.log("⏳ 앱 브릿지 대기 중...");
+        setTimeout(window.requestVoicesFromApp, 300);
+    }
+};
+
+// 페이지가 완전히 로드된 후 시작
+window.addEventListener('flutterInAppWebViewPlatformReady', function(event) {
+    window.requestVoicesFromApp();
+});

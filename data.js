@@ -73,8 +73,11 @@ const SUPPORTED_LANGUAGES = [
         "ui_ph_chat": "마이크가 안 될 때는 직접 입력해 보세요...",
         "ui_ph_roleplay": "예시) 블랙핑크의 노래를 주제로 대화",
         "ui_ph_vocab": "원하는 단어나 문장을 직접 입력해 보세요! (선택)",
-        "ui_ph_custom_name": "이름 (예: 로버트)", "ui_ph_custom_prompt": "성격 (예: 넌 지금부터 변호사야...)"
-            
+        "ui_ph_custom_name": "이름 (예: 로버트)", "ui_ph_custom_prompt": "성격 (예: 넌 지금부터 변호사야...)",
+            "ui_custom_ai_list": "나만의 AI 도감 (최대 3개)",
+"ui_custom_ai_empty": "생성된 나만의 AI가 없습니다.",
+"ui_create_new_char": "새 캐릭터 생성",
+"ui_save_custom_char": "캐릭터 저장하고 바로 대화하기",
             },
             "en": {
                 "main_subtitle": "Smart Language Partner", "mic_warning_text": "Mic restricted by browser. Please select 'Open in another browser'.",
@@ -136,7 +139,11 @@ const SUPPORTED_LANGUAGES = [
                 "ui_ph_chat": "Type here if mic is unavailable...",
                 "ui_ph_roleplay": "e.g.) Talk about Blackpink's songs",
                 "ui_ph_vocab": "Type a word or sentence! (Optional)",
-                "ui_ph_custom_name": "Name (e.g. Robert)", "ui_ph_custom_prompt": "Personality (e.g. You are a lawyer...)"
+                "ui_ph_custom_name": "Name (e.g. Robert)", "ui_ph_custom_prompt": "Personality (e.g. You are a lawyer...)",
+                "ui_custom_ai_list": "My AI Collection (Max 3)",
+"ui_custom_ai_empty": "No custom AI created yet.",
+"ui_create_new_char": "Create New Character",
+"ui_save_custom_char": "Save & Start Chatting",
             },
                 
             "ja": {
@@ -188,7 +195,11 @@ const SUPPORTED_LANGUAGES = [
         "ui_ph_chat": "マイクが使えない時は直接入力...",
         "ui_ph_roleplay": "例) Blackpinkの歌について会話",
         "ui_ph_vocab": "希望の単語や文を入力！(選択)",
-        "ui_ph_custom_name": "名前 (例: ロバート)", "ui_ph_custom_prompt": "性格 (例: あなたは弁護士...)"
+        "ui_ph_custom_name": "名前 (例: ロバート)", "ui_ph_custom_prompt": "性格 (例: あなたは弁護士...)",
+        "ui_custom_ai_list": "マイAI図鑑（最大3つ）",
+"ui_custom_ai_empty": "作成されたマイAIはありません。",
+"ui_create_new_char": "新しいキャラクターを作成",
+"ui_save_custom_char": "保存してすぐに会話を始める",
             },
             "zh": {
                 "main_subtitle": "Smart Language Partner", "mic_warning_text": "浏览器麦克风受限，请选择“在其他浏览器中打开”。",
@@ -239,7 +250,11 @@ const SUPPORTED_LANGUAGES = [
         "ui_ph_chat": "麦克风无法使用时请直接输入...",
         "ui_ph_roleplay": "例如) 以Blackpink的歌为主题",
         "ui_ph_vocab": "请输入想要的单词或句子！(选填)",
-        "ui_ph_custom_name": "名字 (例: 罗伯特)", "ui_ph_custom_prompt": "性格 (例: 你是名律师...)"
+        "ui_ph_custom_name": "名字 (例: 罗伯特)", "ui_ph_custom_prompt": "性格 (例: 你是名律师...)",
+        "ui_custom_ai_list": "我的AI图鉴（最多3个）",
+"ui_custom_ai_empty": "暂无自定义AI。",
+"ui_create_new_char": "创建新角色",
+"ui_save_custom_char": "保存角色并立即聊天",
             },
             "es": {
                 "main_subtitle": "Socio de Idiomas Inteligente", "mic_warning_text": "Micrófono restringido. Por favor, seleccione 'Abrir en otro navegador'.",
@@ -291,7 +306,11 @@ const SUPPORTED_LANGUAGES = [
         "ui_ph_chat": "Escribe aquí si el micro no funciona...",
         "ui_ph_roleplay": "ej.) Hablar sobre Blackpink",
         "ui_ph_vocab": "¡Ingresa una palabra o frase! (Opcional)",
-        "ui_ph_custom_name": "Nombre (ej. Robert)", "ui_ph_custom_prompt": "Personalidad (ej. Eres un abogado...)"
+        "ui_ph_custom_name": "Nombre (ej. Robert)", "ui_ph_custom_prompt": "Personalidad (ej. Eres un abogado...)",
+        "ui_custom_ai_list": "Mi Colección de IA (Máx 3)",
+"ui_custom_ai_empty": "Aún no se ha creado ninguna IA personalizada.",
+"ui_create_new_char": "Crear Nuevo Personaje",
+"ui_save_custom_char": "Guardar y Empezar a Chatear",
             },
             "fr": {
                 "main_subtitle": "Partenaire Linguistique Intelligent", "mic_warning_text": "Microphone restreint. Veuillez sélectionner 'Ouvrir dans un autre navigateur'.",
@@ -342,7 +361,11 @@ const SUPPORTED_LANGUAGES = [
         "ui_ph_chat": "Tapez ici si le micro ne marche pas...",
         "ui_ph_roleplay": "ex.) Parler des chansons de Blackpink",
         "ui_ph_vocab": "Entrez un mot ou une phrase ! (Optionnel)",
-        "ui_ph_custom_name": "Nom (ex. Robert)", "ui_ph_custom_prompt": "Personnalité (ex. Tu es avocat...)"
+        "ui_ph_custom_name": "Nom (ex. Robert)", "ui_ph_custom_prompt": "Personnalité (ex. Tu es avocat...)",
+        "ui_custom_ai_list": "Ma Collection d'IA (Max 3)",
+"ui_custom_ai_empty": "Aucune IA personnalisée créée.",
+"ui_create_new_char": "Créer un Nouveau Personnage",
+"ui_save_custom_char": "Enregistrer et Commencer à Discuter",
             },
             "de": {
                 "main_subtitle": "Intelligenter Sprachpartner", "mic_warning_text": "Mikrofon blockiert. Bitte wählen Sie 'In anderem Browser öffnen'.",
@@ -393,7 +416,11 @@ const SUPPORTED_LANGUAGES = [
         "ui_ph_chat": "Hier tippen, wenn das Mikro nicht geht...",
         "ui_ph_roleplay": "z.B.) Über Blackpink sprechen",
         "ui_ph_vocab": "Gib ein Wort oder Satz ein! (Optional)",
-        "ui_ph_custom_name": "Name (z.B. Robert)", "ui_ph_custom_prompt": "Persönlichkeit (z.B. Du bist Anwalt...)"
+        "ui_ph_custom_name": "Name (z.B. Robert)", "ui_ph_custom_prompt": "Persönlichkeit (z.B. Du bist Anwalt...)",
+        "ui_custom_ai_list": "Meine KI-Sammlung (Max. 3)",
+"ui_custom_ai_empty": "Noch keine eigene KI erstellt.",
+"ui_create_new_char": "Neuen Charakter erstellen",
+"ui_save_custom_char": "Speichern und Chat starten",
             },
             "vi": {
                 "main_subtitle": "Đối tác ngôn ngữ thông minh", "mic_warning_text": "Micro bị hạn chế. Vui lòng chọn 'Mở trong trình duyệt khác'.",
@@ -444,7 +471,11 @@ const SUPPORTED_LANGUAGES = [
         "ui_ph_chat": "Nhập vào đây nếu mic không hoạt động...",
         "ui_ph_roleplay": "VD) Nói về bài hát của Blackpink",
         "ui_ph_vocab": "Nhập từ hoặc câu mong muốn! (Tùy chọn)",
-        "ui_ph_custom_name": "Tên (VD: Robert)", "ui_ph_custom_prompt": "Tính cách (VD: Bạn là luật sư...)"
+        "ui_ph_custom_name": "Tên (VD: Robert)", "ui_ph_custom_prompt": "Tính cách (VD: Bạn là luật sư...)",
+        "ui_custom_ai_list": "Bộ sưu tập AI (Tối đa 3)",
+"ui_custom_ai_empty": "Chưa có AI tùy chỉnh nào được tạo.",
+"ui_create_new_char": "Tạo nhân vật mới",
+"ui_save_custom_char": "Lưu và bắt đầu trò chuyện",
             
             },
             "ru": {
@@ -496,7 +527,11 @@ const SUPPORTED_LANGUAGES = [
         "ui_ph_chat": "Пишите сюда, если микрофон не работает...",
         "ui_ph_roleplay": "Напр.) Разговор о песнях Blackpink",
         "ui_ph_vocab": "Введите слово или фразу! (Необязательно)",
-        "ui_ph_custom_name": "Имя (напр. Роберт)", "ui_ph_custom_prompt": "Характер (напр. Ты адвокат...)"
+        "ui_ph_custom_name": "Имя (напр. Роберт)", "ui_ph_custom_prompt": "Характер (напр. Ты адвокат...)",
+        "ui_custom_ai_list": "Моя коллекция ИИ (Макс. 3)",
+"ui_custom_ai_empty": "Свой ИИ еще не создан.",
+"ui_create_new_char": "Создать нового персонажа",
+"ui_save_custom_char": "Сохранить и начать чат",
             
             },
             "th": {
@@ -548,7 +583,10 @@ const SUPPORTED_LANGUAGES = [
         "ui_ph_chat": "พิมพ์ที่นี่ถ้าไมค์ใช้ไม่ได้...",
         "ui_ph_roleplay": "เช่น) พูดคุยเกี่ยวกับเพลง Blackpink",
         "ui_ph_vocab": "ป้อนคำหรือประโยคที่ต้องการ! (ตัวเลือก)",
-        "ui_ph_custom_name": "ชื่อ (เช่น Robert)", "ui_ph_custom_prompt": "บุคลิก (เช่น คุณคือทนายความ...)"
+        "ui_ph_custom_name": "ชื่อ (เช่น Robert)", "ui_ph_custom_prompt": "บุคลิก (เช่น คุณคือทนายความ...)","ui_custom_ai_list": "คอลเลกชัน AI ของฉัน (สูงสุด 3)",
+"ui_custom_ai_empty": "ยังไม่มีการสร้าง AI ของคุณเอง",
+"ui_create_new_char": "สร้างตัวละครใหม่",
+"ui_save_custom_char": "บันทึกและเริ่มแชท",
             },
 
             "ar": {
@@ -600,7 +638,11 @@ const SUPPORTED_LANGUAGES = [
         "ui_ph_chat": "اكتب هنا إذا كان الميكروفون لا يعمل...",
         "ui_ph_roleplay": "مثل) التحدث عن أغاني بلاكبينك",
         "ui_ph_vocab": "أدخل كلمة أو جملة! (اختياري)",
-        "ui_ph_custom_name": "الاسم (مثل روبرت)", "ui_ph_custom_prompt": "الشخصية (مثل أنت محامٍ...)"
+        "ui_ph_custom_name": "الاسم (مثل روبرت)", "ui_ph_custom_prompt": "الشخصية (مثل أنت محامٍ...)",
+        "ui_custom_ai_list": "مجموعة الذكاء الاصطناعي (بحد أقصى 3)",
+"ui_custom_ai_empty": "لم يتم إنشاء ذكاء اصطناعي مخصص بعد.",
+"ui_create_new_char": "إنشاء شخصية جديدة",
+"ui_save_custom_char": "حفظ والبدء في الدردشة",
             },
 
             "id": {
@@ -654,7 +696,11 @@ const SUPPORTED_LANGUAGES = [
         "ui_ph_chat": "Ketik di sini jika mikrofon mati...",
         "ui_ph_roleplay": "Cth) Bicara tentang lagu Blackpink",
         "ui_ph_vocab": "Masukkan kata atau kalimat! (Opsional)",
-        "ui_ph_custom_name": "Nama (cth. Robert)", "ui_ph_custom_prompt": "Kepribadian (cth. Anda pengacara...)"
+        "ui_ph_custom_name": "Nama (cth. Robert)", "ui_ph_custom_prompt": "Kepribadian (cth. Anda pengacara...)",
+        "ui_custom_ai_list": "Koleksi AI Saya (Maks 3)",
+"ui_custom_ai_empty": "Belum ada AI kustom yang dibuat.",
+"ui_create_new_char": "Buat Karakter Baru",
+"ui_save_custom_char": "Simpan dan Mulai Obrolan",
             },
 
             "hi": {
@@ -706,7 +752,11 @@ const SUPPORTED_LANGUAGES = [
                 "ui_ph_chat": "Type here if mic is unavailable...",
                 "ui_ph_roleplay": "e.g.) Talk about Blackpink's songs",
                 "ui_ph_vocab": "Type a word or sentence! (Optional)",
-                "ui_ph_custom_name": "Name (e.g. Robert)", "ui_ph_custom_prompt": "Personality (e.g. You are a lawyer...)"
+                "ui_ph_custom_name": "Name (e.g. Robert)", "ui_ph_custom_prompt": "Personality (e.g. You are a lawyer...)",
+                "ui_custom_ai_list": "मेरा एआई संग्रह (अधिकतम 3)",
+"ui_custom_ai_empty": "अभी तक कोई कस्टम एआई नहीं बनाया गया है।",
+"ui_create_new_char": "नया चरित्र बनाएं",
+"ui_save_custom_char": "सहेजें और चैटिंग शुरू करें",
                 
                 },
             "pl": {
@@ -758,7 +808,11 @@ const SUPPORTED_LANGUAGES = [
                 "ui_ph_chat": "Type here if mic is unavailable...",
                 "ui_ph_roleplay": "e.g.) Talk about Blackpink's songs",
                 "ui_ph_vocab": "Type a word or sentence! (Optional)",
-                "ui_ph_custom_name": "Name (e.g. Robert)", "ui_ph_custom_prompt": "Personality (e.g. You are a lawyer...)"
+                "ui_ph_custom_name": "Name (e.g. Robert)", "ui_ph_custom_prompt": "Personality (e.g. You are a lawyer...)",
+                "ui_custom_ai_list": "Moja Kolekcja AI (Maks. 3)",
+"ui_custom_ai_empty": "Nie utworzono jeszcze niestandardowego AI.",
+"ui_create_new_char": "Utwórz Nową Postać",
+"ui_save_custom_char": "Zapisz i zacznij czatować",
             },
             "gd": {
                 "main_subtitle": "Smart Language Partner", "mic_warning_text": "Mic restricted by browser. Please select 'Open in another browser'.",
@@ -1125,9 +1179,27 @@ const SUPPORTED_LANGUAGES = [
             // 특수/소수 언어 영어 템플릿: 힌디어(hi), 폴란드어(pl), 스코틀랜드어(gd), 라틴어(la), 히브리어(he), 네팔어(ne), 몽골어(mn), 티베트어(bo), 스وا힐리어(sw) 등은 사용 빈도가 극히 낮고, 코드가 너무 길어져 파일이 잘리는 것을 방지하기 위해 핵심 키만 압축된 형태(영어 템플릿 기본값)
         };
 
-// 기본 언어가 없는 경우 영어를 폴백으로 사용하도록 복사
 const langs = ["es", "ja", "zh", "th", "vi", "fr", "de", "ru", "ar", "id", "hi", "pl", "gd", "la", "he", "ne", "mn", "bo", "sw"];
-langs.forEach(lang => { window.UI_DICTIONARY[lang] = { ...window.UI_DICTIONARY["en"] }; });
+
+// 1. UI_DICTIONARY 자체가 없으면 무조건 빈 바구니부터 생성!
+if (typeof window.UI_DICTIONARY === 'undefined') {
+    window.UI_DICTIONARY = {};
+}
+// 2. "en" 데이터가 없으면 역시 빈 바구니 생성! (이게 핵심 방어막)
+if (!window.UI_DICTIONARY["en"]) {
+    window.UI_DICTIONARY["en"] = {};
+}
+
+// 3. 이제 안심하고 반복문 실행
+langs.forEach(l => {
+    window.UI_DICTIONARY[l] = Object.assign({}, window.UI_DICTIONARY["en"], window.UI_DICTIONARY[l] || {});
+});
+
+// 3. 현재 언어 데이터(langData)를 안전하게 연결합니다.
+const dictionary = window.UI_DICTIONARY;
+// baseLang 변수가 선언 안 되어 있을 경우를 대비한 2차 방어막
+const currentBase = typeof baseLang !== 'undefined' ? baseLang : "en";
+const langData = dictionary[currentBase] || dictionary["en"];
 
 const NEW_MAIN_UI_TRANS = {
             "ko": { 
