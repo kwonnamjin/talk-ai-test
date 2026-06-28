@@ -672,22 +672,7 @@ window.initSpeechRecognition = function() {
         }
         window.flutter_inappwebview.callHandler('speak', clean, targetLangCode, window.selectedTtsVoiceName);
 
-        if (setup.target === 'targetLanguage') {
-    localStorage.setItem('target_language', lang.code);
-    
-    // 🌟 [여기가 추가된 핵심!] 언어가 바뀌면 기존 목소리 기억을 싹 지워버립니다.
-    window.selectedTtsVoiceName = "";
-    localStorage.removeItem('saved_voice_name');
-    localStorage.removeItem('selected_voice_name');
-    
-    // UI에 표시되는 이름도 즉시 '기본 음성'으로 바꿔줍니다.
-    if (typeof window.updateVoiceDisplay === 'function') {
-        window.updateVoiceDisplay("기본 음성");
-    }
-    
-    // 🌟 리스트 새로고침
-    window.requestVoicesFromApp(); 
-}
+        
 
 
 
