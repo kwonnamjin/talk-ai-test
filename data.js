@@ -1179,89 +1179,84 @@ const SUPPORTED_LANGUAGES = [
             // 특수/소수 언어 영어 템플릿: 힌디어(hi), 폴란드어(pl), 스코틀랜드어(gd), 라틴어(la), 히브리어(he), 네팔어(ne), 몽골어(mn), 티베트어(bo), 스وا힐리어(sw) 등은 사용 빈도가 극히 낮고, 코드가 너무 길어져 파일이 잘리는 것을 방지하기 위해 핵심 키만 압축된 형태(영어 템플릿 기본값)
         };
 
+// ==========================================
+// 🚨 아래 코드를 data.js 파일 맨 밑바닥에 그대로 덮어쓰세요!
+// ==========================================
+
 const langs = ["es", "ja", "zh", "th", "vi", "fr", "de", "ru", "ar", "id", "hi", "pl", "gd", "la", "he", "ne", "mn", "bo", "sw"];
 
-// 1. UI_DICTIONARY 자체가 없으면 무조건 빈 바구니부터 생성!
-if (typeof window.UI_DICTIONARY === 'undefined') {
-    window.UI_DICTIONARY = {};
-}
-// 2. "en" 데이터가 없으면 역시 빈 바구니 생성! (이게 핵심 방어막)
+// 🌟 1. 위에서 만든 그 거대한 진짜 사전을 텅 빈 깡통 대신 앱(window)에 확실하게 연결해 줍니다!
+window.UI_DICTIONARY = UI_DICTIONARY;
+
+// 🌟 2. "en" 데이터가 없으면 빈 바구니 생성 (에러 방어막)
 if (!window.UI_DICTIONARY["en"]) {
     window.UI_DICTIONARY["en"] = {};
 }
 
-// 3. 이제 안심하고 반복문 실행
+// 🌟 3. 소수 언어들에 영어(en) 데이터를 기본값으로 깔아주기
 langs.forEach(l => {
     window.UI_DICTIONARY[l] = Object.assign({}, window.UI_DICTIONARY["en"], window.UI_DICTIONARY[l] || {});
 });
 
-// 3. 현재 언어 데이터(langData)를 안전하게 연결합니다.
-const dictionary = window.UI_DICTIONARY;
-// baseLang 변수가 선언 안 되어 있을 경우를 대비한 2차 방어막
-const currentBase = typeof baseLang !== 'undefined' ? baseLang : "en";
-const langData = dictionary[currentBase] || dictionary["en"];
-
 const NEW_MAIN_UI_TRANS = {
-            "ko": { 
-                "ui_home_user_lang": "사용자 언어", "ui_home_target_lang": "학습 언어", "ui_home_btn_free": "💬 프리토킹", "ui_home_btn_roleplay": "🎭 롤플레잉", "ui_home_btn_vocab": "📝 단어장", "ui_home_btn_alpha": "🔤 기초발음", "ui_home_memory_title": "AI 튜터의 기억 🧠", "ui_home_report_title": "내 학습 리포트 📊", "ui_home_stat_sent": "AI와 대화한 총 문장 수", "ui_home_stat_sent_unit": "문장", "ui_home_stat_vocab": "복습한 단어장", "ui_home_stat_vocab_unit": "번", "ui_home_stat_rp": "보관된 롤플레잉", "ui_home_stat_rp_unit": "개", "ui_home_premium_title": "멤버십 업그레이드 ✨", "ui_home_premium_desc": "베이직 / 프리미엄 요금제로 한도를 늘려보세요!", "ui_streak_days": "{n}일 연속", "ui_quest_done": "✨ 오늘 퀘스트 완료!", "ui_quest_status": "오늘 퀘스트: 대본({s}/5) 단어({v}/10)", "ui_memory_empty": "아직은 대화가 부족해서 기억된 내용이 없어요.\n\n프리토킹 튜터와 자유롭게 대화하면서 나만의 AI를 성장시켜 보세요! 🌱",
-                "welcome_f1_title": "맞춤형 페르소나 & 언어 변경", "welcome_f1_desc": "상단의 버튼으로 AI의 성격을 바꾸고, 우측 상단의 버튼을 눌러 대화할 언어를 자유롭게 변경해 보세요."
-            },
-            "en": { 
-                "ui_home_user_lang": "User Language", "ui_home_target_lang": "Target Language", "ui_home_btn_free": "💬 Free Talk", "ui_home_btn_roleplay": "🎭 Roleplay", "ui_home_btn_vocab": "📝 Vocabulary", "ui_home_btn_alpha": "🔤 Phonics", "ui_home_memory_title": "AI Tutor's Memory 🧠", "ui_home_report_title": "My Learning Report 📊", "ui_home_stat_sent": "Total Sentences with AI", "ui_home_stat_sent_unit": "lines", "ui_home_stat_vocab": "Vocabs Reviewed", "ui_home_stat_vocab_unit": "times", "ui_home_stat_rp": "Roleplays Saved", "ui_home_stat_rp_unit": "items", "ui_home_premium_title": "Upgrade Membership ✨", "ui_home_premium_desc": "Increase limits with Basic / Premium!", "ui_streak_days": "{n} Day Streak", "ui_quest_done": "✨ Today's Quest Done!", "ui_quest_status": "Quest: Script({s}/5) Vocab({v}/10)", "ui_memory_empty": "Not enough conversations to remember yet.\n\nChat freely with the tutor and grow your own AI! 🌱",
-                "welcome_f1_title": "Custom Persona & Language", "welcome_f1_desc": "Change the AI's personality at the top, and easily change the chat language using the top-right button."
-            },
-            "ja": { 
-                "ui_home_user_lang": "ユーザー言語", "ui_home_target_lang": "学習言語", "ui_home_btn_free": "💬 フリートーク", "ui_home_btn_roleplay": "🎭 ロールプレイ", "ui_home_btn_vocab": "📝 単語帳", "ui_home_btn_alpha": "🔤 基礎発音", "ui_home_memory_title": "AIチューターの記憶 🧠", "ui_home_report_title": "学習レポート 📊", "ui_home_stat_sent": "AIとの総会話数", "ui_home_stat_sent_unit": "文", "ui_home_stat_vocab": "復習した単語帳", "ui_home_stat_vocab_unit": "回", "ui_home_stat_rp": "保存したロールプレイ", "ui_home_stat_rp_unit": "個", "ui_home_premium_title": "アップグレード ✨", "ui_home_premium_desc": "制限を増やしましょう！", "ui_streak_days": "{n}日連続", "ui_quest_done": "✨ クエスト完了！", "ui_quest_status": "クエスト: 台本({s}/5) 単語({v}/10)", "ui_memory_empty": "まだ会話が少なく、記憶された内容がありません。\n\n自由に会話しながら、あなただけのAIを育てましょう！ 🌱",
-                "welcome_f1_title": "カスタムペルソナ＆言語変更", "welcome_f1_desc": "上部のボタンでAIの性格を変更し、右上のボタンで会話する言語を自由に変更してください。"
-            },
-            "zh": { 
-                "ui_home_user_lang": "用户语言", "ui_home_target_lang": "学习语言", "ui_home_btn_free": "💬 自由对话", "ui_home_btn_roleplay": "🎭 角色扮演", "ui_home_btn_vocab": "📝 单词本", "ui_home_btn_alpha": "🔤 基础发音", "ui_home_memory_title": "AI 导师记忆 🧠", "ui_home_report_title": "我的学习报告 📊", "ui_home_stat_sent": "对话总句数", "ui_home_stat_sent_unit": "句", "ui_home_stat_vocab": "复习的单词本", "ui_home_stat_vocab_unit": "次", "ui_home_stat_rp": "保存的角色扮演", "ui_home_stat_rp_unit": "个", "ui_home_premium_title": "升级会员 ✨", "ui_home_premium_desc": "提高您的使用限制！", "ui_streak_days": "连续 {n} 天", "ui_quest_done": "✨ 今日任务完成！", "ui_quest_status": "任务: 剧本({s}/5) 单词({v}/10)", "ui_memory_empty": "由于对话不足，目前还没有记录您的信息。\n\n通过与导师自由对话，培养专属您的 AI 吧！ 🌱",
-                "welcome_f1_title": "自定义角色与语言", "welcome_f1_desc": "使用顶部按钮更改AI性格，并点击右上角按钮自由切换对话语言。"
-            },
-            "es": { 
-                "ui_home_user_lang": "Idioma de Usuario", "ui_home_target_lang": "Idioma Objetivo", "ui_home_btn_free": "💬 Charla Libre", "ui_home_btn_roleplay": "🎭 Juego de Roles", "ui_home_btn_vocab": "📝 Vocabulario", "ui_home_btn_alpha": "🔤 Fonética", "ui_home_memory_title": "Memoria del Tutor 🧠", "ui_home_report_title": "Mi Informe 📊", "ui_home_stat_sent": "Total de oraciones", "ui_home_stat_sent_unit": "líneas", "ui_home_stat_vocab": "Vocabularios repasados", "ui_home_stat_vocab_unit": "veces", "ui_home_stat_rp": "Roles guardados", "ui_home_stat_rp_unit": "ítems", "ui_home_premium_title": "Mejorar Membresía ✨", "ui_home_premium_desc": "¡Aumenta tus límites con los planes!", "ui_streak_days": "{n} Días Seguidos", "ui_quest_done": "✨ ¡Misión completada!", "ui_quest_status": "Misión: Guion({s}/5) Vocab({v}/10)", "ui_memory_empty": "Aún no hay suficientes conversaciones.\n\n¡Charla libremente y haz crecer tu propia IA! 🌱",
-                "welcome_f1_title": "Persona Personalizada e Idioma", "welcome_f1_desc": "Cambia la personalidad de la IA en la parte superior y cambia el idioma del chat con el botón superior derecho."
-            },
-            "fr": { 
-                "ui_home_user_lang": "Langue Utilisateur", "ui_home_target_lang": "Langue Cible", "ui_home_btn_free": "💬 Discussion Libre", "ui_home_btn_roleplay": "🎭 Jeu de Rôle", "ui_home_btn_vocab": "📝 Vocabulaire", "ui_home_btn_alpha": "🔤 Phonétique", "ui_home_memory_title": "Mémoire du Tuteur 🧠", "ui_home_report_title": "Mon Rapport 📊", "ui_home_stat_sent": "Phrases totales", "ui_home_stat_sent_unit": "lignes", "ui_home_stat_vocab": "Vocabulaires révisés", "ui_home_stat_vocab_unit": "fois", "ui_home_stat_rp": "Jeux de rôle", "ui_home_stat_rp_unit": "éléments", "ui_home_premium_title": "Améliorer l'Abonnement ✨", "ui_home_premium_desc": "Augmentez vos limites avec Premium !", "ui_streak_days": "{n} Jours Consécutifs", "ui_quest_done": "✨ Quête terminée !", "ui_quest_status": "Quête: Script({s}/5) Vocab({v}/10)", "ui_memory_empty": "Pas encore assez de conversations.\n\nDiscutez librement et développez votre IA ! 🌱",
-                "welcome_f1_title": "Persona Personnalisée et Langue", "welcome_f1_desc": "Changez la personnalité de l'IA en haut, et changez la langue du chat avec le bouton en haut à droite."
-            },
-            "de": { 
-                "ui_home_user_lang": "Benutzersprache", "ui_home_target_lang": "Zielsprache", "ui_home_btn_free": "💬 Freies Gespräch", "ui_home_btn_roleplay": "🎭 Rollenspiel", "ui_home_btn_vocab": "📝 Vokabeln", "ui_home_btn_alpha": "🔤 Phonetik", "ui_home_memory_title": "Gedächtnis des Tutors 🧠", "ui_home_report_title": "Mein Lernbericht 📊", "ui_home_stat_sent": "Sätze gesamt", "ui_home_stat_sent_unit": "Zeilen", "ui_home_stat_vocab": "Vokabeln wiederholt", "ui_home_stat_vocab_unit": "Mal", "ui_home_stat_rp": "Rollenspiele", "ui_home_stat_rp_unit": "Elemente", "ui_home_premium_title": "Mitgliedschaft aktualisieren ✨", "ui_home_premium_desc": "Erweitern Sie Ihre Limits!", "ui_streak_days": "{n} Tage in Folge", "ui_quest_done": "✨ Quest erledigt!", "ui_quest_status": "Quest: Skript({s}/5) Vokab({v}/10)", "ui_memory_empty": "Noch nicht genug Unterhaltungen.\n\nChatten Sie frei und lassen Sie Ihre KI wachsen! 🌱",
-                "welcome_f1_title": "Benutzerdefinierte Persona & Sprache", "welcome_f1_desc": "Ändern Sie oben die Persönlichkeit der KI und wechseln Sie die Chat-Sprache mit der Schaltfläche oben rechts."
-            },
-            "vi": { 
-                "ui_home_user_lang": "Ngôn ngữ người dùng", "ui_home_target_lang": "Ngôn ngữ học", "ui_home_btn_free": "💬 Trò chuyện tự do", "ui_home_btn_roleplay": "🎭 Nhập vai", "ui_home_btn_vocab": "📝 Từ vựng", "ui_home_btn_alpha": "🔤 Ngữ âm", "ui_home_memory_title": "Trí nhớ của AI 🧠", "ui_home_report_title": "Báo cáo của tôi 📊", "ui_home_stat_sent": "Tổng số câu", "ui_home_stat_sent_unit": "câu", "ui_home_stat_vocab": "Từ vựng đã ôn", "ui_home_stat_vocab_unit": "lần", "ui_home_stat_rp": "Kịch bản đã lưu", "ui_home_stat_rp_unit": "mục", "ui_home_premium_title": "Nâng cấp Thành viên ✨", "ui_home_premium_desc": "Tăng giới hạn của bạn!", "ui_streak_days": "{n} Ngày liên tiếp", "ui_quest_done": "✨ Nhiệm vụ hoàn thành!", "ui_quest_status": "Nhiệm vụ: Kịch bản({s}/5) Từ vựng({v}/10)", "ui_memory_empty": "Chưa có đủ cuộc trò chuyện.\n\nHãy trò chuyện tự do để phát triển AI của bạn! 🌱",
-                "welcome_f1_title": "Tùy chỉnh Persona & Ngôn ngữ", "welcome_f1_desc": "Thay đổi tính cách AI ở trên và dễ dàng thay đổi ngôn ngữ trò chuyện bằng nút trên cùng bên phải."
-            },
-            "ru": { 
-                "ui_home_user_lang": "Язык пользователя", "ui_home_target_lang": "Изучаемый язык", "ui_home_btn_free": "💬 Свободное общение", "ui_home_btn_roleplay": "🎭 Ролевая игра", "ui_home_btn_vocab": "📝 Словарь", "ui_home_btn_alpha": "🔤 Фонетика", "ui_home_memory_title": "Память ИИ 🧠", "ui_home_report_title": "Мой отчет 📊", "ui_home_stat_sent": "Всего предложений", "ui_home_stat_sent_unit": "строк", "ui_home_stat_vocab": "Повторено словарей", "ui_home_stat_vocab_unit": "раз", "ui_home_stat_rp": "Сохранено ролевых игр", "ui_home_stat_rp_unit": "шт", "ui_home_premium_title": "Улучшить подписку ✨", "ui_home_premium_desc": "Увеличьте лимиты с Premium!", "ui_streak_days": "{n} Дней подряд", "ui_quest_done": "✨ Задание выполнено!", "ui_quest_status": "Задание: Сценарий({s}/5) Слова({v}/10)", "ui_memory_empty": "Пока недостаточно разговоров.\n\nОбщайтесь с репетитором и развивайте своего ИИ! 🌱",
-                "welcome_f1_title": "Настройка ИИ и Язык", "welcome_f1_desc": "Меняйте характер ИИ наверху и легко меняйте язык чата с помощью кнопки в правом верхнем углу."
-            },
-            "th": { 
-                "ui_home_user_lang": "ภาษาผู้ใช้", "ui_home_target_lang": "ภาษาเป้าหมาย", "ui_home_btn_free": "💬 คุยอิสระ", "ui_home_btn_roleplay": "🎭 จำลองสถานการณ์", "ui_home_btn_vocab": "📝 คำศัพท์", "ui_home_btn_alpha": "🔤 การออกเสียง", "ui_home_memory_title": "ความจำของ AI 🧠", "ui_home_report_title": "รายงานการเรียนรู้ 📊", "ui_home_stat_sent": "ประโยคทั้งหมด", "ui_home_stat_sent_unit": "ประโยค", "ui_home_stat_vocab": "ทบทวนคำศัพท์แล้ว", "ui_home_stat_vocab_unit": "ครั้ง", "ui_home_stat_rp": "บันทึก Roleplay แล้ว", "ui_home_stat_rp_unit": "รายการ", "ui_home_premium_title": "อัปเกรดสมาชิก ✨", "ui_home_premium_desc": "เพิ่มขีดจำกัดด้วยพรีเมียม!", "ui_streak_days": "ต่อเนื่อง {n} วัน", "ui_quest_done": "✨ ทำภารกิจสำเร็จ!", "ui_quest_status": "ภารกิจ: สคริปต์({s}/5) คำศัพท์({v}/10)", "ui_memory_empty": "ยังไม่มีข้อมูลเพียงพอ\n\nคุยเล่นอย่างอิสระเพื่อพัฒนา AI ของคุณ! 🌱",
-                "welcome_f1_title": "ปรับแต่งบุคลิก & เปลี่ยนภาษา", "welcome_f1_desc": "เปลี่ยนบุคลิก AI ที่ด้านบน และเปลี่ยนภาษาที่ใช้แชทได้ง่ายๆ ด้วยปุ่มที่มุมขวาบน"
-            },
-            "ar": { 
-                "ui_home_user_lang": "لغة المستخدم", "ui_home_target_lang": "لغة التعلم", "ui_home_btn_free": "💬 محادثة حرة", "ui_home_btn_roleplay": "🎭 لعب الأدوار", "ui_home_btn_vocab": "📝 المفردات", "ui_home_btn_alpha": "🔤 الصوتيات", "ui_home_memory_title": "ذاكرة الذكاء الاصطناعي 🧠", "ui_home_report_title": "تقرير التعلم 📊", "ui_home_stat_sent": "إجمالي الجمل", "ui_home_stat_sent_unit": "جملة", "ui_home_stat_vocab": "مراجعة المفردات", "ui_home_stat_vocab_unit": "مرات", "ui_home_stat_rp": "المحادثات المحفوظة", "ui_home_stat_rp_unit": "عنصر", "ui_home_premium_title": "ترقية العضوية ✨", "ui_home_premium_desc": "قم بزيادة حدودك مع المميز!", "ui_streak_days": "{n} أيام متتالية", "ui_quest_done": "✨ اكتملت المهمة!", "ui_quest_status": "المهمة: سيناريو({s}/5) مفردات({v}/10)", "ui_memory_empty": "لا توجد محادثات كافية بعد.\n\nتحدث بحرية وقم بتطوير الذكاء الاصطناعي الخاص بك! 🌱",
-                "welcome_f1_title": "تخصيص الشخصية واللغة", "welcome_f1_desc": "قم بتغيير شخصية الذكاء الاصطناعي في الأعلى، وقم بتغيير لغة الدردشة بسهولة باستخدام الزر الأيمن العلوي."
-            }
-        };
+    "ko": { 
+        "ui_home_user_lang": "사용자 언어", "ui_home_target_lang": "학습 언어", "ui_home_btn_free": "💬 프리토킹", "ui_home_btn_roleplay": "🎭 롤플레잉", "ui_home_btn_vocab": "📝 단어장", "ui_home_btn_alpha": "🔤 기초발음", "ui_home_memory_title": "AI 튜터의 기억 🧠", "ui_home_report_title": "내 학습 리포트 📊", "ui_home_stat_sent": "AI와 대화한 총 문장 수", "ui_home_stat_sent_unit": "문장", "ui_home_stat_vocab": "복습한 단어장", "ui_home_stat_vocab_unit": "번", "ui_home_stat_rp": "보관된 롤플레잉", "ui_home_stat_rp_unit": "개", "ui_home_premium_title": "멤버십 업그레이드 ✨", "ui_home_premium_desc": "베이직 / 프리미엄 요금제로 한도를 늘려보세요!", "ui_streak_days": "{n}일 연속", "ui_quest_done": "✨ 오늘 퀘스트 완료!", "ui_quest_status": "오늘 퀘스트: 대본({s}/5) 단어({v}/10)", "ui_memory_empty": "아직은 대화가 부족해서 기억된 내용이 없어요.\n\n프리토킹 튜터와 자유롭게 대화하면서 나만의 AI를 성장시켜 보세요! 🌱",
+        "welcome_f1_title": "맞춤형 페르소나 & 언어 변경", "welcome_f1_desc": "상단의 버튼으로 AI의 성격을 바꾸고, 우측 상단의 버튼을 눌러 대화할 언어를 자유롭게 변경해 보세요."
+    },
+    "en": { 
+        "ui_home_user_lang": "User Language", "ui_home_target_lang": "Target Language", "ui_home_btn_free": "💬 Free Talk", "ui_home_btn_roleplay": "🎭 Roleplay", "ui_home_btn_vocab": "📝 Vocabulary", "ui_home_btn_alpha": "🔤 Phonics", "ui_home_memory_title": "AI Tutor's Memory 🧠", "ui_home_report_title": "My Learning Report 📊", "ui_home_stat_sent": "Total Sentences with AI", "ui_home_stat_sent_unit": "lines", "ui_home_stat_vocab": "Vocabs Reviewed", "ui_home_stat_vocab_unit": "times", "ui_home_stat_rp": "Roleplays Saved", "ui_home_stat_rp_unit": "items", "ui_home_premium_title": "Upgrade Membership ✨", "ui_home_premium_desc": "Increase limits with Basic / Premium!", "ui_streak_days": "{n} Day Streak", "ui_quest_done": "✨ Today's Quest Done!", "ui_quest_status": "Quest: Script({s}/5) Vocab({v}/10)", "ui_memory_empty": "Not enough conversations to remember yet.\n\nChat freely with the tutor and grow your own AI! 🌱",
+        "welcome_f1_title": "Custom Persona & Language", "welcome_f1_desc": "Change the AI's personality at the top, and easily change the chat language using the top-right button."
+    },
+    "ja": { 
+        "ui_home_user_lang": "ユーザー言語", "ui_home_target_lang": "学習言語", "ui_home_btn_free": "💬 フリートーク", "ui_home_btn_roleplay": "🎭 ロールプレイ", "ui_home_btn_vocab": "📝 単語帳", "ui_home_btn_alpha": "🔤 基礎発音", "ui_home_memory_title": "AIチューターの記憶 🧠", "ui_home_report_title": "学習レポート 📊", "ui_home_stat_sent": "AIとの総会話数", "ui_home_stat_sent_unit": "文", "ui_home_stat_vocab": "復習した単語帳", "ui_home_stat_vocab_unit": "回", "ui_home_stat_rp": "保存したロールプレイ", "ui_home_stat_rp_unit": "個", "ui_home_premium_title": "アップグレード ✨", "ui_home_premium_desc": "制限を増やしましょう！", "ui_streak_days": "{n}日連続", "ui_quest_done": "✨ クエスト完了！", "ui_quest_status": "クエスト: 台本({s}/5) 単語({v}/10)", "ui_memory_empty": "まだ会話が少なく、記憶された内容がありません。\n\n自由に会話しながら、あなただけのAIを育てましょう！ 🌱",
+        "welcome_f1_title": "カスタムペルソナ＆言語変更", "welcome_f1_desc": "上部のボタンでAIの性格を変更し、右上のボタンで会話する言語を自由に変更してください。"
+    },
+    "zh": { 
+        "ui_home_user_lang": "用户语言", "ui_home_target_lang": "学习语言", "ui_home_btn_free": "💬 自由对话", "ui_home_btn_roleplay": "🎭 角色扮演", "ui_home_btn_vocab": "📝 单词本", "ui_home_btn_alpha": "🔤 基础发音", "ui_home_memory_title": "AI 导师记忆 🧠", "ui_home_report_title": "我的学习报告 📊", "ui_home_stat_sent": "对话总句数", "ui_home_stat_sent_unit": "句", "ui_home_stat_vocab": "复习的单词本", "ui_home_stat_vocab_unit": "次", "ui_home_stat_rp": "保存的角色扮演", "ui_home_stat_rp_unit": "个", "ui_home_premium_title": "升级会员 ✨", "ui_home_premium_desc": "提高您的使用限制！", "ui_streak_days": "连续 {n} 天", "ui_quest_done": "✨ 今日任务完成！", "ui_quest_status": "任务: 剧本({s}/5) 单词({v}/10)", "ui_memory_empty": "由于对话不足，目前还没有记录您的信息。\n\n通过与导师自由对话，培养专属您的 AI 吧！ 🌱",
+        "welcome_f1_title": "自定义角色与语言", "welcome_f1_desc": "使用顶部按钮更改AI性格，并点击右上角按钮自由切换对话语言。"
+    },
+    "es": { 
+        "ui_home_user_lang": "Idioma de Usuario", "ui_home_target_lang": "Idioma Objetivo", "ui_home_btn_free": "💬 Charla Libre", "ui_home_btn_roleplay": "🎭 Juego de Roles", "ui_home_btn_vocab": "📝 Vocabulario", "ui_home_btn_alpha": "🔤 Fonética", "ui_home_memory_title": "Memoria del Tutor 🧠", "ui_home_report_title": "Mi Informe 📊", "ui_home_stat_sent": "Total de oraciones", "ui_home_stat_sent_unit": "líneas", "ui_home_stat_vocab": "Vocabularios repasados", "ui_home_stat_vocab_unit": "veces", "ui_home_stat_rp": "Roles guardados", "ui_home_stat_rp_unit": "ítems", "ui_home_premium_title": "Mejorar Membresía ✨", "ui_home_premium_desc": "¡Aumenta tus límites con los planes!", "ui_streak_days": "{n} Días Seguidos", "ui_quest_done": "✨ ¡Misión completada!", "ui_quest_status": "Misión: Guion({s}/5) Vocab({v}/10)", "ui_memory_empty": "Aún no hay suficientes conversaciones.\n\n¡Charla libremente y haz crecer tu propia IA! 🌱",
+        "welcome_f1_title": "Persona Personalizada e Idioma", "welcome_f1_desc": "Cambia la personalidad de la IA en la parte superior y cambia el idioma del chat con el botón superior derecho."
+    },
+    "fr": { 
+        "ui_home_user_lang": "Langue Utilisateur", "ui_home_target_lang": "Langue Cible", "ui_home_btn_free": "💬 Discussion Libre", "ui_home_btn_roleplay": "🎭 Jeu de Rôle", "ui_home_btn_vocab": "📝 Vocabulaire", "ui_home_btn_alpha": "🔤 Phonétique", "ui_home_memory_title": "Mémoire du Tuteur 🧠", "ui_home_report_title": "Mon Rapport 📊", "ui_home_stat_sent": "Phrases totales", "ui_home_stat_sent_unit": "lignes", "ui_home_stat_vocab": "Vocabulaires révisés", "ui_home_stat_vocab_unit": "fois", "ui_home_stat_rp": "Jeux de rôle", "ui_home_stat_rp_unit": "éléments", "ui_home_premium_title": "Améliorer l'Abonnement ✨", "ui_home_premium_desc": "Augmentez vos limites avec Premium !", "ui_streak_days": "{n} Jours Consécutifs", "ui_quest_done": "✨ Quête terminée !", "ui_quest_status": "Quête: Script({s}/5) Vocab({v}/10)", "ui_memory_empty": "Pas encore assez de conversations.\n\nDiscutez librement et développez votre IA ! 🌱",
+        "welcome_f1_title": "Persona Personnalisée et Langue", "welcome_f1_desc": "Changez la personnalité de l'IA en haut, et changez la langue du chat avec le bouton en haut à droite."
+    },
+    "de": { 
+        "ui_home_user_lang": "Benutzersprache", "ui_home_target_lang": "Zielsprache", "ui_home_btn_free": "💬 Freies Gespräch", "ui_home_btn_roleplay": "🎭 Rollenspiel", "ui_home_btn_vocab": "📝 Vokabeln", "ui_home_btn_alpha": "🔤 Phonetik", "ui_home_memory_title": "Gedächtnis des Tutors 🧠", "ui_home_report_title": "Mein Lernbericht 📊", "ui_home_stat_sent": "Sätze gesamt", "ui_home_stat_sent_unit": "Zeilen", "ui_home_stat_vocab": "Vokabeln wiederholt", "ui_home_stat_vocab_unit": "Mal", "ui_home_stat_rp": "Rollenspiele", "ui_home_stat_rp_unit": "Elemente", "ui_home_premium_title": "Mitgliedschaft aktualisieren ✨", "ui_home_premium_desc": "Erweitern Sie Ihre Limits!", "ui_streak_days": "{n} Tage in Folge", "ui_quest_done": "✨ Quest erledigt!", "ui_quest_status": "Quest: Skript({s}/5) Vokab({v}/10)", "ui_memory_empty": "Noch nicht genug Unterhaltungen.\n\nChatten Sie frei und lassen Sie Ihre KI wachsen! 🌱",
+        "welcome_f1_title": "Benutzerdefinierte Persona & Sprache", "welcome_f1_desc": "Ändern Sie oben die Persönlichkeit der KI und wechseln Sie die Chat-Sprache mit der Schaltfläche oben rechts."
+    },
+    "vi": { 
+        "ui_home_user_lang": "Ngôn ngữ người dùng", "ui_home_target_lang": "Ngôn ngữ học", "ui_home_btn_free": "💬 Trò chuyện tự do", "ui_home_btn_roleplay": "🎭 Nhập vai", "ui_home_btn_vocab": "📝 Từ vựng", "ui_home_btn_alpha": "🔤 Ngữ âm", "ui_home_memory_title": "Trí nhớ của AI 🧠", "ui_home_report_title": "Báo cáo của tôi 📊", "ui_home_stat_sent": "Tổng số câu", "ui_home_stat_sent_unit": "câu", "ui_home_stat_vocab": "Từ vựng đã ôn", "ui_home_stat_vocab_unit": "lần", "ui_home_stat_rp": "Kịch bản đã lưu", "ui_home_stat_rp_unit": "mục", "ui_home_premium_title": "Nâng cấp Thành viên ✨", "ui_home_premium_desc": "Tăng giới hạn của bạn!", "ui_streak_days": "{n} Ngày liên tiếp", "ui_quest_done": "✨ Nhiệm vụ hoàn thành!", "ui_quest_status": "Nhiệm vụ: Kịch bản({s}/5) Từ vựng({v}/10)", "ui_memory_empty": "Chưa có đủ cuộc trò chuyện.\n\nHãy trò chuyện tự do để phát triển AI của bạn! 🌱",
+        "welcome_f1_title": "Tùy chỉnh Persona & Ngôn ngữ", "welcome_f1_desc": "Thay đổi tính cách AI ở trên và dễ dàng thay đổi ngôn ngữ trò chuyện bằng nút trên cùng bên phải."
+    },
+    "ru": { 
+        "ui_home_user_lang": "Язык пользователя", "ui_home_target_lang": "Изучаемый язык", "ui_home_btn_free": "💬 Свободное общение", "ui_home_btn_roleplay": "🎭 Ролевая игра", "ui_home_btn_vocab": "📝 Словарь", "ui_home_btn_alpha": "🔤 Фонетика", "ui_home_memory_title": "Память ИИ 🧠", "ui_home_report_title": "Мой отчет 📊", "ui_home_stat_sent": "Всего предложений", "ui_home_stat_sent_unit": "строк", "ui_home_stat_vocab": "Повторено словарей", "ui_home_stat_vocab_unit": "раз", "ui_home_stat_rp": "Сохранено ролевых игр", "ui_home_stat_rp_unit": "шт", "ui_home_premium_title": "Улучшить подписку ✨", "ui_home_premium_desc": "Увеличьте лимиты с Premium!", "ui_streak_days": "{n} Дней подряд", "ui_quest_done": "✨ Задание выполнено!", "ui_quest_status": "Задание: Сценарий({s}/5) Слова({v}/10)", "ui_memory_empty": "Пока недостаточно разговоров.\n\nОбщайтесь с репетитором и развивайте своего ИИ! 🌱",
+        "welcome_f1_title": "Настройка ИИ и Язык", "welcome_f1_desc": "Меняйте характер ИИ наверху и легко меняйте язык чата с помощью кнопки в правом верхнем углу."
+    },
+    "th": { 
+        "ui_home_user_lang": "ภาษาผู้ใช้", "ui_home_target_lang": "ภาษาเป้าหมาย", "ui_home_btn_free": "💬 คุยอิสระ", "ui_home_btn_roleplay": "🎭 จำลองสถานการณ์", "ui_home_btn_vocab": "📝 คำศัพท์", "ui_home_btn_alpha": "🔤 การออกเสียง", "ui_home_memory_title": "ความจำของ AI 🧠", "ui_home_report_title": "รายงานการเรียนรู้ 📊", "ui_home_stat_sent": "ประโยคทั้งหมด", "ui_home_stat_sent_unit": "ประโยค", "ui_home_stat_vocab": "ทบทวนคำศัพท์แล้ว", "ui_home_stat_vocab_unit": "ครั้ง", "ui_home_stat_rp": "บันทึก Roleplay แล้ว", "ui_home_stat_rp_unit": "รายการ", "ui_home_premium_title": "อัปเกรดสมาชิก ✨", "ui_home_premium_desc": "เพิ่มขีดจำกัดด้วยพรีเมียม!", "ui_streak_days": "ต่อเนื่อง {n} วัน", "ui_quest_done": "✨ ทำภารกิจสำเร็จ!", "ui_quest_status": "ภารกิจ: สคริปต์({s}/5) คำศัพท์({v}/10)", "ui_memory_empty": "ยังไม่มีข้อมูลเพียงพอ\n\nคุยเล่นอย่างอิสระเพื่อพัฒนา AI ของคุณ! 🌱",
+        "welcome_f1_title": "ปรับแต่งบุคลิก & เปลี่ยนภาษา", "welcome_f1_desc": "เปลี่ยนบุคลิก AI ที่ด้านบน และเปลี่ยนภาษาที่ใช้แชทได้ง่ายๆ ด้วยปุ่มที่มุมขวาบน"
+    },
+    "ar": { 
+        "ui_home_user_lang": "لغة المستخدم", "ui_home_target_lang": "لغة التعلم", "ui_home_btn_free": "💬 محادثة حرة", "ui_home_btn_roleplay": "🎭 لعب الأدوار", "ui_home_btn_vocab": "📝 المفردات", "ui_home_btn_alpha": "🔤 الصوتيات", "ui_home_memory_title": "ذاكرة الذكاء الاصطناعي 🧠", "ui_home_report_title": "تقرير التعلم 📊", "ui_home_stat_sent": "إجمالي الجمل", "ui_home_stat_sent_unit": "جملة", "ui_home_stat_vocab": "مراجعة المفردات", "ui_home_stat_vocab_unit": "مرات", "ui_home_stat_rp": "المحادثات المحفوظة", "ui_home_stat_rp_unit": "عنصر", "ui_home_premium_title": "ترقية العضوية ✨", "ui_home_premium_desc": "قم بزيادة حدودك مع المميز!", "ui_streak_days": "{n} أيام متتالية", "ui_quest_done": "✨ اكتملت المهمة!", "ui_quest_status": "المهمة: سيناريو({s}/5) مفردات({v}/10)", "ui_memory_empty": "لا توجد محادثات كافية بعد.\n\nتحدث بحرية وقم بتطوير الذكاء الاصطناعي الخاص بك! 🌱",
+        "welcome_f1_title": "تخصيص الشخصية واللغة", "welcome_f1_desc": "قم بتغيير شخصية الذكاء الاصطناعي في الأعلى، وقم بتغيير لغة الدردشة بسهولة باستخدام الزر الأيمن العلوي."
+    }
+};
 
-        
+// 🌟 4. 11개 주요 언어 외의 소수 언어는 영어로 자동 대체 적용 (안전하게 window.UI_DICTIONARY에 병합)
+for (const lang in window.UI_DICTIONARY) { 
+    Object.assign(window.UI_DICTIONARY[lang], NEW_MAIN_UI_TRANS[lang] || NEW_MAIN_UI_TRANS["en"]); 
+}
 
+// 🌟 5. 인도네시아어(id-ID) 다국어 이름 자동 주입
+const INDONESIAN_NAME_TRANS = {
+    "ko": "인도네시아어", "en": "Indonesian", "ja": "インドネシア語", "zh": "印尼语", 
+    "es": "Indonesio", "fr": "Indonésien", "de": "Indonesisch", "vi": "Tiếng Indonesia", 
+    "ru": "Индонезийский", "th": "ภาษาอินโดนีเซีย", "ar": "الإندونيسية", "id": "Bahasa Indonesia"
+};
 
-
-        // 11개 주요 언어 외의 소수 언어는 영어로 자동 대체 적용
-        for (const lang in UI_DICTIONARY) { Object.assign(UI_DICTIONARY[lang], NEW_MAIN_UI_TRANS[lang] || NEW_MAIN_UI_TRANS["en"]); }
-
-
-        // 🌟 [추가] 인도네시아어(id-ID) 다국어 이름 자동 주입
-        const INDONESIAN_NAME_TRANS = {
-            "ko": "인도네시아어", "en": "Indonesian", "ja": "インドネシア語", "zh": "印尼语", 
-            "es": "Indonesio", "fr": "Indonésien", "de": "Indonesisch", "vi": "Tiếng Indonesia", 
-            "ru": "Индонезийский", "th": "ภาษาอินโดนีเซีย", "ar": "الإندونيسية", "id": "Bahasa Indonesia"
-        };
-        for (const lang in UI_DICTIONARY) { 
-            UI_DICTIONARY[lang]["lang_id-ID"] = INDONESIAN_NAME_TRANS[lang] || INDONESIAN_NAME_TRANS["en"]; 
-        }
+for (const lang in window.UI_DICTIONARY) { 
+    window.UI_DICTIONARY[lang]["lang_id-ID"] = INDONESIAN_NAME_TRANS[lang] || INDONESIAN_NAME_TRANS["en"]; 
+}
