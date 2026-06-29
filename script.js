@@ -1,5 +1,5 @@
 // 🌟 1. 전역 변수 초기화
-const WORKER_URL = "https://holy-tree-32c5.thin770.workers.dev/";
+const WORKER_URL = "https://talkaitest.thin770.workers.dev/";
 
         let isListening = false, isSpeaking = false, recognition = null;
         const synthesis = window.speechSynthesis;
@@ -91,7 +91,6 @@ const INTIMACY_SYSTEM = {
         }
     }
 };
-
 
 
 
@@ -963,7 +962,8 @@ window.initSpeechRecognition = function() {
             sessionStorage.setItem('llmHistory', JSON.stringify(conversationHistory)); 
             if(typeof window.compressMemory === 'function') window.compressMemory(); 
             INTIMACY_SYSTEM.clearSulking(); // 말 걸어줬으니 삐진 거 풀기
-    INTIMACY_SYSTEM.addExp('chat');
+            INTIMACY_SYSTEM.addExp('chat'); // 대화 경험치 +1점
+
         }
 
         if(parsed.save_memo && parsed.save_memo.trim() !== "") {
@@ -1005,7 +1005,6 @@ window.initSpeechRecognition = function() {
     }
 }
         window.handleUserMessage = handleUserMessage;
-        
         window.requestExplanationGlobal = function() { 
             let lastAiMsg = "";
             for(let i = uiChatHistory.length - 1; i >= 0; i--) { if(uiChatHistory[i].sender === 'ai') { lastAiMsg = uiChatHistory[i].text; break; } }
@@ -1127,19 +1126,110 @@ window.goHome = function() { window.navigate('screen-home'); };
         window.deleteScript = function(index) { if (!confirm("이 대본을 정말 삭제하시겠습니까?")) return; savedScripts.splice(index, 1); localStorage.setItem('roleplay_scripts', JSON.stringify(savedScripts)); window.renderScripts(); };
 
         window.renderScripts = function() {
-            const playerArea = document.getElementById("scriptList"); playerArea.innerHTML = "";
-            if(savedScripts.length === 0) return;
-            for (let i = savedScripts.length - 1; i >= 0; i--) {
-                const scriptItem = savedScripts[i];
-                let html = `<div class="mb-5"><div class="bg-indigo-50 border border-indigo-100 rounded-xl p-3 mb-3 flex items-center justify-between shadow-sm"><p class="text-[11px] font-extrabold text-indigo-700">📚 ${i + 1}: [${scriptItem.level}] ${scriptItem.situation} (${scriptItem.langName})</p><div class="flex gap-1.5 items-center"><button id="play-btn-${i}" onclick="playSpecificScript(${i})" class="w-8 h-8 rounded-full bg-white text-indigo-600 border border-indigo-200 shadow-sm transition-colors duration-200"><i class="fa-solid fa-volume-high text-xs"></i></button><button onclick="startInteractiveTest(${i})" class="w-8 h-8 rounded-full bg-indigo-600 text-white shadow-sm"><i class="fa-solid fa-gamepad text-xs"></i></button><button id="quiz-btn-${i}" onclick="toggleQuizMode(${i})" class="w-8 h-8 rounded-full bg-white text-amber-500 border border-amber-200 shadow-sm"><i class="fa-solid fa-puzzle-piece text-xs"></i></button><div class="w-px h-4 bg-indigo-200 mx-0.5"></div><button onclick="deleteScript(${i})" class="text-slate-400 hover:text-red-500 px-1 transition-colors" title="삭제"><i class="fa-solid fa-xmark text-lg"></i></button></div></div><div class="space-y-3">`;
-                scriptItem.scriptData.forEach((line, lineIdx) => {
-                    const isAi = line.role === 'ai';
-                    html += `<div id="script-${i}-line-${lineIdx}" class="flex gap-3 p-2 rounded-lg border border-transparent transition-all"><div class="w-10 h-10 rounded-full bg-${isAi?'purple':'blue'}-100 flex items-center justify-center text-xl shrink-0">${isAi?'👱‍♀️':'👤'}</div><div class="flex-1"><p class="text-[11px] font-bold text-${isAi?'purple':'blue'}-600 mb-0.5">${isAi? 'AI' : 'Me'}</p><p id="en-text-${i}-line-${lineIdx}" class="text-sm font-bold text-gray-800 transition-all">${line.en}</p><p class="text-xs text-gray-500 mt-1">${line.ko}</p><div id="feedback-${i}-line-${lineIdx}" class="mt-2 text-[11px] font-bold empty:hidden"></div></div></div>`;
-                });
-                html += `</div></div>`; if(i > 0) html += `<hr class="border-slate-200 border-dashed border-t-2 my-4">`;
-                playerArea.insertAdjacentHTML('beforeend', html);
-            }
-        };
+    const playerArea = document.getElementById("scriptList"); playerArea.innerHTML = "";
+    if(savedScripts.length === 0) return;
+    for (let i = savedScripts.length - 1; i >= 0; i--) {
+        const scriptItem = savedScripts[i];
+        let html = `<div class="mb-5"><div class="bg-indigo-50 border border-indigo-100 rounded-xl p-3 mb-3 flex items-center justify-between shadow-sm"><p class="text-[11px] font-extrabold text-indigo-700">📚 ${i + 1}: [${scriptItem.level}] ${scriptItem.situation} (${scriptItem.langName})</p><div class="flex gap-1.5 items-center"><button id="play-btn-${i}" onclick="playSpecificScript(${i})" class="w-8 h-8 rounded-full bg-white text-indigo-600 border border-indigo-200 shadow-sm transition-colors duration-200"><i class="fa-solid fa-volume-high text-xs"></i></button><button onclick="startInteractiveTest(${i})" class="w-8 h-8 rounded-full bg-indigo-600 text-white shadow-sm"><i class="fa-solid fa-gamepad text-xs"></i></button><button id="quiz-btn-${i}" onclick="toggleQuizMode(${i})" class="w-8 h-8 rounded-full bg-white text-amber-500 border border-amber-200 shadow-sm"><i class="fa-solid fa-puzzle-piece text-xs"></i></button><div class="w-px h-4 bg-indigo-200 mx-0.5"></div><button onclick="deleteScript(${i})" class="text-slate-400 hover:text-red-500 px-1 transition-colors" title="삭제"><i class="fa-solid fa-xmark text-lg"></i></button></div></div><div class="space-y-3">`;
+        
+        scriptItem.scriptData.forEach((line, lineIdx) => {
+            const isAi = line.role === 'ai';
+            // 🌟 홑따옴표가 들어간 문장을 자바스크립트 인자로 넘기기 위한 안전 처리
+            const safeText = line.en.replace(/'/g, "\\'");
+            
+            html += `
+            <div id="script-${i}-line-${lineIdx}" class="flex gap-3 p-2 rounded-lg border border-transparent transition-all">
+                <div class="w-10 h-10 rounded-full bg-${isAi?'purple':'blue'}-100 flex items-center justify-center text-xl shrink-0">${isAi?'👱‍♀️':'👤'}</div>
+                <div class="flex-1">
+                    <p class="text-[11px] font-bold text-${isAi?'purple':'blue'}-600 mb-0.5">${isAi? 'AI' : 'Me'}</p>
+                    <p id="en-text-${i}-line-${lineIdx}" class="text-sm font-bold text-gray-800 transition-all">${line.en}</p>
+                    <p class="text-xs text-gray-500 mt-1">${line.ko}</p>
+                    
+                    <div class="flex items-center gap-2 mt-2.5">
+                        <button onclick="window.speakText('${safeText}', '${scriptItem.langCode}')" class="flex-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-bold py-1.5 rounded-lg text-[10px] transition-colors border border-indigo-100 flex items-center justify-center gap-1.5 shadow-sm">
+                            <i class="fa-solid fa-volume-high"></i> 다시 듣기
+                        </button>
+                        <button id="quick-mic-btn-${i}-${lineIdx}" onclick="window.quickPractice(${i}, ${lineIdx})" class="flex-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 font-bold py-1.5 rounded-lg text-[10px] transition-colors border border-emerald-100 flex items-center justify-center gap-1.5 shadow-sm">
+                            <i class="fa-solid fa-microphone"></i> 따라 하기
+                        </button>
+                    </div>
+
+                    <div id="feedback-${i}-line-${lineIdx}" class="mt-2 text-[11px] font-bold empty:hidden transition-all"></div>
+                </div>
+            </div>`;
+        });
+        html += `</div></div>`; if(i > 0) html += `<hr class="border-slate-200 border-dashed border-t-2 my-4">`;
+        playerArea.insertAdjacentHTML('beforeend', html);
+    }
+};
+
+// 🌟 특정 문장 하나만 개별적으로 섀도잉(따라하기)하는 함수
+window.quickPractice = function(scriptIdx, lineIdx) {
+    if(!roleplayRec) { alert("마이크를 지원하지 않습니다."); return; }
+    if (isRpListening) { roleplayRec.stop(); return; }
+    
+    const targetItem = savedScripts[scriptIdx];
+    const userLine = targetItem.scriptData[lineIdx];
+    const targetText = userLine.en.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '').trim(); 
+
+    const btn = document.getElementById(`quick-mic-btn-${scriptIdx}-${lineIdx}`);
+    if (btn) {
+        btn.classList.replace("text-emerald-600", "text-red-500");
+        btn.classList.replace("bg-emerald-50", "bg-red-50");
+        btn.innerHTML = `<i class="fa-solid fa-ear-listen animate-pulse"></i> 듣는 중...`;
+    }
+    
+    try { roleplayRec.lang = targetItem.langCode; roleplayRec.start(); isRpListening = true; } 
+    catch(e) { console.error("마이크 시작 에러", e); }
+    
+    let score = 0, recognizedText = "";
+    roleplayRec.onresult = (e) => {
+        recognizedText = e.results[0][0].transcript;
+        
+        // 🌟 [완벽 다국어 채점 로직] 아시아권 구두점(。、？！)까지 싹 다 무시!
+        const punctuationRegex = /[.,!?¿¡。、？！，；："''「」『』\s]/g;
+        const cleanTarget = targetText.toLowerCase().replace(punctuationRegex, "");
+        const cleanRecog = recognizedText.toLowerCase().replace(punctuationRegex, "");
+        
+        // 1. 완전히 똑같거나, 인식된 문장 안에 정답이 통째로 들어있으면 100점!
+        if (cleanTarget === cleanRecog || cleanRecog.includes(cleanTarget)) {
+            score = 100;
+        } else {
+            // 2. 한/중/일 언어인지 자동 감지 (한자, 히라가나, 가타카나, 한글 포함 여부)
+            const isAsian = /[一-龥ぁ-んァ-ン가-힣]/.test(cleanTarget);
+            
+            // 아시아어면 '글자(Character)' 단위로 쪼개고, 그 외 언어는 '단어(Word)' 단위로 쪼갬
+            let targetTokens = isAsian ? cleanTarget.split("") : targetText.toLowerCase().replace(/[.,!?¿¡]/g, "").split(" ").filter(w=>w);
+            let recogString = isAsian ? cleanRecog : recognizedText.toLowerCase();
+            
+            let matchCount = 0;
+            targetTokens.forEach(token => {
+                if (recogString.includes(token)) {
+                    matchCount++;
+                    recogString = recogString.replace(token, ""); // 중복 글자/단어 매칭 방지
+                }
+            });
+            
+            let rawScore = Math.round((matchCount / targetTokens.length) * 100);
+            score = Math.min(100, rawScore + 15); // 보너스 15점 후하게!
+        }
+    };
+    
+    roleplayRec.onend = roleplayRec.onerror = () => { 
+        isRpListening = false; 
+        if (btn) {
+            btn.classList.replace("text-red-500", "text-emerald-600"); 
+            btn.classList.replace("bg-red-50", "bg-emerald-50");
+            btn.innerHTML = `<i class="fa-solid fa-microphone"></i> 따라 하기`;
+        }
+        const feedbackDiv = document.getElementById(`feedback-${scriptIdx}-line-${lineIdx}`);
+        if (feedbackDiv) {
+            feedbackDiv.innerHTML = `<span class="${score>=80?'text-emerald-600 bg-emerald-50 border-emerald-200':'text-amber-600 bg-amber-50 border-amber-200'} px-2 py-1 rounded-md border inline-block shadow-sm transition-all animate-fade-in-up">🎯 ${score}% 정확도 (${recognizedText||'인식 안 됨'})</span>`;
+            feedbackDiv.classList.remove('empty:hidden'); 
+        }
+        if(score > 0 && typeof window.addStudyMission === 'function') window.addStudyMission('script'); 
+    };
+}
         // 🎬 [수정완료] 1. 대본 생성 함수 (로딩 애니메이션 + 원본 로직 완벽 통합)
         window.generateScript = async function() {
             if (savedScripts.length >= 5) { if (!confirm("새로운 대본 생성 시 가장 오래된 1번 대본이 삭제됩니다.\n계속하시겠습니까?")) return; }
@@ -1333,28 +1423,57 @@ if (window.speechSynthesis && typeof window.speechSynthesis.getVoices === 'funct
         }
 
         window.startShadowing = function() {
-            if (savedScripts.length === 0) return alert("대본이 없습니다.");
-            if (!isInteractiveTestActive) return alert("실전 대화 게임 모드를 먼저 실행하세요.");
-            const targetItem = savedScripts[activeTestScriptIdx]; const userLine = targetItem.scriptData[activeTestLineIdx];
-            if (userLine.role !== 'user') return alert("아직 AI의 턴입니다.");
-            const btn = document.getElementById("roleplayMicBtn"); 
-            if(!roleplayRec) { alert("마이크를 지원하지 않습니다."); return; }
-            if (isRpListening) { roleplayRec.stop(); return; }
-            btn.classList.replace("from-blue-600", "from-red-500"); btn.classList.replace("to-blue-500", "to-red-600"); document.getElementById("roleplayMicIcon").classList.replace("fa-microphone", "fa-ear-listen");
-            try { roleplayRec.lang = targetItem.langCode; roleplayRec.start(); isRpListening = true; } catch(e) {}
-            let score = 0, recognizedText = "";
-            roleplayRec.onresult = (e) => {
-                recognizedText = e.results[0][0].transcript.toLowerCase();
-                const targetText = userLine.en.toLowerCase().replace(/[.,!?¿¡]/g, ""); 
-                score = Math.round((targetText.split(" ").filter(w => recognizedText.split(" ").includes(w)).length / targetText.split(" ").length) * 100);
-            };
-            roleplayRec.onend = roleplayRec.onerror = () => { 
-                isRpListening = false; btn.classList.replace("from-red-500", "from-blue-600"); btn.classList.replace("to-red-600", "to-blue-500"); document.getElementById("roleplayMicIcon").classList.replace("fa-ear-listen", "fa-microphone");
-                document.getElementById(`feedback-${activeTestScriptIdx}-line-${activeTestLineIdx}`).innerHTML = `<span class="${score>80?'text-emerald-600 bg-emerald-50':'text-amber-600 bg-amber-50'} px-2 py-1 rounded-md border inline-block mt-1">${score}% (${recognizedText||'Fail'})</span>`;
-                if(score > 0) window.addStudyMission(); 
-                setTimeout(() => { activeTestLineIdx++; window.processNextTestLine(); }, 1500); 
-            };
-        };
+    if (savedScripts.length === 0) return alert("대본이 없습니다.");
+    if (!isInteractiveTestActive) return alert("실전 대화 게임 모드를 먼저 실행하세요.");
+    const targetItem = savedScripts[activeTestScriptIdx]; const userLine = targetItem.scriptData[activeTestLineIdx];
+    if (userLine.role !== 'user') return alert("아직 AI의 턴입니다.");
+    const btn = document.getElementById("roleplayMicBtn"); 
+    if(!roleplayRec) { alert("마이크를 지원하지 않습니다."); return; }
+    if (isRpListening) { roleplayRec.stop(); return; }
+    
+    const targetText = userLine.en.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '').trim();
+
+    btn.classList.replace("from-blue-600", "from-red-500"); btn.classList.replace("to-blue-500", "to-red-600"); document.getElementById("roleplayMicIcon").classList.replace("fa-microphone", "fa-ear-listen");
+    try { roleplayRec.lang = targetItem.langCode; roleplayRec.start(); isRpListening = true; } catch(e) {}
+    
+    let score = 0, recognizedText = "";
+    roleplayRec.onresult = (e) => {
+        recognizedText = e.results[0][0].transcript;
+        
+        // 🌟 [완벽 다국어 채점 로직 동일 적용]
+        const punctuationRegex = /[.,!?¿¡。、？！，；："''「」『』\s]/g;
+        const cleanTarget = targetText.toLowerCase().replace(punctuationRegex, "");
+        const cleanRecog = recognizedText.toLowerCase().replace(punctuationRegex, "");
+        
+        if (cleanTarget === cleanRecog || cleanRecog.includes(cleanTarget)) {
+            score = 100;
+        } else {
+            const isAsian = /[一-龥ぁ-んァ-ン가-힣]/.test(cleanTarget);
+            let targetTokens = isAsian ? cleanTarget.split("") : targetText.toLowerCase().replace(/[.,!?¿¡]/g, "").split(" ").filter(w=>w);
+            let recogString = isAsian ? cleanRecog : recognizedText.toLowerCase();
+            
+            let matchCount = 0;
+            targetTokens.forEach(token => {
+                if (recogString.includes(token)) {
+                    matchCount++;
+                    recogString = recogString.replace(token, "");
+                }
+            });
+            let rawScore = Math.round((matchCount / targetTokens.length) * 100);
+            score = Math.min(100, rawScore + 15);
+        }
+    };
+    
+    roleplayRec.onend = roleplayRec.onerror = () => { 
+        isRpListening = false; btn.classList.replace("from-red-500", "from-blue-600"); btn.classList.replace("to-red-600", "to-blue-500"); document.getElementById("roleplayMicIcon").classList.replace("fa-ear-listen", "fa-microphone");
+        
+        document.getElementById(`feedback-${activeTestScriptIdx}-line-${activeTestLineIdx}`).innerHTML = `<span class="${score>=80?'text-emerald-600 bg-emerald-50 border-emerald-200':'text-amber-600 bg-amber-50 border-amber-200'} px-2 py-1 rounded-md border inline-block mt-1 shadow-sm">🎯 ${score}% (${recognizedText||'인식 안 됨'})</span>`;
+        if(score > 0) window.addStudyMission(); 
+        
+        setTimeout(() => { activeTestLineIdx++; window.processNextTestLine(); }, 1500); 
+    };
+};
+
         window.renderScripts();
 
         let savedVocabs = JSON.parse(localStorage.getItem('vocab_scripts')) || [];
@@ -1644,7 +1763,6 @@ if (window.speechSynthesis && typeof window.speechSynthesis.getVoices === 'funct
         };
         
 
-        // 🌟 2. 화면에 AI 기억을 띄워주는 함수 (다국어 지원 적용!)
         window.updateMemoryDisplay = function() {
     const memDisplay = document.getElementById('ai_memory_display');
     const baseLang = (document.getElementById('explanationLanguage').value || 'ko-KR').split('-')[0];
@@ -1680,7 +1798,7 @@ if (window.speechSynthesis && typeof window.speechSynthesis.getVoices === 'funct
 
         memDisplay.innerHTML = mindText;
     }
-};;
+};
         // 🌟 [수정됨] AI 튜터의 속마음(기억)을 사용자의 언어 설정에 맞춰 다국어로 요약하는 기능
         window.compressMemory = async function() {
             // 대화가 8줄 이상 쌓였을 때만 기억 압축 실행
