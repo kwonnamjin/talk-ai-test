@@ -1,5 +1,5 @@
 // 🌟 1. 전역 변수 초기화
-const WORKER_URL = "https://talkaitest.thin770.workers.dev/";
+const WORKER_URL = "https://holy-tree-32c5.thin770.workers.dev/";
 
         let isListening = false, isSpeaking = false, recognition = null;
         const synthesis = window.speechSynthesis;
@@ -17,6 +17,82 @@ const WORKER_URL = "https://talkaitest.thin770.workers.dev/";
         const statusText = document.getElementById('statusText'), chatContainer = document.getElementById('chatContainer');
         const avatarWrap = document.getElementById('avatarWrap'), stopAudioBtn = document.getElementById('stopAudioBtn');
         const selectionTooltip = document.getElementById('selectionTooltip');
+
+
+        // ==========================================
+// 💖 AI 친밀도 & 감성 시스템 모듈
+// ==========================================
+const INTIMACY_SYSTEM = {
+    levels: {
+        1: { name: "어색하지만 설렘", minExp: 0, aiMind: "어떤 분일까? 대화하는 게 설레고 긴장돼요. 😳" },
+        2: { name: "조금 더 알고 싶어요", minExp: 50, aiMind: "당신에 대해 더 많은 걸 알고 싶어졌어요. 🤔" },
+        3: { name: "이제 우리 친구해요", minExp: 150, aiMind: "이제 우리 제법 친해진 것 같아 기뻐요! 😊" },
+        4: { name: "없으면 허전한 단짝", minExp: 300, aiMind: "당신과 대화하지 않으면 하루가 허전해요. 🥹" },
+        5: { name: "마음을 아는 소울메이트", minExp: 500, aiMind: "말하지 않아도 당신의 마음을 알 것 같아요. 늘 응원해요. ❤️" }
+    },
+    
+    // 데이터 불러오기 및 🚨 '서운함(결석)' 체크
+    getData: function() {
+        let data = JSON.parse(localStorage.getItem('ai_intimacy_data') || '{"level": 1, "exp": 0, "lastDate": ""}');
+        const today = new Date().toLocaleDateString();
+
+        // 과거 접속 기록이 있고, 오늘이 아닌 경우
+        if (data.lastDate && data.lastDate !== today) {
+            const lastDateObj = new Date(data.lastDate);
+            const todayObj = new Date(today);
+            const diffDays = Math.floor((todayObj - lastDateObj) / (1000 * 60 * 60 * 24));
+
+            // 이틀 이상 접속하지 않았다면 (연속 출석이 끊김) -> 경험치 하락 없음!
+            if (diffDays > 1) {
+                // 서운함 플래그 ON 
+                localStorage.setItem('ai_is_sulking', 'true');
+            }
+        }
+        
+        // 접속일 갱신 후 저장
+        data.lastDate = today;
+        localStorage.setItem('ai_intimacy_data', JSON.stringify(data));
+        
+        return data;
+    },
+
+    // 경험치 획득 및 레벨업 계산
+    addExp: function(type) {
+        let data = this.getData();
+        const gainedExp = (type === 'quest') ? 20 : 1; 
+        data.exp += gainedExp;
+
+        let newLevel = data.level;
+        // 다음 레벨 경험치 도달 여부 체크 (최대 5레벨)
+        if (newLevel < 5 && data.exp >= this.levels[newLevel + 1].minExp) {
+            newLevel++;
+            data.level = newLevel;
+            
+            // 💡 레벨업 축하 알림 (기존 팝업/토스트 활용 가능)
+            if(typeof window.updateStatus === 'function') {
+                window.updateStatus(`🎉 친밀도 레벨업! [Lv.${newLevel} ${this.levels[newLevel].name}]`);
+            }
+        }
+        
+        localStorage.setItem('ai_intimacy_data', JSON.stringify(data));
+        
+        // 경험치가 오르면 'AI의 속마음' 화면도 즉시 갱신
+        if(typeof window.updateMemoryDisplay === 'function') window.updateMemoryDisplay();
+        
+        return data;
+    },
+
+    // 사용자가 대화를 걸어주면 삐진 마음 풀기
+    clearSulking: function() {
+        if(localStorage.getItem('ai_is_sulking') === 'true') {
+            localStorage.removeItem('ai_is_sulking');
+            if(typeof window.updateStatus === 'function') window.updateStatus("AI의 서운한 마음이 사르르 녹았습니다. 🥰");
+            if(typeof window.updateMemoryDisplay === 'function') window.updateMemoryDisplay();
+        }
+    }
+};
+
+
 
 
 
@@ -307,30 +383,117 @@ window.updateStatus = function(txt) {
     if(st) st.textContent = txt; 
 };
 
+        // 1. 내부 계산기 (에러 방어막 완벽 적용)
+window.checkUsageLimit = function() {
+    // 🌟 안전장치 1: 요금제 한도를 함수 안에 직접 명시해서 절대 못 잃어버리게 함!
+    const PLAN_LIMITS = { free: 50, basic: 150, premium: 400 }; 
+    const isTestMode = localStorage.getItem('is_test_mode') === 'true';
+    let currentTier = localStorage.getItem('subscription_tier') || 'free';
+    
+    if (isTestMode) currentTier = 'premium'; 
+    
+    const maxLimit = PLAN_LIMITS[currentTier] || 50;
 
+    // 무료 유저 3일 만료 체크
+    if (currentTier === 'free') {
+        const firstUseDate = localStorage.getItem('free_trial_start');
+        if (firstUseDate) {
+            const daysPassed = (Date.now() - parseInt(firstUseDate)) / (1000 * 60 * 60 * 24);
+            if (daysPassed > 3) return { allowed: false, reason: 'trial_expired', tier: currentTier, maxLimit };
+        }
+    }
+
+    // 🌟 안전장치 2: 날짜 함수 못 찾을까봐 방어 로직 추가
+    const todayStr = (typeof getResetDateStr === 'function') ? getResetDateStr() : new Date().toLocaleDateString();
+    let usageObj = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}');
+    if (usageObj.date !== todayStr) {
+        usageObj = { date: todayStr, count: 0 };
+        localStorage.setItem('daily_usage_v4', JSON.stringify(usageObj));
+    }
+
+    if (usageObj.count >= maxLimit) return { allowed: false, reason: 'limit_reached', tier: currentTier, count: usageObj.count, maxLimit };
+    
+    return { allowed: true, tier: currentTier, count: usageObj.count, maxLimit };
+};
+
+// 2. 검문소 (초승달 실시간 차감 로직 완벽 적용)
+window.checkAndBlockAPI = function() {
+    const status = window.checkUsageLimit(); // 🌟 무조건 window. 으로 호출
+    
+    // 🌟 안전장치 3: 초승달 데이터가 'NaN(숫자아님)'으로 꼬여있으면 0으로 강제 처리
+    let currentMoons = parseInt(localStorage.getItem('moon_coins')) || 0;
+
+    // 1순위: 번개가 남아있다면 통과
+    if (status.allowed) return true; 
+
+    // 2순위: 초승달이 있다면 1개 내고 통과
+    if (currentMoons > 0) {
+        localStorage.setItem('moon_coins', currentMoons - 1); 
+        if (typeof window.updateBadgeUI === 'function') window.updateBadgeUI(); 
+        console.log("🌙 초승달 사용! 남은 개수:", currentMoons - 1);
+        return true; 
+    }
+
+    // 3순위: 둘 다 없으면 결제창
+    if (typeof window.showSubscriptionModal === 'function') {
+        window.showSubscriptionModal(status.reason); 
+    }
+    return false; 
+};
+
+// 3. UI 거울 
+window.updateBadgeUI = function() {
+    if (typeof window.checkUsageLimit !== 'function') return;
+    
+    const status = window.checkUsageLimit();
+    let currentMoons = parseInt(localStorage.getItem('moon_coins')) || 0;
+    
+    let remaining = 0;
+    if (status.allowed) {
+        const currentCount = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}').count || 0;
+        remaining = Math.max(0, status.maxLimit - currentCount);
+    }
+
+    const moonHtml = `<div class="bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-full text-[11px] font-black border border-indigo-200 shadow-sm flex items-center gap-1.5"><i class="fa-solid fa-moon"></i> <span>${currentMoons}</span></div>`;
+    let badgeContent = '';
+
+    if (status.tier === 'premium') {
+        badgeContent = moonHtml + `<div class="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2.5 py-1 rounded-full text-[9px] font-black border border-amber-400 shadow-sm flex items-center gap-1.5 transition hover:scale-105"><i class="fa-solid fa-crown text-amber-200"></i> <span class="text-[9px] tracking-wide mt-[1px]">PREMIUM</span> <span class="text-amber-200 opacity-60 font-normal mx-0.5 text-[10px]">|</span> <i class="fa-solid fa-bolt text-amber-200"></i> ${remaining}</div>`;
+    } else if (status.tier === 'basic') {
+        badgeContent = moonHtml + `<div class="bg-gradient-to-r from-indigo-500 to-blue-500 text-white px-2.5 py-1 rounded-full text-[9px] font-black border border-indigo-400 shadow-sm flex items-center gap-1.5 transition hover:scale-105"><i class="fa-solid fa-star text-indigo-200"></i> <span class="text-[9px] tracking-wide mt-[1px]">BASIC</span> <span class="text-indigo-200 opacity-60 font-normal mx-0.5 text-[10px]">|</span> <i class="fa-solid fa-bolt text-indigo-200"></i> ${remaining}</div>`;
+    } else {
+        badgeContent = moonHtml + `<div class="bg-white text-slate-600 px-2.5 py-1 rounded-full text-[11px] font-black border border-slate-200 shadow-sm flex items-center gap-1.5 transition hover:bg-slate-50"><i class="fa-solid fa-bolt text-yellow-500"></i> <span>${remaining}</span></div>`;
+    }
+
+    const badgeIds = ['usageBadge', 'usageBadge2'];
+    badgeIds.forEach(id => {
+        const badge = document.getElementById(id);
+        if(badge) { 
+            badge.innerHTML = badgeContent; 
+            badge.className = "flex items-center gap-1.5 shrink-0 cursor-pointer"; 
+        }
+    });
+};
+
+// 4. 카운터
 window.incrementLocalUsage = function() {
-            const status = checkUsageLimit();
-            if (status.tier === 'free' && !localStorage.getItem('free_trial_start')) {
-                localStorage.setItem('free_trial_start', Date.now().toString());
-            }
+    const status = window.checkUsageLimit();
+    if (status.tier === 'free' && !localStorage.getItem('free_trial_start')) {
+        localStorage.setItem('free_trial_start', Date.now().toString());
+    }
 
-            if (status.allowed) {
-                // 번개가 남아있으면 기본 번개 소모 (일일 사용량 카운트 증가)
-                let usageObj = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}');
-                usageObj.count = (usageObj.count || 0) + 1;
-                localStorage.setItem('daily_usage_v4', JSON.stringify(usageObj));
-            } else {
-                // 번개를 다 썼다면 소중한 초승달 소모
-                let currentMoons = parseInt(localStorage.getItem('moon_coins') || '0');
-                if (currentMoons > 0) {
-                    localStorage.setItem('moon_coins', currentMoons - 1);
-                }
-            }
-            
-            window.updateBadgeUI();
-            return true;}
+    if (status.allowed) {
+        let usageObj = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}');
+        usageObj.count = (usageObj.count || 0) + 1;
+        localStorage.setItem('daily_usage_v4', JSON.stringify(usageObj));
+    } 
+    
+    window.updateBadgeUI();
+    return true;
+};
 
- window.enableInputs = function() {
+
+        window.enableInputs = function() {
             ['textInput','sendMsgBtn','micBtn','expGlobalBtn'].forEach(id => document.getElementById(id).disabled = false);
             micBtn.classList.replace('from-slate-400', 'from-blue-400'); micBtn.classList.replace('to-slate-600', 'to-blue-600');
             window.updateStatus("대기 중");
@@ -361,88 +524,54 @@ window.incrementLocalUsage = function() {
             return { allowed: true, tier: currentTier, count: usageObj.count, maxLimit };
         }
 
-        window.checkAndBlockAPI = function() {
-            const status = checkUsageLimit();
-            let currentMoons = parseInt(localStorage.getItem('moon_coins') || '0');
 
-            // 번개를 다 썼더라도 초승달이 남아있으면 통과!
-            if (!status.allowed && currentMoons <= 0) { 
-                showSubscriptionModal(status.reason); 
-                return false; 
-            }
-            return true;    
-        };
-         window.updateBadgeUI = function() {
-            if (typeof checkUsageLimit !== 'function') return;
-            const isTestMode = localStorage.getItem('is_test_mode') === 'true';
-            const status = checkUsageLimit();
-            const currentCount = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}').count || 0;
-            
-            // 🌟 1. 초승달 개수 불러오기
-            let currentMoons = parseInt(localStorage.getItem('moon_coins') || '0');
-            
-            if (isTestMode) {
-                status.tier = 'premium';
-                status.maxLimit = 9999;
-            }
-            const remaining = Math.max(0, status.maxLimit - currentCount);
 
-            // 🌟 2. 초승달 뱃지 HTML (공통으로 맨 앞에 위치)
-            const moonHtml = `<div class="bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-full text-[11px] font-black border border-indigo-200 shadow-sm flex items-center gap-1.5"><i class="fa-solid fa-moon"></i> <span>${currentMoons}</span></div>`;
-            
-            let badgeContent = '';
 
-            // 🌟 3. 유저 등급에 따른 우측 뱃지 HTML 설정 (결제자도 남은 ⚡번개 표시 추가!)
-            if (status.tier === 'premium') {
-                badgeContent = moonHtml + `<div class="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2.5 py-1 rounded-full text-[9px] font-black border border-amber-400 shadow-sm flex items-center gap-1.5 transition hover:scale-105"><i class="fa-solid fa-crown text-amber-200"></i> <span class="text-[9px] tracking-wide mt-[1px]">PREMIUM</span> <span class="text-amber-200 opacity-60 font-normal mx-0.5 text-[10px]">|</span> <i class="fa-solid fa-bolt text-amber-200"></i> ${remaining}</div>`;
-            } else if (status.tier === 'basic') {
-                badgeContent = moonHtml + `<div class="bg-gradient-to-r from-indigo-500 to-blue-500 text-white px-2.5 py-1 rounded-full text-[9px] font-black border border-indigo-400 shadow-sm flex items-center gap-1.5 transition hover:scale-105"><i class="fa-solid fa-star text-indigo-200"></i> <span class="text-[9px] tracking-wide mt-[1px]">BASIC</span> <span class="text-indigo-200 opacity-60 font-normal mx-0.5 text-[10px]">|</span> <i class="fa-solid fa-bolt text-indigo-200"></i> ${remaining}</div>`;
-            } else {
-                badgeContent = moonHtml + `<div class="bg-white text-slate-600 px-2.5 py-1 rounded-full text-[11px] font-black border border-slate-200 shadow-sm flex items-center gap-1.5 transition hover:bg-slate-50"><i class="fa-solid fa-bolt text-yellow-500"></i> <span>${remaining}</span></div>`;
-            }
+         
+window.showSubscriptionModal = function(reason) {
+    const existingModal = document.getElementById('subscriptionModal');
+    if (existingModal) existingModal.remove();
 
-            // 🌟 4. 메인 홈 화면과 롤플레잉 화면의 뱃지에 동시에 적용
-            const badgeIds = ['usageBadge', 'usageBadge2'];
-            badgeIds.forEach(id => {
-                const badge = document.getElementById(id);
-                if(badge) { 
-                    badge.innerHTML = badgeContent; 
-                    badge.className = "flex items-center gap-1.5 shrink-0 cursor-pointer"; 
-                }
-            });
-        };
-        window.showSubscriptionModal = function(reason) {
-            const existingModal = document.getElementById('subscriptionModal');
-            if (existingModal) existingModal.remove();
+    // 🌟 다국어 사전 불러오기
+    const baseLang = (document.getElementById('explanationLanguage').value || 'ko-KR').split('-')[0];
+    const dict = window.UI_DICTIONARY ? (window.UI_DICTIONARY[baseLang] || window.UI_DICTIONARY['en']) : {};
 
-            let titleText = "멤버십 업그레이드", descText = "원하시는 요금제를 선택해<br>더욱 자유롭게 학습해 보세요!";
-            if (reason === 'trial_expired') { titleText = "3일 무료 체험이 종료되었습니다."; descText = "계속 학습하시려면<br>멤버십 플랜을 선택해 주세요."; } 
-            else if (reason === 'limit_reached') { titleText = "일일 사용량을 모두 소진했습니다!"; descText = "계속 학습하시려면<br>멤버십 플랜을 선택해 주세요."; }
+    let titleText = dict.ui_premium_title || "멤버십 업그레이드", 
+        descText = dict.ui_premium_desc || "원하시는 요금제를 선택해<br>더욱 자유롭게 학습해 보세요!";
+        
+    if (reason === 'trial_expired') { 
+        titleText = dict.ui_trial_end_title || "3일 무료 체험이 종료되었습니다."; 
+        descText = dict.ui_trial_end_desc || "계속 학습하시려면<br>멤버십 플랜을 선택해 주세요."; 
+    } 
+    else if (reason === 'limit_reached') { 
+        titleText = dict.ui_limit_end_title || "일일 사용량을 모두 소진했습니다!"; 
+        descText = dict.ui_limit_end_desc || "계속 학습하시려면<br>멤버십 플랜을 선택해 주세요."; 
+    }
 
-            const modalHtml = `
-            <div id="subscriptionModal" class="fixed inset-0 bg-black/70 z-[999] flex items-center justify-center p-4 backdrop-blur-sm">
-                <div class="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl relative animate-fade-in-up border border-slate-100">
-                    <button onclick="document.getElementById('subscriptionModal').remove()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-2xl"></i></button>
-                    <div class="p-6 text-center">
-                        <div class="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-indigo-100"><i class="fa-solid fa-crown text-3xl text-indigo-500"></i></div>
-                        <h2 class="text-xl font-black text-slate-800 mb-2">${titleText}</h2><p class="text-sm text-slate-500 mb-6">${descText}</p>
-                        <div class="space-y-3 text-left">
-                            <button onclick="processPayment('basic')" class="w-full border-2 border-indigo-100 hover:border-indigo-500 bg-indigo-50/50 rounded-2xl p-4 flex items-center justify-between transition-all">
-                                <div><h3 class="text-indigo-800 font-bold text-lg">베이직 (Basic)</h3><p class="text-xs text-indigo-500 font-medium">매일 150건 API 대화</p></div>
-                                <div class="text-right"><span class="text-slate-800 font-black text-lg">₩3,900</span><span class="text-xs text-slate-400">/월</span></div>
-                            </button>
-                            <button onclick="processPayment('premium')" class="w-full border-2 border-amber-200 hover:border-amber-400 bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-4 flex items-center justify-between transition-all relative overflow-hidden">
-                                <div class="absolute top-0 right-0 bg-amber-400 text-white text-[10px] font-black px-2 py-0.5 rounded-bl-lg shadow-sm">무제한급</div>
-                                <div><h3 class="text-amber-700 font-bold text-lg">프리미엄 (Premium)</h3><p class="text-xs text-amber-600 font-medium">매일 400건 API 대화</p></div>
-                                <div class="text-right"><span class="text-slate-800 font-black text-lg">₩7,900</span><span class="text-xs text-slate-400">/월</span></div>
-                            </button>
-                        </div>
-                    </div>
+    const modalHtml = `
+    <div id="subscriptionModal" class="fixed inset-0 bg-black/70 z-[999] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl relative animate-fade-in-up border border-slate-100">
+            <button onclick="document.getElementById('subscriptionModal').remove()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-2xl"></i></button>
+            <div class="p-6 text-center">
+                <div class="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-indigo-100"><i class="fa-solid fa-crown text-3xl text-indigo-500"></i></div>
+                <h2 class="text-xl font-black text-slate-800 mb-2">${titleText}</h2><p class="text-sm text-slate-500 mb-6">${descText}</p>
+                <div class="space-y-3 text-left">
+                    <button onclick="processPayment('basic')" class="w-full border-2 border-indigo-100 hover:border-indigo-500 bg-indigo-50/50 rounded-2xl p-4 flex items-center justify-between transition-all">
+                        <div><h3 class="text-indigo-800 font-bold text-lg">${dict.ui_plan_basic || "베이직 (Basic)"}</h3><p class="text-xs text-indigo-500 font-medium">${dict.ui_plan_basic_desc || "매일 150건 충전"}</p></div>
+                        <div class="text-right"><span class="text-slate-800 font-black text-lg">₩3,900</span><span class="text-xs text-slate-400">/월</span></div>
+                    </button>
+                    <button onclick="processPayment('premium')" class="w-full border-2 border-amber-200 hover:border-amber-400 bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-4 flex items-center justify-between transition-all relative overflow-hidden">
+                        <div class="absolute top-0 right-0 bg-amber-400 text-white text-[10px] font-black px-2 py-0.5 rounded-bl-lg shadow-sm">무제한급</div>
+                        <div><h3 class="text-amber-700 font-bold text-lg">${dict.ui_plan_premium || "프리미엄 (Premium)"}</h3><p class="text-xs text-amber-600 font-medium">${dict.ui_plan_premium_desc || "매일 400건 충전"}</p></div>
+                        <div class="text-right"><span class="text-slate-800 font-black text-lg">₩7,900</span><span class="text-xs text-slate-400">/월</span></div>
+                    </button>
                 </div>
-            </div>`;
-            document.body.insertAdjacentHTML('beforeend', modalHtml);
-            if(window.stopSpeaking) window.stopSpeaking();
-        }
+            </div>
+        </div>
+    </div>`;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    if(window.stopSpeaking) window.stopSpeaking();
+}
         window.processPayment = function(plan) {
             if (window.flutter_inappwebview) {
                 window.flutter_inappwebview.callHandler('purchase', plan);
@@ -772,7 +901,6 @@ window.initSpeechRecognition = function() {
     const memoRule = `\n🚨 CRITICAL: If the user asks to save, note, or remember a schedule/task, extract it into the "save_memo" key (in ${exactAiLang}). Otherwise, "save_memo" MUST be "".`;          
     const antiParrotRule = `\n🚨 CRITICAL: DO NOT just translate the user's input. You must act as your persona and REPLY to their message contextually. Keep the conversation flowing naturally in ${targetName}.`;
 
-// 🌟 [수정 1] 번역기 모드일 때 AI의 오지랖을 완벽 차단하고, 입/출력 언어를 명확히 고정합니다.
     let sysPrompt = mode === 'translate' 
         ? `You are a strict translation machine. Your ONLY purpose is to translate the user's input into [${targetName}]. 
         CRITICAL RULES:
@@ -789,22 +917,17 @@ window.initSpeechRecognition = function() {
             ctx[0] = {role:"system", content:sysPrompt}; 
             ctx.push({role:"user",content:`[입력:${inputName}] ${text}`});
             
-            // 🔥 원본 히스토리 저장 (화면과 다음 턴을 위해 꼬리표 없이 깨끗하게 저장)
             conversationHistory = ctx; 
             sessionStorage.setItem('llmHistory', JSON.stringify(conversationHistory));
         }
         
-        // 🌟 [추가된 핵심 코드] API 서버로 보낼 때만 꼬리표를 몰래 다는 복사본 생성
         let apiMessages = JSON.parse(JSON.stringify(ctx));
         if (mode === 'tutor' && apiMessages.length > 0) {
-            // 튜터 모드 언어 고정
             apiMessages[apiMessages.length - 1].content += `\n\n[SYSTEM STRICT RULE: You MUST write the "foreign_text" ONLY in ${targetName}. NEVER use ${inputName} or any other language for "foreign_text". This is an absolute rule.]`;
         } else if (mode === 'translate' && apiMessages.length > 0) {
-            // 🌟 [수정 2] 번역 모드일 때는 유저의 메시지 앞에 '절대 대답하지 말고 번역만 해'라는 협박문(?)을 씌웁니다.
             apiMessages[apiMessages.length - 1].content = `[STRICT RULE: TRANSLATE the following text into ${targetName}. DO NOT answer the question or converse.]\n\n` + apiMessages[apiMessages.length - 1].content;
         }
 
-        // 🔥 ctx 대신 꼬리표가 달린 apiMessages를 서버로 전송합니다.
         let res = await fetchAPI(WORKER_URL, { 
             method: 'POST', 
             headers: { 'Content-Type': 'application/json', 'X-Device-ID': typeof myDeviceId !== 'undefined' ? myDeviceId : '' }, 
@@ -818,12 +941,29 @@ window.initSpeechRecognition = function() {
         let parsed;
         if (jsonMatch) parsed = JSON.parse(jsonMatch[0]); else throw new Error("JSON_NOT_FOUND");
         
+        // 🌟🌟🌟 [여기가 추가된 철벽 방어막입니다!] 🌟🌟🌟
+        const checkText = (parsed.foreign_text || "").toLowerCase();
+        if (checkText.includes("limit") || checkText.includes("error") || checkText.includes("connect") || checkText.includes("exceeded")) {
+            // 앱 화면에 사용자에게 친절하게 안내
+            if (typeof addMessageToChat === 'function') {
+                addMessageToChat('ai', "⚠️ 현재 AI 서버 트래픽이 많아 응답이 지연되고 있습니다. 잠시 후 다시 말해주세요. (번개 차감 안 됨)");
+            }
+            if (typeof updateStatus === 'function') updateStatus("서버 지연");
+            if (avatarWrap) avatarWrap.style.borderColor = "#f87171"; // 빨간색 테두리로 경고 표시
+            
+            return; // 🛑 여기서 함수를 끝내버림! (아래에 있는 번개 차감 로직까지 절대 못 내려갑니다)
+        }
+        // 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟
+
+        // 위 방어막을 무사히 통과한 정상 대화일 때만 비로소 차감!
         if (typeof window.incrementLocalUsage === 'function') window.incrementLocalUsage();
         
         if(mode==='tutor') { 
             conversationHistory.push({role:"assistant",content:JSON.stringify(parsed)}); 
             sessionStorage.setItem('llmHistory', JSON.stringify(conversationHistory)); 
             if(typeof window.compressMemory === 'function') window.compressMemory(); 
+            INTIMACY_SYSTEM.clearSulking(); // 말 걸어줬으니 삐진 거 풀기
+    INTIMACY_SYSTEM.addExp('chat');
         }
 
         if(parsed.save_memo && parsed.save_memo.trim() !== "") {
@@ -865,6 +1005,7 @@ window.initSpeechRecognition = function() {
     }
 }
         window.handleUserMessage = handleUserMessage;
+        
         window.requestExplanationGlobal = function() { 
             let lastAiMsg = "";
             for(let i = uiChatHistory.length - 1; i >= 0; i--) { if(uiChatHistory[i].sender === 'ai') { lastAiMsg = uiChatHistory[i].text; break; } }
@@ -1505,19 +1646,41 @@ if (window.speechSynthesis && typeof window.speechSynthesis.getVoices === 'funct
 
         // 🌟 2. 화면에 AI 기억을 띄워주는 함수 (다국어 지원 적용!)
         window.updateMemoryDisplay = function() {
-            const memDisplay = document.getElementById('ai_memory_display');
-            const baseLang = (document.getElementById('explanationLanguage').value || 'ko-KR').split('-')[0];
-            const dict = UI_DICTIONARY[baseLang] || UI_DICTIONARY['en'];
+    const memDisplay = document.getElementById('ai_memory_display');
+    const baseLang = (document.getElementById('explanationLanguage').value || 'ko-KR').split('-')[0];
+    const dict = UI_DICTIONARY[baseLang] || UI_DICTIONARY['en'];
 
-            if(memDisplay) {
-                const savedMem = localStorage.getItem('user_compressed_memory');
-                if(savedMem && savedMem !== '없음') {
-                    memDisplay.innerHTML = savedMem;
-                } else {
-                    memDisplay.innerHTML = dict.ui_memory_empty || "아직은 대화가 부족해서 기억된 내용이 없어요.\n\n프리토킹 튜터와 자유롭게 대화하면서 나만의 AI를 성장시켜 보세요! 🌱";
-                }
-            }
-        };
+    if(memDisplay) {
+        // 1. 기존에 8번 대화 후 압축된 기억 가져오기
+        const savedMem = localStorage.getItem('user_compressed_memory');
+        
+        // 2. 친밀도 및 서운함 상태 가져오기
+        const intimacyData = INTIMACY_SYSTEM.getData();
+        const levelInfo = INTIMACY_SYSTEM.levels[intimacyData.level];
+        const isSulking = localStorage.getItem('ai_is_sulking') === 'true';
+
+        let mindText = "";
+
+        // 3. 서운함 분기 처리 (삐졌을 때 vs 평소)
+        if (isSulking) {
+            mindText = `<span class="text-rose-500 font-bold text-xs"><i class="fa-solid fa-cloud-rain"></i> "어제 기다렸는데 안 오셨네요... 조금 서운했어요 🥺"</span><br><br>`;
+        } else {
+            mindText = `<span class="text-blue-500 font-black text-xs">[Lv.${intimacyData.level} ${levelInfo.name}]</span><br>
+                        <span class="text-slate-600 font-bold">💬 "${levelInfo.aiMind}"</span><br><br>`;
+        }
+
+        // 4. 기존 8회 압축 기억 붙여넣기
+        if(savedMem && savedMem !== '없음') {
+            mindText += `<span class="text-slate-400 text-[10px] font-bold"><i class="fa-solid fa-brain"></i> AI가 기억하는 당신:</span><br>
+                         <span class="text-slate-700 font-medium">${savedMem}</span>`;
+        } else {
+            mindText += `<span class="text-slate-400 text-[10px] font-bold"><i class="fa-solid fa-brain"></i> AI가 기억하는 당신:</span><br>
+                         <span class="text-slate-700 font-medium">${dict.ui_memory_empty || "아직 대화가 부족해서 기록이 없어요. 프리토킹으로 나만의 AI를 성장시켜 보세요! 🌱"}</span>`;
+        }
+
+        memDisplay.innerHTML = mindText;
+    }
+};;
         // 🌟 [수정됨] AI 튜터의 속마음(기억)을 사용자의 언어 설정에 맞춰 다국어로 요약하는 기능
         window.compressMemory = async function() {
             // 대화가 8줄 이상 쌓였을 때만 기억 압축 실행
@@ -1636,74 +1799,83 @@ window.markScriptAsLearned = function(scriptIndex) {
 };
 
         // 🌟 1. 퀘스트 진행도 및 모달창 UI 업데이트 함수
-        window.updateStreakUI = function() {
-            const todayStr = new Date().toLocaleDateString();
-            let streakData = JSON.parse(localStorage.getItem('study_streak_v3')) || { lastDate: "", streak: 0, scriptCount: 0, vocabCount: 0, freeTalkCount: 0, completedToday: false };
-            
-            if (streakData.lastDate !== todayStr) {
-                const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
-                if (streakData.lastDate !== yesterday.toLocaleDateString() && streakData.lastDate !== "") streakData.streak = 0; 
-                streakData.scriptCount = 0; streakData.vocabCount = 0; streakData.freeTalkCount = 0; streakData.completedToday = false; streakData.lastDate = todayStr;
-                localStorage.setItem('study_streak_v3', JSON.stringify(streakData));
-            }
+window.updateStreakUI = function() {
+    const todayStr = new Date().toLocaleDateString();
+    let streakData = JSON.parse(localStorage.getItem('study_streak_v3')) || { lastDate: "", streak: 0, scriptCount: 0, vocabCount: 0, freeTalkCount: 0, completedToday: false };
+    
+    // 다국어 사전 가져오기
+    const baseLang = (document.getElementById('explanationLanguage').value || 'ko-KR').split('-')[0];
+    const dict = UI_DICTIONARY[baseLang] || UI_DICTIONARY['en'];
+    
+    if (streakData.lastDate !== todayStr) {
+        const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+        if (streakData.lastDate !== yesterday.toLocaleDateString() && streakData.lastDate !== "") streakData.streak = 0; 
+        streakData.scriptCount = 0; streakData.vocabCount = 0; streakData.freeTalkCount = 0; streakData.completedToday = false; streakData.lastDate = todayStr;
+        localStorage.setItem('study_streak_v3', JSON.stringify(streakData));
+    }
 
-            const headerStreak = document.getElementById('header-streak-count');
-            if(headerStreak) headerStreak.innerText = `${streakData.streak}일 연속`;
-            if(document.getElementById('modal-streak-count')) document.getElementById('modal-streak-count').innerText = streakData.streak;
+    const headerStreak = document.getElementById('header-streak-count');
+    if(headerStreak) headerStreak.innerText = (dict.ui_streak_days || "{n}일 연속").replace('{n}', streakData.streak);
 
-            const questContainer = document.getElementById('modal-quest-container');
-            if (questContainer) {
-                questContainer.innerHTML = `
-                    <div class="bg-emerald-50 p-3 rounded-xl border ${streakData.vocabCount>=10?'border-emerald-400 shadow-inner':'border-emerald-100'} flex items-center justify-between mb-1">
-                        <div class="flex items-center gap-2"><i class="fa-solid fa-layer-group text-emerald-500"></i><span class="text-xs font-bold text-slate-700">단어장 학습 (필수)</span></div>
-                        <span class="text-xs font-black text-emerald-600">${Math.min(10, streakData.vocabCount)} / 10</span>
-                    </div>
-                    <div class="text-[10px] text-center text-slate-400 font-bold mb-1 mt-2">+ 아래 둘 중 하나 선택 달성 +</div>
-                    <div class="flex gap-2">
-                        <div class="flex-1 bg-blue-50 p-2.5 rounded-xl border ${streakData.freeTalkCount>=10?'border-blue-400 shadow-inner':'border-blue-100'} flex flex-col items-center justify-center">
-                            <i class="fa-solid fa-comments text-blue-500 mb-1"></i><span class="text-[10px] font-bold text-slate-700">프리토킹</span>
-                            <span class="text-xs font-black text-blue-600 mt-0.5">${Math.min(10, streakData.freeTalkCount)} / 10</span>
-                        </div>
-                        <div class="text-[10px] text-slate-300 font-black self-center">OR</div>
-                        <div class="flex-1 bg-indigo-50 p-2.5 rounded-xl border ${streakData.scriptCount>=5?'border-indigo-400 shadow-inner':'border-indigo-100'} flex flex-col items-center justify-center">
-                            <i class="fa-solid fa-headphones text-indigo-500 mb-1"></i><span class="text-[10px] font-bold text-slate-700">롤플레잉</span>
-                            <span class="text-xs font-black text-indigo-600 mt-0.5">${Math.min(5, streakData.scriptCount)} / 5</span>
-                        </div>
-                    </div>
-                `;
-            }
+    const titleWrapper = document.getElementById('streak_modal_title_wrapper');
+    if(titleWrapper) {
+        const rawTitle = dict.ui_streak_modal_title || "{n}일 연속 달성!";
+        titleWrapper.innerHTML = rawTitle.replace('{n}', `<span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-500">${streakData.streak}</span>`);
+    }
 
-            // 🌟 보상 타겟 로직 (테스트용: 시작하자마자 1일 타겟이 스페셜 페르소나!)
-            let nextTarget = 30, rewardText = "스페셜 페르소나 🎁";
-            if (streakData.streak >= 1 && streakData.streak < 5) { nextTarget = 5; rewardText = "초승달 10개 🌙"; }
-            else if (streakData.streak >= 5 && streakData.streak < 10) { nextTarget = 10; rewardText = "초승달 20개 🌙"; }
-            else if (streakData.streak >= 10 && streakData.streak < 20) { nextTarget = 20; rewardText = "초승달 30개 🌙"; }
-            else if (streakData.streak >= 20 && streakData.streak < 30) { nextTarget = 30; rewardText = "초승달 30개 🌙"; }
-            else if (streakData.streak >= 30) { nextTarget = streakData.streak + 10; rewardText = "초승달 30개 🌙"; } 
+    const questContainer = document.getElementById('modal-quest-container');
+    if (questContainer) {
+        questContainer.innerHTML = `
+            <div class="bg-emerald-50 p-3 rounded-xl border ${streakData.vocabCount>=10?'border-emerald-400 shadow-inner':'border-emerald-100'} flex items-center justify-between mb-1">
+                <div class="flex items-center gap-2"><i class="fa-solid fa-layer-group text-emerald-500"></i><span class="text-xs font-bold text-slate-700">${dict.ui_streak_quest_vocab || '단어장 학습 (필수)'}</span></div>
+                <span class="text-xs font-black text-emerald-600">${Math.min(10, streakData.vocabCount)} / 10</span>
+            </div>
+            <div class="text-[10px] text-center text-slate-400 font-bold mb-1 mt-2">+ ${dict.ui_streak_choice || '아래 둘 중 하나 선택 달성'} +</div>
+            <div class="flex gap-2">
+                <div class="flex-1 bg-blue-50 p-2.5 rounded-xl border ${streakData.freeTalkCount>=10?'border-blue-400 shadow-inner':'border-blue-100'} flex flex-col items-center justify-center">
+                    <i class="fa-solid fa-comments text-blue-500 mb-1"></i><span class="text-[10px] font-bold text-slate-700">${dict.ui_streak_freetalk || '프리토킹'}</span>
+                    <span class="text-xs font-black text-blue-600 mt-0.5">${Math.min(10, streakData.freeTalkCount)} / 10</span>
+                </div>
+                <div class="text-[10px] text-slate-300 font-black self-center">OR</div>
+                <div class="flex-1 bg-indigo-50 p-2.5 rounded-xl border ${streakData.scriptCount>=5?'border-indigo-400 shadow-inner':'border-indigo-100'} flex flex-col items-center justify-center">
+                    <i class="fa-solid fa-headphones text-indigo-500 mb-1"></i><span class="text-[10px] font-bold text-slate-700">${dict.ui_streak_roleplay || '롤플레잉'}</span>
+                    <span class="text-xs font-black text-indigo-600 mt-0.5">${Math.min(5, streakData.scriptCount)} / 5</span>
+                </div>
+            </div>
+        `;
+    }
 
-            let prevTarget = nextTarget === 1 ? 0 : (nextTarget === 5 ? 1 : (nextTarget === 10 ? 5 : (nextTarget === 20 ? 10 : (nextTarget === 30 ? 20 : nextTarget - 10))));
-            let progressPercent = Math.min(100, ((streakData.streak - prevTarget) / (nextTarget - prevTarget)) * 100);
+    let nextTarget = 30;
+    if (streakData.streak >= 1 && streakData.streak < 5) { nextTarget = 5; }
+    else if (streakData.streak >= 5 && streakData.streak < 10) { nextTarget = 10; }
+    else if (streakData.streak >= 10 && streakData.streak < 20) { nextTarget = 20; }
+    else if (streakData.streak >= 20 && streakData.streak < 30) { nextTarget = 30; }
+    else if (streakData.streak >= 30) { nextTarget = streakData.streak + 10; } 
 
-            const targetBox = document.getElementById('modal-target-box');
-            if (targetBox) {
-                targetBox.innerHTML = `
-                    <div class="flex justify-between text-[10px] font-bold mb-2"><span class="text-orange-700">다음 보상 (${nextTarget}일 연속)</span><span class="text-orange-600">진행 중</span></div>
-                    <div class="h-2 w-full bg-orange-200 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-orange-400 to-red-500 rounded-full transition-all duration-500" style="width: ${progressPercent}%;"></div></div>
-                    <p class="text-[10px] text-orange-600 mt-2 text-center font-bold">${nextTarget}일 달성 시 [ ${rewardText} ] 지급!</p>
-                `;
-            }
+    let prevTarget = nextTarget === 1 ? 0 : (nextTarget === 5 ? 1 : (nextTarget === 10 ? 5 : (nextTarget === 20 ? 10 : (nextTarget === 30 ? 20 : nextTarget - 10))));
+    let progressPercent = Math.min(100, ((streakData.streak - prevTarget) / (nextTarget - prevTarget)) * 100);
 
-            const dashQuest = document.getElementById('dash-quest-status');
-            if(dashQuest) {
-                if (streakData.completedToday) {
-                    dashQuest.innerHTML = '✨ 오늘 퀘스트 완료!';
-                    dashQuest.className = 'text-[9px] text-emerald-600 font-bold bg-emerald-100 px-2 py-0.5 rounded-full shadow-sm border border-emerald-200 transition-colors';
-                } else {
-                    dashQuest.innerHTML = `퀘스트: 단어(${streakData.vocabCount}/10) & 톡(${streakData.freeTalkCount}/10)or극(${streakData.scriptCount}/5)`;
-                    dashQuest.className = 'text-[9px] text-orange-600 font-bold bg-orange-100 px-2 py-0.5 rounded-full shadow-sm border border-orange-200 transition-colors truncate max-w-[150px]';
-                }
-            }
-        };
+    const targetBox = document.getElementById('modal-target-box');
+    if (targetBox) {
+        const rewardTextStr = (dict.ui_next_reward || "다음 보상 ({n}일 연속)").replace('{n}', nextTarget);
+        targetBox.innerHTML = `
+            <div class="flex justify-between text-[10px] font-bold mb-2"><span class="text-orange-700">${rewardTextStr}</span><span class="text-orange-600">${dict.ui_streak_progress || '진행 중'}</span></div>
+            <div class="h-2 w-full bg-orange-200 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-orange-400 to-red-500 rounded-full transition-all duration-500" style="width: ${progressPercent}%;"></div></div>
+        `;
+    }
+
+    const dashQuest = document.getElementById('dash-quest-status');
+    if(dashQuest) {
+        if (streakData.completedToday) {
+            dashQuest.innerHTML = dict.ui_quest_done || '✨ 오늘 퀘스트 완료!';
+            dashQuest.className = 'text-[9px] text-emerald-600 font-bold bg-emerald-100 px-2 py-0.5 rounded-full shadow-sm border border-emerald-200 transition-colors';
+        } else {
+            let qStatus = dict.ui_quest_status || "오늘 퀘스트: 대본({s}/5) 단어({v}/10)";
+            dashQuest.innerHTML = qStatus.replace('{s}', Math.min(5, streakData.scriptCount)).replace('{v}', Math.min(10, Math.max(streakData.vocabCount, streakData.freeTalkCount)));
+            dashQuest.className = 'text-[9px] text-orange-600 font-bold bg-orange-100 px-2 py-0.5 rounded-full shadow-sm border border-orange-200 transition-colors truncate max-w-[150px]';
+        }
+    }
+};
 
        // 🌟 2. 퀘스트 체크 & 보상 지급 함수 (완전 정리본)
 window.addStudyMission = function(type) {
@@ -1723,7 +1895,7 @@ window.addStudyMission = function(type) {
         if (streakData.vocabCount >= 10 && (streakData.scriptCount >= 5 || streakData.freeTalkCount >= 10)) {
             streakData.completedToday = true;
             streakData.streak += 1;
-            
+            INTIMACY_SYSTEM.addExp('quest');
             // 기본 보상
             let rwMoons = 3; 
 
@@ -1750,10 +1922,8 @@ window.addStudyMission = function(type) {
         // 앱 켤 때 퀘스트 정보 갱신
         setTimeout(window.updateStreakUI, 500);
 
-        window.updateDashboardUI = function() {
+window.updateDashboardUI = function() {
     let stats = JSON.parse(localStorage.getItem('user_learning_stats_v1')) || { sentences: 0, words: 0 };
-    
-    // 🌟 수정: 전체 대본 개수가 아니라 '학습한 대본 기록'의 개수를 가져옴
     const learnedScripts = JSON.parse(localStorage.getItem('learned_scripts_log') || '[]');
     let scriptsLearnedCount = learnedScripts.length;
 
@@ -1763,11 +1933,12 @@ window.addStudyMission = function(type) {
 
     if(elSentences) elSentences.innerText = stats.sentences;
     if(elWords) elWords.innerText = stats.words;
-    if(elScripts) elScripts.innerText = scriptsLearnedCount; // 변경된 카운트 반영
+    if(elScripts) elScripts.innerText = scriptsLearnedCount; 
 
-    // 언어 레이블 번역 (기존 로직 유지)
+    // 🌟 다국어 번역 적용
     const baseLang = (document.getElementById('explanationLanguage').value || 'ko-KR').split('-')[0];
-    const dict = UI_DICTIONARY[baseLang] || UI_DICTIONARY['en'];
+    const dict = window.UI_DICTIONARY ? (window.UI_DICTIONARY[baseLang] || window.UI_DICTIONARY['en']) : {};
+    
     const labelScript = document.getElementById('ui_home_stat_script');
     if(labelScript) labelScript.innerText = dict.ui_home_stat_script || "학습한 대본";
 };
@@ -1912,7 +2083,12 @@ window.onload = function() {
 window.updateVoiceDisplay = function(voiceName) {
     const disp = document.getElementById('disp-voiceName');
     if (disp) {
-        disp.innerText = voiceName ? voiceName : "기본 음성";
+        // 🌟 다국어 사전에서 '기본 음성' 글자 빼오기
+        const baseLang = (document.getElementById('explanationLanguage').value || 'ko-KR').split('-')[0];
+        const dict = window.UI_DICTIONARY ? (window.UI_DICTIONARY[baseLang] || window.UI_DICTIONARY['en']) : {};
+        const defaultVoiceText = dict.ui_default_voice || "기본 음성";
+        
+        disp.innerText = voiceName ? voiceName : defaultVoiceText;
     }
 };
 
@@ -2096,8 +2272,13 @@ window.renderCustomCharacters = function() {
     let chars = JSON.parse(localStorage.getItem('my_custom_characters') || '[]');
     listArea.innerHTML = ''; 
     
+    // 다국어 사전 가져오기
+    const baseLang = (document.getElementById('explanationLanguage').value || 'ko-KR').split('-')[0];
+    const dict = UI_DICTIONARY[baseLang] || UI_DICTIONARY['en'];
+    
     if(chars.length === 0) {
-        listArea.innerHTML = '<div class="text-center p-4 bg-slate-50 rounded-xl border border-slate-100 border-dashed text-slate-400 text-[10px] font-bold">생성된 나만의 AI가 없습니다.</div>';
+        // 번역 데이터 적용
+        listArea.innerHTML = `<div class="text-center p-4 bg-slate-50 rounded-xl border border-slate-100 border-dashed text-slate-400 text-[10px] font-bold">${dict.ui_no_custom_ai || "생성된 나만의 AI가 없습니다."}</div>`;
         return;
     }
 
@@ -2174,3 +2355,23 @@ window.addEventListener('flutterInAppWebViewPlatformReady', function(event) {
     window.requestVoicesFromApp();
 });
 
+
+
+
+
+
+
+
+
+
+
+
+
+window.devTestLimit = function() {
+    let todayObj = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}');
+    todayObj.count = 50; // 번개 50개 소진
+    localStorage.setItem('daily_usage_v4', JSON.stringify(todayObj));
+    localStorage.setItem('moon_coins', '3'); // 초승달 3개 줌
+    window.updateBadgeUI();
+    alert("삐빅! 번개 0, 초승달 3개로 조작 완료!");
+};
