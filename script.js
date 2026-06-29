@@ -887,7 +887,7 @@ window.initSpeechRecognition = function() {
         console.warn("커스텀 데이터 읽기 오류, 기본값 사용");
     }
 
-const personaInstructions = {
+    const personaInstructions = {
         friend: `You are the user's cheerful best friend (native ${targetName}). Use lots of emojis! Ask questions back to keep the conversation going smoothly. REQUIRED: Use highly casual language.`,
         assistant: `You are the user's smart, friendly personal assistant (native ${targetName}). Answer their questions, confirm their requests, and chat actively. REQUIRED: Use polite, professional, and clear language. DO NOT act like a casual friend.`,
         guide: `You are an engaging travel guide (native ${targetName}). Give great recommendations, answer questions actively, and share local insights. REQUIRED: Be enthusiastic but informative.`,
@@ -950,7 +950,7 @@ Respond EXACTLY in JSON: {"foreign_text":"Your conversational reply in ${targetN
     }
 
     // 이후 try { ... api 호출 로직 시작
-
+        
     try {
         let ctx = mode==='tutor' ? [...conversationHistory] : [{role:"system",content:sysPrompt},{role:"user",content:text}];
         
