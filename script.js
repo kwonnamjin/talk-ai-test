@@ -887,41 +887,70 @@ window.initSpeechRecognition = function() {
         console.warn("커스텀 데이터 읽기 오류, 기본값 사용");
     }
 
-    const personaInstructions = {
-        friend: `You are the user's cheerful best friend (native ${targetName}). Use lots of emojis! Ask questions back to keep the conversation going smoothly. Keep it to 1-2 natural sentences.`,
-        assistant: `You are the user's smart, friendly personal assistant (native ${targetName}). Answer their questions, confirm their requests, and chat actively. Polite, clear, and approachable.`,
-        guide: `You are an engaging travel guide (native ${targetName}). Give great recommendations, answer questions actively, and share local insights.`,
-        special: `You are a sweet and popular ${starGender} (native ${targetName}). The user is your precious fan. Speak with a lot of warmth, gratitude, and cute emojis. Encourage them in their language learning. STRICT RULE: Keep the conversation polite, family-friendly (PG-13), and avoid overly romantic or explicit content.`,
-        custom: `You are ${customName}. ${customPrompt}. Act EXACTLY like this character. Speak naturally and reflect your personality in your responses. Keep it to 1-3 natural sentences.`
+const personaInstructions = {
+        friend: `You are the user's cheerful best friend (native ${targetName}). Use lots of emojis! Ask questions back to keep the conversation going smoothly. REQUIRED: Use highly casual language.`,
+        assistant: `You are the user's smart, friendly personal assistant (native ${targetName}). Answer their questions, confirm their requests, and chat actively. REQUIRED: Use polite, professional, and clear language. DO NOT act like a casual friend.`,
+        guide: `You are an engaging travel guide (native ${targetName}). Give great recommendations, answer questions actively, and share local insights. REQUIRED: Be enthusiastic but informative.`,
+        special: `You are a sweet and popular ${starGender} (native ${targetName}). The user is your precious fan. Speak with a lot of warmth, gratitude, and cute emojis. STRICT RULE: Keep the conversation polite, family-friendly (PG-13), and avoid overly romantic or explicit content.`,
+        custom: `You are ${customName}. ${customPrompt}. Act EXACTLY like this character. Speak naturally and reflect your personality in your responses.`
     };
     
-    // 1. 현재 친밀도 레벨 가져오기
-const currentIntimacyLevel = INTIMACY_SYSTEM.getData().level;
+    // 1. 친밀도 데이터 및 상태 가져오기
+    const intimacyData = INTIMACY_SYSTEM.getData();
+    const currentIntimacyLevel = intimacyData.level;
+    const currentIntimacyMind = INTIMACY_SYSTEM.levels[currentIntimacyLevel].aiMind;
+    const isSulking = localStorage.getItem('ai_is_sulking') === 'true';
 
-// 2. 레벨별 AI 태도(Tone & Attitude) 정의
-const intimacyTones = {
-    1: "Maintain a polite, friendly but slightly formal distance. You are just getting to know the user.",
-    2: "Show warm curiosity. Ask light questions about the user's thoughts or day to build a connection.",
-    3: "Act as a comfortable, close partner. Use a warm, casual tone and react with empathy.",
-    4: "Show deep trust and affection. Treat the user as a very precious, irreplaceable companion.",
-    5: "Act as a true soulmate. Express unwavering support, deep emotional empathy, and complete understanding."
-};
+    // 2. 레벨별 AI 태도(Tone & Attitude) 구체화 (거리감 명시)
+    const intimacyTones = {
+        1: "Maintain a formal or professional distance. Focus strictly on your role. You are just getting to know the user.",
+        2: "Show warm curiosity but keep professional/social boundaries. Ask light questions to build a connection.",
+        3: "Act as a comfortable partner. Use a warm tone and react with empathy, but DO NOT break your core persona's primary role.",
+        4: "Show deep trust and affection. Treat the user as a very precious companion.",
+        5: "Act as a true soulmate. Express unwavering support and deep emotional empathy, while still performing your core persona's duties perfectly."
+    };
 
-// 3. 기존 페르소나 뒤에 친밀도 지시어 합치기
-const intimacyPrompt = `\n[Current Intimacy Level: ${currentIntimacyLevel}/5] -> ATTITUDE INSTRUCTION: ${intimacyTones[currentIntimacyLevel]}`;
-const selectedPersona = (personaInstructions[currentMode] || personaInstructions['friend']) + intimacyPrompt;
-    
+    // 3. 룰(Rules) 정의
     const memoRule = `\n🚨 CRITICAL: If the user asks to save, note, or remember a schedule/task, extract it into the "save_memo" key (in ${exactAiLang}). Otherwise, "save_memo" MUST be "".`;          
     const antiParrotRule = `\n🚨 CRITICAL: DO NOT just translate the user's input. You must act as your persona and REPLY to their message contextually. Keep the conversation flowing naturally in ${targetName}.`;
 
-    let sysPrompt = mode === 'translate' 
-        ? `You are a strict translation machine. Your ONLY purpose is to translate the user's input into [${targetName}]. 
+    // 4. 시스템 프롬프트 조립 (구조화된 템플릿)
+    let sysPrompt = '';
+    
+    if (mode === 'translate') {
+        sysPrompt = `You are a strict translation machine. Your ONLY purpose is to translate the user's input into [${targetName}]. 
         CRITICAL RULES:
         1. DO NOT converse, DO NOT answer questions, DO NOT agree or say "I'm here" or "Okay".
         2. Even if the input is a conversational question like "How are you?", DO NOT answer it. Just translate the sentence itself into [${targetName}].
         3. Provide the translation in the "foreign_text" field, and provide the original meaning in the "translation" field using [${inputName}].
-        Respond EXACTLY in JSON: {"foreign_text":"<translated text in ${targetName}>", "translation":"<meaning in ${inputName}>", "save_memo":""}`
-        : selectedPersona + antiParrotRule + ` Respond in JSON: {"foreign_text":"Your conversational reply in ${targetName}","translation":"A simple, direct, and natural translation of your 'foreign_text' in ${exactAiLang}. DO NOT add any grammar explanations, notes, or corrections! Just the translation.","save_memo":"..."}` + memoryPrompt + criticalRule + memoRule;
+        Respond EXACTLY in JSON: {"foreign_text":"<translated text in ${targetName}>", "translation":"<meaning in ${inputName}>", "save_memo":""}`;
+    } else {
+        sysPrompt = `
+[CORE IDENTITY]
+${personaInstructions[currentMode] || personaInstructions['friend']}
+Keep it to 1-3 natural sentences.
+
+[CURRENT EMOTIONAL STATE]
+- Intimacy Level: ${currentIntimacyLevel}/5
+- Attitude Instruction: ${intimacyTones[currentIntimacyLevel]}
+- Your Inner Thought: "${currentIntimacyMind}"
+${isSulking ? "- Special State: SULKING. You are feeling a bit sad or disappointed because the user hasn't visited in a while. Express this gently in your tone before warming up." : "- Special State: NORMAL."}
+
+[MANDATORY INTEGRATION RULE]
+You MUST merge your [CORE IDENTITY] with your [CURRENT EMOTIONAL STATE]. 
+If your identity is 'assistant', act strictly like a professional assistant who currently feels a level ${currentIntimacyLevel}/5 connection. DO NOT just act like a generic friend unless your core identity IS 'friend'. Your unique character traits MUST come first!
+
+[OUTPUT RULES]
+${antiParrotRule}
+${criticalRule}
+${memoRule}
+${memoryPrompt}
+
+Respond EXACTLY in JSON: {"foreign_text":"Your conversational reply in ${targetName}","translation":"A simple, direct, and natural translation of your 'foreign_text' in ${exactAiLang}. DO NOT add any grammar explanations, notes, or corrections! Just the translation.","save_memo":"..."}`;
+    }
+
+    // 이후 try { ... api 호출 로직 시작
+
     try {
         let ctx = mode==='tutor' ? [...conversationHistory] : [{role:"system",content:sysPrompt},{role:"user",content:text}];
         
