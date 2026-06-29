@@ -895,7 +895,21 @@ window.initSpeechRecognition = function() {
         custom: `You are ${customName}. ${customPrompt}. Act EXACTLY like this character. Speak naturally and reflect your personality in your responses. Keep it to 1-3 natural sentences.`
     };
     
-    const selectedPersona = personaInstructions[currentMode] || personaInstructions['friend'];
+    // 1. 현재 친밀도 레벨 가져오기
+const currentIntimacyLevel = INTIMACY_SYSTEM.getData().level;
+
+// 2. 레벨별 AI 태도(Tone & Attitude) 정의
+const intimacyTones = {
+    1: "Maintain a polite, friendly but slightly formal distance. You are just getting to know the user.",
+    2: "Show warm curiosity. Ask light questions about the user's thoughts or day to build a connection.",
+    3: "Act as a comfortable, close partner. Use a warm, casual tone and react with empathy.",
+    4: "Show deep trust and affection. Treat the user as a very precious, irreplaceable companion.",
+    5: "Act as a true soulmate. Express unwavering support, deep emotional empathy, and complete understanding."
+};
+
+// 3. 기존 페르소나 뒤에 친밀도 지시어 합치기
+const intimacyPrompt = `\n[Current Intimacy Level: ${currentIntimacyLevel}/5] -> ATTITUDE INSTRUCTION: ${intimacyTones[currentIntimacyLevel]}`;
+const selectedPersona = (personaInstructions[currentMode] || personaInstructions['friend']) + intimacyPrompt;
     
     const memoRule = `\n🚨 CRITICAL: If the user asks to save, note, or remember a schedule/task, extract it into the "save_memo" key (in ${exactAiLang}). Otherwise, "save_memo" MUST be "".`;          
     const antiParrotRule = `\n🚨 CRITICAL: DO NOT just translate the user's input. You must act as your persona and REPLY to their message contextually. Keep the conversation flowing naturally in ${targetName}.`;
