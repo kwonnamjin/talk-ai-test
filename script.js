@@ -933,12 +933,10 @@ Keep it to 1-3 natural sentences.
 [CURRENT EMOTIONAL STATE]
 - Intimacy Level: ${currentIntimacyLevel}/5
 - Attitude Instruction: ${intimacyTones[currentIntimacyLevel]}
-- Your Inner Thought: "${currentIntimacyMind}"
-${isSulking ? "- Special State: SULKING. You are feeling a bit sad or disappointed because the user hasn't visited in a while. Express this gently in your tone before warming up." : "- Special State: NORMAL."}
+${isSulking ? "- Special State: SULKING. You are feeling a bit sad or disappointed because the user hasn't visited in a while." : "- Special State: NORMAL."}
 
 [MANDATORY INTEGRATION RULE]
-You MUST merge your [CORE IDENTITY] with your [CURRENT EMOTIONAL STATE]. 
-If your identity is 'assistant', act strictly like a professional assistant who currently feels a level ${currentIntimacyLevel}/5 connection. DO NOT just act like a generic friend unless your core identity IS 'friend'. Your unique character traits MUST come first!
+You MUST merge your [CORE IDENTITY] with your [CURRENT EMOTIONAL STATE].
 
 [OUTPUT RULES]
 ${antiParrotRule}
@@ -946,7 +944,15 @@ ${criticalRule}
 ${memoRule}
 ${memoryPrompt}
 
-Respond EXACTLY in JSON: {"foreign_text":"Your conversational reply in ${targetName}","translation":"A simple, direct, and natural translation of your 'foreign_text' in ${exactAiLang}. DO NOT add any grammar explanations, notes, or corrections! Just the translation.","save_memo":"..."}`;
+🚨 CRITICAL: You must generate an "inner_thought" (in Korean, 1-2 sentences). This is your secret inner feeling towards the user right now. Read the user's latest message and the Core Memory. If they are sad, feel empathy. If they are happy, feel glad. If it's a new day and they were tired yesterday, wish them a better day today. Reflect your current Intimacy Level (${currentIntimacyLevel}/5).
+
+Respond EXACTLY in JSON: 
+{
+  "foreign_text": "Your conversational reply in ${targetName}",
+  "translation": "Translation of your reply in ${exactAiLang}",
+  "save_memo": "...",
+  "inner_thought": "AI의 실시간 속마음 (한국어로 작성)"
+}`;
     }
 
     // 이후 try { ... api 호출 로직 시작
@@ -982,6 +988,12 @@ Respond EXACTLY in JSON: {"foreign_text":"Your conversational reply in ${targetN
         
         let parsed;
         if (jsonMatch) parsed = JSON.parse(jsonMatch[0]); else throw new Error("JSON_NOT_FOUND");
+        // --- 🌟 [여기에 추가] AI가 생성한 실시간 속마음 저장 및 UI 갱신 ---
+        if(parsed.inner_thought) {
+            localStorage.setItem('ai_dynamic_thought', parsed.inner_thought);
+            if(typeof window.updateMemoryDisplay === 'function') window.updateMemoryDisplay();
+        }
+        // -------------------------------------------------------------------
         
         // 🌟🌟🌟 [여기가 추가된 철벽 방어막입니다!] 🌟🌟🌟
         const checkText = (parsed.foreign_text || "").toLowerCase();
