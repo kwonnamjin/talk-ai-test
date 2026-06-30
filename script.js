@@ -944,14 +944,14 @@ ${criticalRule}
 ${memoRule}
 ${memoryPrompt}
 
-🚨 CRITICAL: You must generate an "inner_thought" (in Korean, 1-2 sentences). This is your secret inner feeling towards the user right now. Read the user's latest message and the Core Memory. If they are sad, feel empathy. If they are happy, feel glad. If it's a new day and they were tired yesterday, wish them a better day today. Reflect your current Intimacy Level (${currentIntimacyLevel}/5).
+🚨 CRITICAL: You must generate an "inner_thought" (1-2 sentences in ${exactAiLang}). This is your secret inner feeling towards the user right now. Read the user's latest message and the Core Memory. If they are sad, feel empathy. If they are happy, feel glad. Reflect your current Intimacy Level (${currentIntimacyLevel}/5).
 
 Respond EXACTLY in JSON: 
 {
   "foreign_text": "Your conversational reply in ${targetName}",
   "translation": "Translation of your reply in ${exactAiLang}",
   "save_memo": "...",
-  "inner_thought": "AI의 실시간 속마음 (한국어로 작성)"
+  "inner_thought": "AI's real-time inner thought ONLY in ${exactAiLang}"
 }`;
     }
 
@@ -1818,24 +1818,33 @@ if (window.speechSynthesis && typeof window.speechSynthesis.getVoices === 'funct
         };
         
 
-// 🌟 실시간 공감형 AI 속마음 및 기억 출력 모듈 (출력 위치 수정됨)
-// 🌟 실시간 공감형 AI 속마음 모듈 (사용자 기억은 화면에서 숨김)
+// 🌟 다국어 지원 & 스크롤 고정형 AI 속마음 모듈
 window.updateMemoryDisplay = function() {
     const memDisplay = document.getElementById('ai_memory_display');
     if(!memDisplay) return;
 
-    // 1. 데이터 가져오기 (savedMem 변수도 화면에 안 쓰므로 지워도 무방합니다)
+    // 🚫 [스크롤 제거 핵심] 자바스크립트로 스크롤 강제 차단 및 고정
+    memDisplay.style.overflow = "hidden";
+    memDisplay.style.maxHeight = "none";
+    memDisplay.classList.remove('overflow-y-auto', 'overflow-auto'); // 혹시 모를 기존 클래스 제거
+
+    // 🌍 사용자 다국어 설정 가져오기
+    const baseLang = (document.getElementById('explanationLanguage').value || 'ko-KR').split('-')[0];
+    const dict = window.UI_DICTIONARY ? (window.UI_DICTIONARY[baseLang] || window.UI_DICTIONARY['en']) : {};
+    
+    // 상태 라벨 다국어 처리 (사전에 없으면 기본값 언어별로 출력)
+    const statusLabel = dict.ui_status || (baseLang === 'ko' ? "상태" : "Status");
+
+    // 데이터 가져오기
     const intimacyData = INTIMACY_SYSTEM.getData();
     const levelInfo = INTIMACY_SYSTEM.levels[intimacyData.level];
-    
-    // AI의 실시간 속마음
     const dynamicThought = localStorage.getItem('ai_dynamic_thought') || levelInfo.aiMind; 
 
-    // 2. 화면에 그리기 (오직 속마음 창만 출력)
+    // 화면에 그리기
     let htmlContent = `
         <div class="mb-3 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-xl shadow-sm relative overflow-hidden">
             <div class="absolute -right-2 -top-2 opacity-10 text-4xl">💭</div>
-            <p class="text-[10px] font-black text-blue-500 mb-1">상태: Lv.${intimacyData.level} ${levelInfo.name}</p>
+            <p class="text-[10px] font-black text-blue-500 mb-1">${statusLabel}: Lv.${intimacyData.level} ${levelInfo.name}</p>
             <p class="text-xs font-bold text-slate-700 leading-relaxed">"${dynamicThought}"</p>
         </div>`;
 
