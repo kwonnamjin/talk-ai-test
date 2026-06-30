@@ -998,6 +998,10 @@ Respond EXACTLY in JSON:
         // 🌟🌟🌟 [여기가 추가된 철벽 방어막입니다!] 🌟🌟🌟
         const checkText = (parsed.foreign_text || "").toLowerCase();
         if (checkText.includes("limit") || checkText.includes("error") || checkText.includes("connect") || checkText.includes("exceeded")) {
+            
+            // 💡 [추가할 부분] 에러가 감지되면 꼬여있는 현재 대화 세션을 강제로 비워버림 (무한 루프 차단)
+            if (typeof clearChatSession === 'function') clearChatSession();
+
             // 앱 화면에 사용자에게 친절하게 안내
             if (typeof addMessageToChat === 'function') {
                 addMessageToChat('ai', "⚠️ 현재 AI 서버 트래픽이 많아 응답이 지연되고 있습니다. 잠시 후 다시 말해주세요. (번개 차감 안 됨)");
