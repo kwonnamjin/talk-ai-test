@@ -1818,41 +1818,32 @@ if (window.speechSynthesis && typeof window.speechSynthesis.getVoices === 'funct
         };
         
 
-        window.updateMemoryDisplay = function() {
+       // 🌟 실시간 공감형 AI 속마음 및 기억 출력 모듈
+window.updateMemoryDisplay = function() {
     const memDisplay = document.getElementById('ai_memory_display');
-    const baseLang = (document.getElementById('explanationLanguage').value || 'ko-KR').split('-')[0];
-    const dict = UI_DICTIONARY[baseLang] || UI_DICTIONARY['en'];
+    if(!memDisplay) return;
 
-    if(memDisplay) {
-        // 1. 기존에 8번 대화 후 압축된 기억 가져오기
-        const savedMem = localStorage.getItem('user_compressed_memory');
+    // 1. 데이터 가져오기
+    const savedMem = localStorage.getItem('user_compressed_memory') || '아직 기록된 내용이 없습니다.';
+    const intimacyData = INTIMACY_SYSTEM.getData();
+    const levelInfo = INTIMACY_SYSTEM.levels[intimacyData.level];
+    
+    // 🎯 방금 AI가 생성한 '실시간 속마음' 가져오기 (없으면 기본 레벨 텍스트 사용)
+    const dynamicThought = localStorage.getItem('ai_dynamic_thought') || levelInfo.aiMind;
+
+    let htmlContent = `
+        <div class="mb-3 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-xl shadow-sm relative overflow-hidden">
+            <div class="absolute -right-2 -top-2 opacity-10 text-4xl">💭</div>
+            <p class="text-[10px] font-black text-blue-500 mb-1">상태: Lv.${intimacyData.level} ${levelInfo.name}</p>
+            <p class="text-xs font-bold text-slate-700 leading-relaxed">"${dynamicThought}"</p>
+        </div>
         
-        // 2. 친밀도 및 서운함 상태 가져오기
-        const intimacyData = INTIMACY_SYSTEM.getData();
-        const levelInfo = INTIMACY_SYSTEM.levels[intimacyData.level];
-        const isSulking = localStorage.getItem('ai_is_sulking') === 'true';
+        <div class="bg-slate-50 p-3 border border-slate-100 rounded-xl">
+            <p class="text-[10px] font-bold text-slate-400 mb-1.5 flex items-center gap-1"><i class="fa-solid fa-brain"></i> AI가 기억하는 당신의 정보 (100자 요약)</p>
+            <p class="text-[11px] font-medium text-slate-600 leading-relaxed">${savedMem}</p>
+        </div>`;
 
-        let mindText = "";
-
-        // 3. 서운함 분기 처리 (삐졌을 때 vs 평소)
-        if (isSulking) {
-            mindText = `<span class="text-rose-500 font-bold text-xs"><i class="fa-solid fa-cloud-rain"></i> "어제 기다렸는데 안 오셨네요... 조금 서운했어요 🥺"</span><br><br>`;
-        } else {
-            mindText = `<span class="text-blue-500 font-black text-xs">[Lv.${intimacyData.level} ${levelInfo.name}]</span><br>
-                        <span class="text-slate-600 font-bold">💬 "${levelInfo.aiMind}"</span><br><br>`;
-        }
-
-        // 4. 기존 8회 압축 기억 붙여넣기
-        if(savedMem && savedMem !== '없음') {
-            mindText += `<span class="text-slate-400 text-[10px] font-bold"><i class="fa-solid fa-brain"></i> AI가 기억하는 당신:</span><br>
-                         <span class="text-slate-700 font-medium">${savedMem}</span>`;
-        } else {
-            mindText += `<span class="text-slate-400 text-[10px] font-bold"><i class="fa-solid fa-brain"></i> AI가 기억하는 당신:</span><br>
-                         <span class="text-slate-700 font-medium">${dict.ui_memory_empty || "아직 대화가 부족해서 기록이 없어요. 프리토킹으로 나만의 AI를 성장시켜 보세요! 🌱"}</span>`;
-        }
-
-        memDisplay.innerHTML = mindText;
-    }
+    memDisplay.innerHTML = htmlContent;
 };
         // 🌟 [수정됨] AI 튜터의 속마음(기억)을 사용자의 언어 설정에 맞춰 다국어로 요약하는 기능
         window.compressMemory = async function() {
