@@ -1818,29 +1818,25 @@ if (window.speechSynthesis && typeof window.speechSynthesis.getVoices === 'funct
         };
         
 
-       // 🌟 실시간 공감형 AI 속마음 및 기억 출력 모듈
+// 🌟 실시간 공감형 AI 속마음 및 기억 출력 모듈 (출력 위치 수정됨)
+// 🌟 실시간 공감형 AI 속마음 모듈 (사용자 기억은 화면에서 숨김)
 window.updateMemoryDisplay = function() {
     const memDisplay = document.getElementById('ai_memory_display');
     if(!memDisplay) return;
 
-    // 1. 데이터 가져오기
-    const savedMem = localStorage.getItem('user_compressed_memory') || '아직 기록된 내용이 없습니다.';
+    // 1. 데이터 가져오기 (savedMem 변수도 화면에 안 쓰므로 지워도 무방합니다)
     const intimacyData = INTIMACY_SYSTEM.getData();
     const levelInfo = INTIMACY_SYSTEM.levels[intimacyData.level];
     
-    // 🎯 방금 AI가 생성한 '실시간 속마음' 가져오기 (없으면 기본 레벨 텍스트 사용)
-    const dynamicThought = localStorage.getItem('ai_dynamic_thought') || levelInfo.aiMind;
+    // AI의 실시간 속마음
+    const dynamicThought = localStorage.getItem('ai_dynamic_thought') || levelInfo.aiMind; 
 
+    // 2. 화면에 그리기 (오직 속마음 창만 출력)
     let htmlContent = `
         <div class="mb-3 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-xl shadow-sm relative overflow-hidden">
             <div class="absolute -right-2 -top-2 opacity-10 text-4xl">💭</div>
             <p class="text-[10px] font-black text-blue-500 mb-1">상태: Lv.${intimacyData.level} ${levelInfo.name}</p>
             <p class="text-xs font-bold text-slate-700 leading-relaxed">"${dynamicThought}"</p>
-        </div>
-        
-        <div class="bg-slate-50 p-3 border border-slate-100 rounded-xl">
-            <p class="text-[10px] font-bold text-slate-400 mb-1.5 flex items-center gap-1"><i class="fa-solid fa-brain"></i> AI가 기억하는 당신의 정보 (100자 요약)</p>
-            <p class="text-[11px] font-medium text-slate-600 leading-relaxed">${savedMem}</p>
         </div>`;
 
     memDisplay.innerHTML = htmlContent;
