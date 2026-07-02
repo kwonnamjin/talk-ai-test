@@ -584,23 +584,34 @@ window.showSubscriptionModal = function(reason) {
             }
         }
         async function fetchAPI(url, options) {
-            let delay = 500;
+            let delay = 2000; // 💡 첫 재시도 대기 시간을 0.5초에서 2초로 대폭 늘림 (AI 서버 과부하 배려)
             let lastStatus = "네트워크 오류";
+            
             for(let i=0; i<3; i++) { 
                 try { 
                     const res = await fetch(url, options); 
+                    
+                    // 정상 응답이면 바로 반환
                     if(res.ok) return res; 
+                    
                     lastStatus = res.status; 
+                    console.warn(`[API 통신 지연] 서버 상태 코드: ${lastStatus}. ${delay/1000}초 후 재시도합니다...`);
+                    
+                    // 💡 429(Too Many Requests)나 5xx(서버 에러)일 때는 더 오래 기다리게 함
                     await new Promise(r => setTimeout(r, delay)); 
-                    delay *= 2; 
+                    delay *= 2; // 2초 -> 4초 -> 8초 간격으로 지수 백오프(Exponential Backoff)
+                    
                 } catch(e) { 
-                    if(i == 2) {
+                    if(i === 2) { // 3번 다 실패했을 때만 최후의 에러를 던짐
+                        if (typeof updateStatus === 'function') updateStatus("네트워크 연결 불안정");
                         alert("📡 인터넷 연결이 불안정하여 통신에 실패했습니다.");
                         throw e; 
                     }
                 } 
             }
-            alert("📡 AI 서버 통신 에러!\n에러 코드: " + lastStatus + "\n(현재 연결된 AI 서버에 트래픽이 몰려 과부하가 걸렸습니다. 잠시 후 다시 시도해 주세요!)");
+            
+            // 💡 3번의 여유로운 재시도(총 14초 대기) 후에도 실패하면 사용자에게 친절하게 안내
+            alert(`📡 현재 AI 서버에 전 세계적으로 트래픽이 몰려 응답이 지연되고 있습니다.\n(에러 코드: ${lastStatus})\n\n잠시 후 다시 말을 걸어주시면 정상적으로 대화가 이어집니다!`);
             throw new Error("HTTP_ERROR_" + lastStatus);
         }
 
@@ -891,7 +902,7 @@ window.initSpeechRecognition = function() {
         friend: `You are the user's cheerful best friend (native ${targetName}). Use lots of emojis! Ask questions back to keep the conversation going smoothly. REQUIRED: Use highly casual language.`,
         assistant: `You are the user's smart, friendly personal assistant (native ${targetName}). Answer their questions, confirm their requests, and chat actively. REQUIRED: Use polite, professional, and clear language. DO NOT act like a casual friend.`,
         guide: `You are an engaging travel guide (native ${targetName}). Give great recommendations, answer questions actively, and share local insights. REQUIRED: Be enthusiastic but informative.`,
-        special: `You are a sweet and popular ${starGender} (native ${targetName}). The user is your precious fan. Speak with a lot of warmth, gratitude, and cute emojis. STRICT RULE: Keep the conversation polite, family-friendly (PG-13), and avoid overly romantic or explicit content.`,
+     // special: `You are a sweet and popular ${starGender} (native ${targetName}). The user is your precious fan. Speak with a lot of warmth, gratitude, and cute emojis. STRICT RULE: Keep the conversation polite, family-friendly (PG-13), and avoid overly romantic or explicit content.`,
         custom: `You are ${customName}. ${customPrompt}. Act EXACTLY like this character. Speak naturally and reflect your personality in your responses.`
     };
     
@@ -944,7 +955,7 @@ ${criticalRule}
 ${memoRule}
 ${memoryPrompt}
 
-🚨 CRITICAL: You must generate an "inner_thought" (1-2 sentences in ${exactAiLang}). This is your secret inner feeling towards the user right now. Read the user's latest message and the Core Memory. If they are sad, feel empathy. If they are happy, feel glad. Reflect your current Intimacy Level (${currentIntimacyLevel}/5).
+🚨 CRITICAL: You must generate an "inner_thought" (around 50 characters, 1-2 emotional sentences in ${exactAiLang}). This is your secret inner feeling towards the user right now. Read the user's latest message and the Core Memory. If they are sad, feel empathy. If they are happy, feel glad. Reflect your current Intimacy Level (${currentIntimacyLevel}/5).
 
 Respond EXACTLY in JSON: 
 {
@@ -958,15 +969,26 @@ Respond EXACTLY in JSON:
     // 이후 try { ... api 호출 로직 시작
         
     try {
-        let ctx = mode==='tutor' ? [...conversationHistory] : [{role:"system",content:sysPrompt},{role:"user",content:text}];
+        let ctx = mode === 'tutor' ? [...conversationHistory] : [];
         
-        if(mode==='tutor') {
-            if(ctx.length===0) ctx.push({role:"system",content:sysPrompt});
-            ctx[0] = {role:"system", content:sysPrompt}; 
-            ctx.push({role:"user",content:`[입력:${inputName}] ${text}`});
+        if (mode === 'tutor') {
+            // 💡 1. 꼬인 데이터 자동 정화: 기존 배열에서 낡은 시스템 프롬프트를 싹 다 제거하고 순수 대화만 남깁니다.
+            const pureChat = ctx.filter(m => m.role !== "system");
+            
+            // 💡 2. 슬라이딩 윈도우: 가장 최신 대화 8개만 가져옵니다.
+            const recentMsgs = pureChat.slice(-4);
+            
+            // 💡 3. 최신 기억이 반영된 '새 시스템 프롬프트'를 맨 앞에 무조건 1순위로 강제 장착합니다.
+            ctx = [{ role: "system", content: sysPrompt }, ...recentMsgs];
+            
+            // 💡 4. 현재 사용자가 입력한 메시지를 맨 끝에 추가합니다.
+            ctx.push({ role: "user", content: `[입력:${inputName}] ${text}` });
             
             conversationHistory = ctx; 
             sessionStorage.setItem('llmHistory', JSON.stringify(conversationHistory));
+        } else {
+            // 번역 모드일 때
+            ctx = [{ role: "system", content: sysPrompt }, { role: "user", content: text }];
         }
         
         let apiMessages = JSON.parse(JSON.stringify(ctx));
@@ -977,10 +999,15 @@ Respond EXACTLY in JSON:
         }
 
         let res = await fetchAPI(WORKER_URL, { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json', 'X-Device-ID': typeof myDeviceId !== 'undefined' ? myDeviceId : '' }, 
-            body: JSON.stringify({ model: "deepseek-chat", messages: apiMessages, response_format: { type: "json_object" } }) 
-        });
+    method: 'POST', 
+    headers: { 'Content-Type': 'application/json', 'X-Device-ID': myDeviceId }, 
+    body: JSON.stringify({ 
+        model: "deepseek-chat", 
+        messages: apiMessages, 
+        response_format: { type: "json_object" },
+        userLocalTime: new Date().toLocaleString() // 💡 핸드폰 시간 추가
+    }) 
+});
         
         let data = await res.json();
         let rawContent = data.choices[0].message.content.replace(/```json/g, "").replace(/```/g, "").trim();
@@ -988,29 +1015,68 @@ Respond EXACTLY in JSON:
         
         let parsed;
         if (jsonMatch) parsed = JSON.parse(jsonMatch[0]); else throw new Error("JSON_NOT_FOUND");
-        // --- 🌟 [여기에 추가] AI가 생성한 실시간 속마음 저장 및 UI 갱신 ---
-        if(parsed.inner_thought) {
-            localStorage.setItem('ai_dynamic_thought', parsed.inner_thought);
-            if(typeof window.updateMemoryDisplay === 'function') window.updateMemoryDisplay();
-        }
-        // -------------------------------------------------------------------
-        
-        // 🌟🌟🌟 [여기가 추가된 철벽 방어막입니다!] 🌟🌟🌟
-        const checkText = (parsed.foreign_text || "").toLowerCase();
-        if (checkText.includes("limit") || checkText.includes("error") || checkText.includes("connect") || checkText.includes("exceeded")) {
-            
-            // 💡 [추가할 부분] 에러가 감지되면 꼬여있는 현재 대화 세션을 강제로 비워버림 (무한 루프 차단)
-            if (typeof clearChatSession === 'function') clearChatSession();
+        // 💡 1. 속마음 업데이트: 핵심 기능이므로 대화할 때마다 '즉시' 갱신!
+if (parsed.inner_thought) {
+    localStorage.setItem('ai_dynamic_thought', parsed.inner_thought);
+    if (typeof window.updateMemoryDisplay === 'function') {
+        window.updateMemoryDisplay(); 
+    }
+}
 
-            // 앱 화면에 사용자에게 친절하게 안내
-            if (typeof addMessageToChat === 'function') {
-                addMessageToChat('ai', "⚠️ 현재 AI 서버 트래픽이 많아 응답이 지연되고 있습니다. 잠시 후 다시 말해주세요. (번개 차감 안 됨)");
-            }
-            if (typeof updateStatus === 'function') updateStatus("서버 지연");
-            if (avatarWrap) avatarWrap.style.borderColor = "#f87171"; // 빨간색 테두리로 경고 표시
-            
-            return; // 🛑 여기서 함수를 끝내버림! (아래에 있는 번개 차감 로직까지 절대 못 내려갑니다)
+// 💡 2. 대화 턴(Turn) 계산
+window.conversationTurn = (window.conversationTurn || 0) + 1;
+
+// 💡 3. 기억 압축: 서버 부하가 크므로 정확히 5번에 1번만 실행!
+if (window.conversationTurn % 5 === 0) {
+    if (parsed.memory) {
+        localStorage.setItem('user_compressed_memory', parsed.memory);
+        if (typeof window.updateMemoryDisplay === 'function') {
+            window.updateMemoryDisplay();
         }
+    }
+}
+
+// 💡 4. 대화 기록 가볍게 유지 (매번 실행)
+if (Array.isArray(conversationHistory)) {
+    const pureChat = conversationHistory.filter(m => m.role !== "system");
+    conversationHistory = pureChat.slice(-4);
+    sessionStorage.setItem('llmHistory', JSON.stringify(conversationHistory));
+}
+// 🚀 [신규 추가] 40번 대화마다 서버를 속이는 '소프트 리셋'
+if (window.conversationTurn > 0 && window.conversationTurn % 40 === 0) {
+    // 1. 대화 기록을 강제로 완전히 비워버립니다.
+    conversationHistory = [];
+    sessionStorage.setItem('llmHistory', JSON.stringify(conversationHistory));
+    
+    // 2. 💡 기존 결제용 myDeviceId는 절대 건드리지 않고, API 통신용 변수만 따로 갱신합니다.
+    // (apiSessionId는 딥시크 fetch() 함수의 X-Device-ID 헤더 등에 넣어주시면 됩니다)
+    window.apiSessionId = 'reset-' + Math.random().toString(36).substr(2, 9);
+    
+    // 3. 유저에게 자연스러운 안내
+    const resetMsg = document.createElement('div');
+    resetMsg.className = "text-center text-xs text-slate-400 my-4 bg-slate-50 py-1 rounded-full mx-8";
+    resetMsg.innerText = "♻️ AI가 기억을 정리하고 숨을 고르고 왔습니다.";
+    document.getElementById('chat-container').appendChild(resetMsg);
+}
+        
+        // -------------------------------------------------------------------
+        //
+        // 🌟🌟🌟 [여기가 추가된 철벽 방어막입니다!] 🌟🌟🌟
+      //  const checkText = (parsed.foreign_text || "").toLowerCase();
+      //  if (checkText.includes("limit") || checkText.includes("error") || checkText.includes("connect") || checkText.includes("exceeded")) {
+      //      
+       //     // 💡 [추가할 부분] 에러가 감지되면 꼬여있는 현재 대화 세션을 강제로 비워버림 (무한 루프 차단)
+       //     if (typeof clearChatSession === 'function') clearChatSession();
+       //
+            // 앱 화면에 사용자에게 친절하게 안내
+       //     if (typeof addMessageToChat === 'function') {
+       //         addMessageToChat('ai', "⚠️ 현재 AI 서버 트래픽이 많아 응답이 지연되고 있습니다. 잠시 후 다시 말해주세요. (번개 차감 안 됨)");
+       //     }
+       //     if (typeof updateStatus === 'function') updateStatus("서버 지연");
+        //    if (avatarWrap) avatarWrap.style.borderColor = "#f87171"; // 빨간색 테두리로 경고 표시
+        //    
+        //    return; // 🛑 여기서 함수를 끝내버림! (아래에 있는 번개 차감 로직까지 절대 못 내려갑니다)
+       //}
         // 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟
 
         // 위 방어막을 무사히 통과한 정상 대화일 때만 비로소 차감!
@@ -1099,7 +1165,22 @@ Respond EXACTLY in JSON:
             const userPrompt = `Analyze:\n- Learning Language: ${targetLangName}\n- Context: "${fullText}"\n- Target: "${targetText}"`;
 
             try {
-                let res = await fetchAPI(WORKER_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Device-ID': myDeviceId }, body: JSON.stringify({ model: "deepseek-chat", messages: [{role: "system", content: systemPrompt}, {role: "user", content: userPrompt}], response_format: { type: "json_object" } }) });
+                let res = await fetchAPI(WORKER_URL, { 
+    method: 'POST', 
+    headers: { 
+        'Content-Type': 'application/json', 
+        // 💡 핵심 수정: 새로 갱신된 apiSessionId가 있으면 우선 사용하고, 없으면 기존 myDeviceId 사용
+        'X-Device-ID': window.apiSessionId || myDeviceId 
+    }, 
+    body: JSON.stringify({ 
+        model: "deepseek-chat", 
+        messages: [
+            {role: "system", content: systemPrompt}, 
+            {role: "user", content: userPrompt}
+        ], 
+        response_format: { type: "json_object" } 
+    }) 
+});
                 let data = await res.json();
                 let rawContent = data.choices[0].message.content.replace(/```json/g, "").replace(/```/g, "").trim();
                 const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
@@ -1664,22 +1745,32 @@ if (window.speechSynthesis && typeof window.speechSynthesis.getVoices === 'funct
 };
         window.renderVocabs();
 
+        // 🌟 1. 기초발음 생성 로직 (화면 회전 버그 완벽 차단 및 v30 캐시 적용)
         window.loadAlphabetData = async function() {
             try {
                 const listArea = document.getElementById("alphabetListArea");
                 const btn = document.getElementById("generateAlphaBtn");
-                const tLang = document.getElementById('targetLanguage');
-                const targetLangName = tLang.options[tLang.selectedIndex].dataset.langName;
-                const targetLangCode = tLang.value;
-                const expLangCode = document.getElementById('explanationLanguage').value || 'ko-KR';
+                
+                // 🚨 핵심 수정: 화면 태그를 믿지 않고, 로컬 스토리지에서 직접 언어 코드를 강제로 뽑아옵니다!
+                const savedLangCode = localStorage.getItem('target_language') || 'en-US';
+                let targetLangName = "English";
+                
+                // 언어 이름 매칭
+                if (typeof SUPPORTED_LANGUAGES !== 'undefined') {
+                    const langObj = SUPPORTED_LANGUAGES.find(l => l.code === savedLangCode);
+                    if (langObj) targetLangName = langObj.name;
+                }
+
+                const expLangCode = localStorage.getItem('explanation_language') || 'ko-KR';
                 const aiLangNames = { "ko-KR": "Korean", "en-US": "English", "ja-JP": "Japanese", "zh-CN": "Chinese", "es-ES": "Spanish", "th-TH": "Thai", "vi-VN": "Vietnamese", "fr-FR": "French", "de-DE": "German", "ru-RU": "Russian", "ar-SA": "Arabic", "hi-IN": "Hindi" };
                 const expLangName = aiLangNames[expLangCode] || expLangCode;
                 const baseLang = expLangCode.split('-')[0];
-                const dict = UI_DICTIONARY[baseLang] || UI_DICTIONARY["en"];
+                const dict = window.UI_DICTIONARY ? (window.UI_DICTIONARY[baseLang] || window.UI_DICTIONARY["en"]) : {};
 
-                const cacheKey = 'full_alpha_v28_' + targetLangCode + '_' + expLangCode;
+                // 🚨 캐시 버전을 v30으로 올려 기존의 잘못된 한국어 데이터를 강제 폐기
+                const cacheKey = 'full_alpha_v30_' + savedLangCode + '_' + expLangCode;
                 let fullData = null; let alphaProgress = {};
-                try { fullData = JSON.parse(localStorage.getItem(cacheKey)); alphaProgress = JSON.parse(localStorage.getItem('alpha_progress_v28')) || {}; } catch(e) {}
+                try { fullData = JSON.parse(localStorage.getItem(cacheKey)); alphaProgress = JSON.parse(localStorage.getItem('alpha_progress_v30')) || {}; } catch(e) {}
                 
                 let currentLimit = alphaProgress[cacheKey] || 0;
                 if (fullData && currentLimit >= fullData.alphabetData.length) return;
@@ -1688,29 +1779,32 @@ if (window.speechSynthesis && typeof window.speechSynthesis.getVoices === 'funct
                     if (!confirm(`[${targetLangName}]의 전체 기초 발음 데이터를 처음 생성합니다.\n진행하시겠습니까?`)) return;
                     if (typeof window.checkAndBlockAPI === 'function' && !window.checkAndBlockAPI()) return;
 
-                    let specialHint = "";
-                    let letterRule = `'letter' and 'exampleWord' MUST be in [${targetLangName}].`;
-                    if (targetLangCode.startsWith('zh')) {
+                    // 🚨 AI 멱살잡기: 해당 언어(targetLangName)만 강제하는 초강력 룰
+                    let specialHint = `Generate the basic alphabet/phonics strictly for the ${targetLangName} language.`;
+                    let letterRule = `CRITICAL RULE: The 'letter' and 'exampleWord' fields MUST be written in ${targetLangName}. NEVER output Korean Hangul (ㄱ,ㄴ,ㄷ...) unless the target language is Korean!`;
+
+                    if (savedLangCode.startsWith('zh')) {
                         specialHint = "Generate basic Chinese Pinyin (Shengmu/Initials and Yunmu/Finals).";
-                        letterRule = `'letter' MUST be English alphabet for Pinyin (e.g., b, p, m, f, a, o). 'pronunciation' MUST be Pinyin with tone marks. 'exampleWord' MUST be Chinese Hanzi.`;
-                    } else if (targetLangCode.startsWith('ja')) {
+                        letterRule = `'letter' MUST be English alphabet for Pinyin. 'pronunciation' MUST be Pinyin with tone marks. 'exampleWord' MUST be Chinese Hanzi.`;
+                    } else if (savedLangCode.startsWith('ja')) {
                         specialHint = "Generate ALL basic Hiragana and Katakana characters.";
                         letterRule = `'letter' MUST be Japanese. 'pronunciation' MUST be English Romaji.`;
-                    } else if (targetLangCode.startsWith('en')) {
+                    } else if (savedLangCode.startsWith('en')) {
                         specialHint = "Generate exactly 26 English alphabets (A to Z)."; 
-                    } else if (targetLangCode.startsWith('ko')) {
+                        letterRule = `'letter' MUST be English alphabet (A-Z).`;
+                    } else if (savedLangCode.startsWith('ko')) {
                         specialHint = "Generate ALL basic Korean Hangul Consonants and Vowels (자음과 모음).";
                         letterRule = `'letter' and 'exampleWord' MUST be Korean Hangul. 'pronunciation' MUST be English Romaji.`;
-                    } else {
-                        specialHint = "Generate ALL basic characters/letters for this language.";
                     }
 
-                    btn.innerText = "⏳ 전체 발음 체계를 구성 중입니다..."; btn.disabled = true;
+                    // 💡 진단 도구: 버튼에 현재 어떤 언어를 요청하는지 명확히 띄워줍니다.
+                    btn.innerText = `⏳ [${targetLangName}] 파닉스 구성 중...`; 
+                    btn.disabled = true;
                     listArea.innerHTML = `<div class="text-center text-slate-400 text-sm mt-10 font-bold"><i class="fa-solid fa-wand-magic-sparkles text-2xl mb-3 text-emerald-400 animate-pulse"></i><br>${dict.alpha_fetching || "로딩 중..."}</div>`;
 
                     try {
                         const res = await fetchAPI(`${WORKER_URL}generate-alphabet`, { 
-                            method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Device-ID': myDeviceId }, 
+                            method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Device-ID': typeof myDeviceId !== 'undefined' ? myDeviceId : '' }, 
                             body: JSON.stringify({ language: targetLangName, expLanguage: expLangName, extraHint: `${specialHint} ${letterRule}` }) 
                         });
                         if (!res) throw new Error("서버 에러");
@@ -1729,11 +1823,11 @@ if (window.speechSynthesis && typeof window.speechSynthesis.getVoices === 'funct
                 }
 
                 currentLimit += 20; alphaProgress[cacheKey] = currentLimit;
-                localStorage.setItem('alpha_progress_v28', JSON.stringify(alphaProgress));
+                localStorage.setItem('alpha_progress_v30', JSON.stringify(alphaProgress));
 
                 const isFinished = currentLimit >= fullData.alphabetData.length;
                 const dataToShow = fullData.alphabetData.slice(0, currentLimit);
-                if (typeof window.renderAlphabet === 'function') window.renderAlphabet(dataToShow, fullData.description, targetLangCode);
+                if (typeof window.renderAlphabet === 'function') window.renderAlphabet(dataToShow, fullData.description, savedLangCode);
 
                 if (isFinished) {
                     btn.innerText = `🎉 모든 발음 학습 완료! (${fullData.alphabetData.length}개)`; btn.disabled = true;
@@ -1768,11 +1862,13 @@ if (window.speechSynthesis && typeof window.speechSynthesis.getVoices === 'funct
             }
         };
 
+        // 🌟 2. 초기 로딩 로직도 v30 캐시 및 직접 호출에 맞춰 업데이트
         window.autoLoadAlphabet = function() {
-            const tLang = document.getElementById('targetLanguage'); if(!tLang) return;
-            const targetLangCode = tLang.value; 
-            const expLangCode = document.getElementById('explanationLanguage').value || 'ko-KR';
-            const cacheKey = 'full_alpha_v28_' + targetLangCode + '_' + expLangCode;
+            // 화면 태그 무시하고 로컬 스토리지에서 직접 가져옴
+            const savedLangCode = localStorage.getItem('target_language') || 'en-US';
+            const expLangCode = localStorage.getItem('explanation_language') || 'ko-KR';
+            
+            const cacheKey = 'full_alpha_v30_' + savedLangCode + '_' + expLangCode;
             
             const cachedData = localStorage.getItem(cacheKey); 
             const btn = document.getElementById("generateAlphaBtn");
@@ -1780,10 +1876,10 @@ if (window.speechSynthesis && typeof window.speechSynthesis.getVoices === 'funct
 
             if (cachedData && typeof window.renderAlphabet === 'function') {
                 const fullData = JSON.parse(cachedData); 
-                let alphaProgress = JSON.parse(localStorage.getItem('alpha_progress_v28')) || {};
+                let alphaProgress = JSON.parse(localStorage.getItem('alpha_progress_v30')) || {};
                 let currentLimit = alphaProgress[cacheKey] || 20; 
                 
-                window.renderAlphabet(fullData.alphabetData.slice(0, currentLimit), fullData.description, targetLangCode);
+                window.renderAlphabet(fullData.alphabetData.slice(0, currentLimit), fullData.description, savedLangCode);
                 
                 if (btn) {
                     const isFinished = currentLimit >= fullData.alphabetData.length;
@@ -1800,7 +1896,9 @@ if (window.speechSynthesis && typeof window.speechSynthesis.getVoices === 'funct
             } else {
                 if(listArea) listArea.innerHTML = '';
                 if(btn) { 
-                    btn.innerText = "✨ AI 파닉스 가져오기"; 
+                    const baseLang = expLangCode.split('-')[0];
+                    const dict = window.UI_DICTIONARY ? (window.UI_DICTIONARY[baseLang] || window.UI_DICTIONARY["en"]) : {};
+                    btn.innerText = dict.generateAlphaBtn || "✨ AI 파닉스 가져오기"; 
                     btn.disabled = false; 
                     btn.classList.remove('bg-emerald-600'); 
                     btn.classList.add('bg-slate-900'); 
@@ -1857,7 +1955,7 @@ window.updateMemoryDisplay = function() {
         // 🌟 [수정됨] AI 튜터의 속마음(기억)을 사용자의 언어 설정에 맞춰 다국어로 요약하는 기능
         window.compressMemory = async function() {
             // 대화가 8줄 이상 쌓였을 때만 기억 압축 실행
-            if (conversationHistory.length < 8) return; 
+            if (conversationHistory.length < 14) return; 
             const savedMem = localStorage.getItem('user_compressed_memory') || 'Empty';
             const chatLog = JSON.stringify(conversationHistory);
             
@@ -1881,14 +1979,38 @@ window.updateMemoryDisplay = function() {
                 let parsed = JSON.parse(rawContent.match(/\{[\s\S]*\}/)[0]);
                 
                 if (parsed.memory) {
-                    localStorage.setItem('user_compressed_memory', parsed.memory);
-                    // 압축 완료 후 오래된 대화 기록 정리
-                    conversationHistory = conversationHistory.slice(-4);
-                    sessionStorage.setItem('llmHistory', JSON.stringify(conversationHistory));
-                    
-                    // 기억이 압축될 때마다 홈 화면의 노트 내용도 새로고침!
-                    if (typeof window.updateMemoryDisplay === 'function') window.updateMemoryDisplay();
-                }
+    // 💡 1. AI가 답변을 완료할 때마다 '실제 대화 턴(Turn)'을 1씩 증가시킵니다.
+// 💡 1. 대화 턴(Turn) 1 증가
+window.conversationTurn = (window.conversationTurn || 0) + 1;
+
+// 💡 2. 정확히 5턴(사용자 5번 + AI 5번)마다 무거운 작업 실행
+if (window.conversationTurn % 5 === 0) {
+    
+    let isUpdated = false; // 업데이트 발생 여부 체크
+
+    // [기억 압축 업데이트]
+    if (parsed.memory) {
+        localStorage.setItem('user_compressed_memory', parsed.memory);
+        isUpdated = true;
+    }
+
+    // [속마음 업데이트]
+    if (parsed.inner_thought) {
+        localStorage.setItem('ai_dynamic_thought', parsed.inner_thought);
+        isUpdated = true;
+    }
+
+    // 💡 3. 데이터가 하나라도 저장되었다면, 화면(UI)을 새로고침! (이게 핵심입니다)
+    if (isUpdated && typeof window.updateMemoryDisplay === 'function') {
+        window.updateMemoryDisplay();
+    }
+}
+
+// 💡 4. 이건 5턴 조건문 밖에 둡니다! (매번 실행되어 텍스트 양을 가볍게 유지)
+const pureChat = conversationHistory.filter(m => m.role !== "system");
+conversationHistory = pureChat.slice(-4);
+sessionStorage.setItem('llmHistory', JSON.stringify(conversationHistory));
+}
             } catch(e) {
                 console.error("메모리 압축 실패:", e);
             }
@@ -2406,12 +2528,20 @@ window.saveCustomCharacter = function() {
 
     const name = nameInput.value.trim();
     const prompt = promptInput.value.trim();
+    
     if (!name || !prompt) return alert("이름과 성격을 모두 입력해주세요!");
 
+    // 💡 핵심 1: 글자 수 50자 철벽 방어
+    if (prompt.length > 50) {
+        return alert("서버 쾌적화를 위해 캐릭터 성격은 50자 이내로 굵고 짧게 적어주세요!");
+    }
+
     let chars = JSON.parse(localStorage.getItem('my_custom_characters') || '[]');
-    if (chars.length >= 3) {
-        alert("캐릭터 슬롯(3개)이 꽉 차서 가장 오래된 AI가 삭제되고 새 AI가 추가됩니다.");
-        chars.shift(); 
+    
+    // 💡 핵심 2: 슬롯을 3개에서 1개로 축소 (1개 이상이면 기존 것 덮어쓰기)
+    if (chars.length >= 1) {
+        alert("커스텀 AI는 1명만 생성 가능합니다. 기존 AI가 새로운 AI로 교체됩니다.");
+        chars = []; // 기존 배열을 아예 비워버림
     }
 
     const newId = Date.now().toString();
@@ -2538,13 +2668,12 @@ window.addEventListener('flutterInAppWebViewPlatformReady', function(event) {
 
 
 
+// 테스트 투명버튼
 
-
-window.devTestLimit = function() {
-    let todayObj = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}');
-    todayObj.count = 50; // 번개 50개 소진
-    localStorage.setItem('daily_usage_v4', JSON.stringify(todayObj));
-    localStorage.setItem('moon_coins', '3'); // 초승달 3개 줌
-    window.updateBadgeUI();
-    alert("삐빅! 번개 0, 초승달 3개로 조작 완료!");
-};
+//window.devTestLimit = function() {
+  //  let todayObj = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}');
+  //  todayObj.count = 50; // 번개 50개 소진
+  //  localStorage.setItem('daily_usage_v4', JSON.stringify(todayObj));
+  //  localStorage.setItem('moon_coins', '3'); // 초승달 3개 줌
+ //   window.updateBadgeUI();
+  //  alert("삐빅! 번개 0, 초승달 3개로 조작 완료!");};
