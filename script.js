@@ -1745,32 +1745,22 @@ if (window.speechSynthesis && typeof window.speechSynthesis.getVoices === 'funct
 };
         window.renderVocabs();
 
-        // 🌟 1. 기초발음 생성 로직 (화면 회전 버그 완벽 차단 및 v30 캐시 적용)
         window.loadAlphabetData = async function() {
             try {
                 const listArea = document.getElementById("alphabetListArea");
                 const btn = document.getElementById("generateAlphaBtn");
-                
-                // 🚨 핵심 수정: 화면 태그를 믿지 않고, 로컬 스토리지에서 직접 언어 코드를 강제로 뽑아옵니다!
-                const savedLangCode = localStorage.getItem('target_language') || 'en-US';
-                let targetLangName = "English";
-                
-                // 언어 이름 매칭
-                if (typeof SUPPORTED_LANGUAGES !== 'undefined') {
-                    const langObj = SUPPORTED_LANGUAGES.find(l => l.code === savedLangCode);
-                    if (langObj) targetLangName = langObj.name;
-                }
-
-                const expLangCode = localStorage.getItem('explanation_language') || 'ko-KR';
+                const tLang = document.getElementById('targetLanguage');
+                const targetLangName = tLang.options[tLang.selectedIndex].dataset.langName;
+                const targetLangCode = tLang.value;
+                const expLangCode = document.getElementById('explanationLanguage').value || 'ko-KR';
                 const aiLangNames = { "ko-KR": "Korean", "en-US": "English", "ja-JP": "Japanese", "zh-CN": "Chinese", "es-ES": "Spanish", "th-TH": "Thai", "vi-VN": "Vietnamese", "fr-FR": "French", "de-DE": "German", "ru-RU": "Russian", "ar-SA": "Arabic", "hi-IN": "Hindi" };
                 const expLangName = aiLangNames[expLangCode] || expLangCode;
                 const baseLang = expLangCode.split('-')[0];
-                const dict = window.UI_DICTIONARY ? (window.UI_DICTIONARY[baseLang] || window.UI_DICTIONARY["en"]) : {};
+                const dict = UI_DICTIONARY[baseLang] || UI_DICTIONARY["en"];
 
-                // 🚨 캐시 버전을 v30으로 올려 기존의 잘못된 한국어 데이터를 강제 폐기
-                const cacheKey = 'full_alpha_v30_' + savedLangCode + '_' + expLangCode;
+                const cacheKey = 'full_alpha_v28_' + targetLangCode + '_' + expLangCode;
                 let fullData = null; let alphaProgress = {};
-                try { fullData = JSON.parse(localStorage.getItem(cacheKey)); alphaProgress = JSON.parse(localStorage.getItem('alpha_progress_v30')) || {}; } catch(e) {}
+                try { fullData = JSON.parse(localStorage.getItem(cacheKey)); alphaProgress = JSON.parse(localStorage.getItem('alpha_progress_v28')) || {}; } catch(e) {}
                 
                 let currentLimit = alphaProgress[cacheKey] || 0;
                 if (fullData && currentLimit >= fullData.alphabetData.length) return;
@@ -1779,32 +1769,29 @@ if (window.speechSynthesis && typeof window.speechSynthesis.getVoices === 'funct
                     if (!confirm(`[${targetLangName}]의 전체 기초 발음 데이터를 처음 생성합니다.\n진행하시겠습니까?`)) return;
                     if (typeof window.checkAndBlockAPI === 'function' && !window.checkAndBlockAPI()) return;
 
-                    // 🚨 AI 멱살잡기: 해당 언어(targetLangName)만 강제하는 초강력 룰
-                    let specialHint = `Generate the basic alphabet/phonics strictly for the ${targetLangName} language.`;
-                    let letterRule = `CRITICAL RULE: The 'letter' and 'exampleWord' fields MUST be written in ${targetLangName}. NEVER output Korean Hangul (ㄱ,ㄴ,ㄷ...) unless the target language is Korean!`;
-
-                    if (savedLangCode.startsWith('zh')) {
+                    let specialHint = "";
+                    let letterRule = `'letter' and 'exampleWord' MUST be in [${targetLangName}].`;
+                    if (targetLangCode.startsWith('zh')) {
                         specialHint = "Generate basic Chinese Pinyin (Shengmu/Initials and Yunmu/Finals).";
-                        letterRule = `'letter' MUST be English alphabet for Pinyin. 'pronunciation' MUST be Pinyin with tone marks. 'exampleWord' MUST be Chinese Hanzi.`;
-                    } else if (savedLangCode.startsWith('ja')) {
+                        letterRule = `'letter' MUST be English alphabet for Pinyin (e.g., b, p, m, f, a, o). 'pronunciation' MUST be Pinyin with tone marks. 'exampleWord' MUST be Chinese Hanzi.`;
+                    } else if (targetLangCode.startsWith('ja')) {
                         specialHint = "Generate ALL basic Hiragana and Katakana characters.";
                         letterRule = `'letter' MUST be Japanese. 'pronunciation' MUST be English Romaji.`;
-                    } else if (savedLangCode.startsWith('en')) {
+                    } else if (targetLangCode.startsWith('en')) {
                         specialHint = "Generate exactly 26 English alphabets (A to Z)."; 
-                        letterRule = `'letter' MUST be English alphabet (A-Z).`;
-                    } else if (savedLangCode.startsWith('ko')) {
+                    } else if (targetLangCode.startsWith('ko')) {
                         specialHint = "Generate ALL basic Korean Hangul Consonants and Vowels (자음과 모음).";
                         letterRule = `'letter' and 'exampleWord' MUST be Korean Hangul. 'pronunciation' MUST be English Romaji.`;
+                    } else {
+                        specialHint = "Generate ALL basic characters/letters for this language.";
                     }
 
-                    // 💡 진단 도구: 버튼에 현재 어떤 언어를 요청하는지 명확히 띄워줍니다.
-                    btn.innerText = `⏳ [${targetLangName}] 파닉스 구성 중...`; 
-                    btn.disabled = true;
+                    btn.innerText = "⏳ 전체 발음 체계를 구성 중입니다..."; btn.disabled = true;
                     listArea.innerHTML = `<div class="text-center text-slate-400 text-sm mt-10 font-bold"><i class="fa-solid fa-wand-magic-sparkles text-2xl mb-3 text-emerald-400 animate-pulse"></i><br>${dict.alpha_fetching || "로딩 중..."}</div>`;
 
                     try {
                         const res = await fetchAPI(`${WORKER_URL}generate-alphabet`, { 
-                            method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Device-ID': typeof myDeviceId !== 'undefined' ? myDeviceId : '' }, 
+                            method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Device-ID': myDeviceId }, 
                             body: JSON.stringify({ language: targetLangName, expLanguage: expLangName, extraHint: `${specialHint} ${letterRule}` }) 
                         });
                         if (!res) throw new Error("서버 에러");
@@ -1823,11 +1810,11 @@ if (window.speechSynthesis && typeof window.speechSynthesis.getVoices === 'funct
                 }
 
                 currentLimit += 20; alphaProgress[cacheKey] = currentLimit;
-                localStorage.setItem('alpha_progress_v30', JSON.stringify(alphaProgress));
+                localStorage.setItem('alpha_progress_v28', JSON.stringify(alphaProgress));
 
                 const isFinished = currentLimit >= fullData.alphabetData.length;
                 const dataToShow = fullData.alphabetData.slice(0, currentLimit);
-                if (typeof window.renderAlphabet === 'function') window.renderAlphabet(dataToShow, fullData.description, savedLangCode);
+                if (typeof window.renderAlphabet === 'function') window.renderAlphabet(dataToShow, fullData.description, targetLangCode);
 
                 if (isFinished) {
                     btn.innerText = `🎉 모든 발음 학습 완료! (${fullData.alphabetData.length}개)`; btn.disabled = true;
@@ -1862,13 +1849,11 @@ if (window.speechSynthesis && typeof window.speechSynthesis.getVoices === 'funct
             }
         };
 
-        // 🌟 2. 초기 로딩 로직도 v30 캐시 및 직접 호출에 맞춰 업데이트
         window.autoLoadAlphabet = function() {
-            // 화면 태그 무시하고 로컬 스토리지에서 직접 가져옴
-            const savedLangCode = localStorage.getItem('target_language') || 'en-US';
-            const expLangCode = localStorage.getItem('explanation_language') || 'ko-KR';
-            
-            const cacheKey = 'full_alpha_v30_' + savedLangCode + '_' + expLangCode;
+            const tLang = document.getElementById('targetLanguage'); if(!tLang) return;
+            const targetLangCode = tLang.value; 
+            const expLangCode = document.getElementById('explanationLanguage').value || 'ko-KR';
+            const cacheKey = 'full_alpha_v28_' + targetLangCode + '_' + expLangCode;
             
             const cachedData = localStorage.getItem(cacheKey); 
             const btn = document.getElementById("generateAlphaBtn");
@@ -1876,10 +1861,10 @@ if (window.speechSynthesis && typeof window.speechSynthesis.getVoices === 'funct
 
             if (cachedData && typeof window.renderAlphabet === 'function') {
                 const fullData = JSON.parse(cachedData); 
-                let alphaProgress = JSON.parse(localStorage.getItem('alpha_progress_v30')) || {};
+                let alphaProgress = JSON.parse(localStorage.getItem('alpha_progress_v28')) || {};
                 let currentLimit = alphaProgress[cacheKey] || 20; 
                 
-                window.renderAlphabet(fullData.alphabetData.slice(0, currentLimit), fullData.description, savedLangCode);
+                window.renderAlphabet(fullData.alphabetData.slice(0, currentLimit), fullData.description, targetLangCode);
                 
                 if (btn) {
                     const isFinished = currentLimit >= fullData.alphabetData.length;
@@ -1896,9 +1881,7 @@ if (window.speechSynthesis && typeof window.speechSynthesis.getVoices === 'funct
             } else {
                 if(listArea) listArea.innerHTML = '';
                 if(btn) { 
-                    const baseLang = expLangCode.split('-')[0];
-                    const dict = window.UI_DICTIONARY ? (window.UI_DICTIONARY[baseLang] || window.UI_DICTIONARY["en"]) : {};
-                    btn.innerText = dict.generateAlphaBtn || "✨ AI 파닉스 가져오기"; 
+                    btn.innerText = "✨ AI 파닉스 가져오기"; 
                     btn.disabled = false; 
                     btn.classList.remove('bg-emerald-600'); 
                     btn.classList.add('bg-slate-900'); 
