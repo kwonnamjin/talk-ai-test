@@ -796,18 +796,40 @@ window.initSpeechRecognition = function() {
             const fullTxt = Array.from(document.getElementById(`bubble-${currentBubbleId}`).querySelectorAll('span')).map(s=>s.textContent).join(' ');
             window.requestExplanationFromBubble(currentBubbleId, fullTxt, isExp, getSelectedTextFromBubble(currentBubbleId, isExp)); clearSelection();
         }
-        window.addMessageToChat = function(sender, text, translation = null, targetLangCode = null, isRestore = false) {
-            const msgDiv = document.createElement('div'); msgDiv.className = "flex flex-col space-y-1 mt-4";
-            if (sender === 'user') {
-                msgDiv.innerHTML = `<div class="bg-gradient-to-tr from-blue-600 to-blue-500 text-white rounded-2xl rounded-tr-none p-3.5 max-w-[85%] self-end chat-text-dynamic shadow-md font-medium tracking-wide leading-relaxed">${text}</div>`;
-            } else {
-                if(!isRestore) bubbleCounter++; 
-                const bId = `ai-msg-${bubbleCounter}`; const safeText = encodeURIComponent(text.replace(/[\*\#\`]/g, '')).replace(/'/g, "%27");
-                msgDiv.innerHTML = `<div class="bg-white border border-blue-100 rounded-2xl rounded-tl-none p-4 max-w-[90%] shadow-md shadow-blue-900/5 self-start relative"><div class="flex items-start justify-between gap-2"><p id="bubble-${bId}" class="chat-text-dynamic text-slate-800 break-words leading-relaxed font-medium">${createSpansForText(text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>'), bId)}</p><div class="flex gap-1 ml-2 shrink-0"><button onclick="requestExplanationFromBubble('${bId}', decodeURIComponent('${safeText}'), false)" class="text-emerald-500 w-7 h-7 rounded-full bg-white shadow-sm border border-emerald-100"><i class="fa-solid fa-lightbulb"></i></button><button onclick="speakText(decodeURIComponent('${safeText}'), '${targetLangCode}')" class="text-blue-500 w-7 h-7 rounded-full bg-white shadow-sm border border-blue-100"><i class="fa-solid fa-volume-high"></i></button></div></div>${translation ? `<p class="text-slate-500 mt-2 border-t pt-2 border-slate-100 font-medium" style="font-size: calc(var(--chat-font-size) - 3px);">${translation}</p>` : ''}</div>`;
-            }
-            chatContainer.appendChild(msgDiv); setTimeout(() => chatContainer.scrollTop = chatContainer.scrollHeight, 50);
-            if (!isRestore) { uiChatHistory.push({sender, text, translation, targetLangCode}); sessionStorage.setItem('uiHistory', JSON.stringify(uiChatHistory)); sessionStorage.setItem('bubbleCounter', bubbleCounter.toString()); }
-        }
+       window.addMessageToChat = function(sender, text, translation = null, targetLangCode = null, isRestore = false) {
+    const msgDiv = document.createElement('div'); msgDiv.className = "flex flex-col space-y-1 mt-4";
+    if (sender === 'user') {
+        msgDiv.innerHTML = `<div class="bg-gradient-to-tr from-blue-600 to-blue-500 text-white rounded-2xl rounded-tr-none p-3.5 max-w-[85%] self-end chat-text-dynamic shadow-md font-medium tracking-wide leading-relaxed">${text}</div>`;
+    } else {
+        if(!isRestore) bubbleCounter++; 
+        const bId = `ai-msg-${bubbleCounter}`; 
+        const safeText = encodeURIComponent(text.replace(/[\*\#\`]/g, '')).replace(/'/g, "%27");
+        const safeTrans = translation ? encodeURIComponent(translation).replace(/'/g, "%27") : '';
+        
+        msgDiv.innerHTML = `<div class="bg-white border border-blue-100 rounded-2xl rounded-tl-none p-4 max-w-[90%] shadow-md shadow-blue-900/5 self-start relative">
+            <div class="flex items-start justify-between gap-2">
+                <p id="bubble-${bId}" class="chat-text-dynamic text-slate-800 break-words leading-relaxed font-medium">${window.createSpansForText(text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>'), bId)}</p>
+                <div class="flex gap-1 ml-2 shrink-0">
+                    <button onclick="window.requestExplanationFromBubble('${bId}', decodeURIComponent('${safeText}'), false)" class="text-emerald-500 w-7 h-7 rounded-full bg-white shadow-sm border border-emerald-100"><i class="fa-solid fa-lightbulb"></i></button>
+                    <button onclick="window.speakText(decodeURIComponent('${safeText}'), '${targetLangCode}')" class="text-blue-500 w-7 h-7 rounded-full bg-white shadow-sm border border-blue-100"><i class="fa-solid fa-volume-high"></i></button>
+                </div>
+            </div>
+            ${translation ? `<p class="text-slate-500 mt-2 border-t pt-2 border-slate-100 font-medium" style="font-size: calc(var(--chat-font-size) - 3px);">${translation}</p>` : ''}
+            
+            <!-- 📥 프리토킹 보관함 버튼 -->
+            <div class="flex gap-2 mt-3 pt-3 border-t border-slate-100/50">
+                <button onclick="window.saveToArchive('freetalk', { original: decodeURIComponent('${safeText}'), translation: decodeURIComponent('${safeTrans}') }, false)" class="flex-1 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-500 text-[10px] font-bold shadow-sm hover:bg-slate-50 transition-colors">
+                    <i class="fa-solid fa-bookmark text-slate-400 mr-1"></i> 일반 보관
+                </button>
+                <button onclick="window.saveToArchive('freetalk', { original: decodeURIComponent('${safeText}'), translation: decodeURIComponent('${safeTrans}') }, true)" class="flex-1 py-1.5 rounded-lg border border-amber-300 bg-amber-50 text-amber-700 text-[10px] font-black shadow-sm hover:bg-amber-100 transition-colors">
+                    <i class="fa-solid fa-moon text-amber-500 mr-1"></i> 프리미엄 소장
+                </button>
+            </div>
+        </div>`;
+    }
+    chatContainer.appendChild(msgDiv); setTimeout(() => chatContainer.scrollTop = chatContainer.scrollHeight, 50);
+    if (!isRestore) { uiChatHistory.push({sender, text, translation, targetLangCode}); sessionStorage.setItem('uiHistory', JSON.stringify(uiChatHistory)); sessionStorage.setItem('bubbleCounter', bubbleCounter.toString()); }
+}
         // 🌟 1. 프리토킹: 화면엔 이모지가 보이지만, 읽을 때는 이모지 필터링!
         window.speakText = function(text, langCode) {
     if(!text) return;
@@ -1293,6 +1315,16 @@ window.goHome = function() { window.navigate('screen-home'); };
                             <i class="fa-solid fa-microphone"></i> 따라 하기
                         </button>
                     </div>
+                    
+                    <!-- 📥 롤플레잉 보관함 버튼 추가 -->
+                    <div class="flex gap-2 mt-2">
+                        <button onclick="window.saveToArchive('script', { original: '${safeText}', translation: '${line.ko.replace(/'/g, "\\'")}' }, false)" class="flex-1 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-500 text-[10px] font-bold shadow-sm hover:bg-slate-50 transition-colors">
+                            <i class="fa-solid fa-bookmark text-slate-400 mr-1"></i> 일반 보관
+                        </button>
+                        <button onclick="window.saveToArchive('script', { original: '${safeText}', translation: '${line.ko.replace(/'/g, "\\'")}' }, true)" class="flex-1 py-1.5 rounded-lg border border-amber-300 bg-amber-50 text-amber-700 text-[10px] font-black shadow-sm hover:bg-amber-100 transition-colors">
+                            <i class="fa-solid fa-moon text-amber-500 mr-1"></i> 프리미엄
+                        </button>
+                    </div>
 
                     <div id="feedback-${i}-line-${lineIdx}" class="mt-2 text-[11px] font-bold empty:hidden transition-all"></div>
                 </div>
@@ -1648,12 +1680,45 @@ if (window.speechSynthesis && typeof window.speechSynthesis.getVoices === 'funct
         };
 
         window.showFlashcard = function(setIdx, wordIdx) {
-            currentVocabSetIdx = setIdx; currentVocabWordIdx = wordIdx;
-            const v = savedVocabs[setIdx].vocabData[wordIdx];
-            document.getElementById("mainFlashcardArea").classList.remove("hidden"); document.getElementById("vocabFlashcard").classList.remove('rotate-y-180'); 
-            document.getElementById("vcCount").innerText = `${savedVocabs[setIdx].theme} (${wordIdx + 1}/10)`; document.getElementById("vcWord").innerText = v.word; document.getElementById("vcPron").innerText = `[${v.pronunciation}]`; document.getElementById("vcPhonetic").innerText = v.phonetic; document.getElementById("vcMeaning").innerText = v.meaning; document.getElementById("vcExEn").innerText = `"${v.example_en}"`; document.getElementById("vcExKo").innerText = v.example_ko;
-            window.renderVocabs(); 
-        };
+    currentVocabSetIdx = setIdx; currentVocabWordIdx = wordIdx;
+    const v = savedVocabs[setIdx].vocabData[wordIdx];
+    
+    document.getElementById("mainFlashcardArea").classList.remove("hidden"); 
+    document.getElementById("vocabFlashcard").classList.remove('rotate-y-180'); 
+    
+    document.getElementById("vcCount").innerText = `${savedVocabs[setIdx].theme} (${wordIdx + 1}/10)`; 
+    document.getElementById("vcWord").innerText = v.word; 
+    document.getElementById("vcPron").innerText = `[${v.pronunciation}]`; 
+    document.getElementById("vcPhonetic").innerText = v.phonetic; 
+    document.getElementById("vcMeaning").innerText = v.meaning; 
+    document.getElementById("vcExEn").innerText = `"${v.example_en}"`; 
+    document.getElementById("vcExKo").innerText = v.example_ko;
+
+    // 📥 단어장 보관함 버튼 동적 생성 영역
+    let saveBtnContainer = document.getElementById('vocabSaveBtnContainer');
+    if (!saveBtnContainer) {
+        saveBtnContainer = document.createElement('div');
+        saveBtnContainer.id = 'vocabSaveBtnContainer';
+        saveBtnContainer.className = 'flex gap-2 mt-4 w-full max-w-sm';
+        document.getElementById('mainFlashcardArea').appendChild(saveBtnContainer);
+    }
+    
+    const safeWord = v.word.replace(/'/g, "\\'");
+    const safeMeaning = v.meaning.replace(/'/g, "\\'");
+    const safeExEn = v.example_en.replace(/'/g, "\\'");
+    const safeExKo = v.example_ko.replace(/'/g, "\\'");
+
+    saveBtnContainer.innerHTML = `
+        <button onclick="window.saveToArchive('vocab', { word: '${safeWord}', meaning: '${safeMeaning}', example: '${safeExEn}', exampleMeaning: '${safeExKo}' }, false)" class="flex-1 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-500 text-[11px] font-bold shadow-sm hover:bg-slate-50">
+            <i class="fa-solid fa-bookmark"></i> 단어 일반 보관
+        </button>
+        <button onclick="window.saveToArchive('vocab', { word: '${safeWord}', meaning: '${safeMeaning}', example: '${safeExEn}', exampleMeaning: '${safeExKo}' }, true)" class="flex-1 py-2.5 rounded-xl border border-amber-400 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[11px] font-black shadow-md hover:from-amber-600 hover:to-orange-600">
+            <i class="fa-solid fa-moon"></i> 단어 프리미엄
+        </button>
+    `;
+
+    window.renderVocabs(); 
+};
 
         window.nextVocab = function() { if(currentVocabSetIdx === -1) return; if(currentVocabWordIdx < savedVocabs[currentVocabSetIdx].vocabData.length - 1) window.showFlashcard(currentVocabSetIdx, currentVocabWordIdx + 1); };
         window.prevVocab = function() { if(currentVocabSetIdx === -1) return; if(currentVocabWordIdx > 0) window.showFlashcard(currentVocabSetIdx, currentVocabWordIdx - 1); };
@@ -2006,28 +2071,40 @@ window.renderArchivePlayer = function() {
 // 4. 하단 미니 리스트 그리기
 window.renderArchiveList = function() {
     const container = document.getElementById('archiveListContainer');
+    const countGen = document.getElementById('count-general');
+    const countPrem = document.getElementById('count-premium');
     if (!container) return;
-    container.innerHTML = ''; 
-    const items = window.archiveData[window.currentArchiveTab];
 
-    if (items.length === 0) return;
+    const items = window.archiveData[window.currentArchiveTab] || [];
+    
+    // 개수 계산
+    const genItems = items.filter(i => !i.isPremium);
+    const premItems = items.filter(i => i.isPremium);
+    countGen.innerText = genItems.length;
+    countPrem.innerText = premItems.length;
+
+    container.innerHTML = ''; 
+    if (items.length === 0) {
+        container.innerHTML = `<div class="text-center text-slate-400 mt-10 text-xs font-bold">저장된 데이터가 없습니다.</div>`;
+        return;
+    }
 
     items.forEach((item, index) => {
-        const isSelected = (index === window.currentArchiveIndex);
-        const bgClass = isSelected ? 'bg-slate-100 border-slate-300' : 'bg-white border-slate-200';
         const iconColor = item.isPremium ? 'text-amber-500' : 'text-blue-500';
-        const title = window.currentArchiveTab === 'vocab' ? item.word : item.original;
+        const title = window.currentArchiveTab === 'vocab' ? item.word : (item.original || "대화내용");
         
         container.innerHTML += `
-            <div class="flex items-center justify-between p-3 rounded-xl border ${bgClass} shadow-sm cursor-pointer hover:bg-slate-50 transition-colors" onclick="window.selectArchiveItem(${index})">
-                <div class="flex items-center gap-3 overflow-hidden flex-1">
-                    <div class="w-8 h-8 rounded-full bg-white border border-slate-100 flex items-center justify-center shrink-0 shadow-inner">
-                        <i class="fa-solid fa-${item.isPremium ? 'moon' : 'volume-high'} ${iconColor} text-[10px]"></i>
-                    </div>
-                    <p class="text-[11px] font-bold text-slate-700 truncate w-full">${title}</p>
+            <div class="bg-white p-4 rounded-2xl border ${item.isPremium ? 'border-amber-300' : 'border-slate-200'} shadow-sm mb-3">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-[9px] font-black ${item.isPremium ? 'text-amber-600' : 'text-blue-600'}">
+                        ${item.isPremium ? '💎 프리미엄' : '📜 일반'}
+                    </span>
+                    <button onclick="window.deleteArchiveItem('${item.id}')" class="text-slate-300 hover:text-red-500"><i class="fa-solid fa-trash-can text-sm"></i></button>
                 </div>
-                <button onclick="event.stopPropagation(); window.deleteArchiveItem('${item.id}')" class="text-slate-300 hover:text-red-500 p-2 ml-2 transition-colors shrink-0">
-                    <i class="fa-solid fa-trash-can text-[11px]"></i>
+                <p class="text-xs font-black text-slate-800 mb-1">${title}</p>
+                <p class="text-[10px] text-slate-500 mb-3">${item.translation || item.meaning || ''}</p>
+                <button onclick="window.playPremiumAudio('${item.id}')" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold rounded-lg transition-colors">
+                    듣기
                 </button>
             </div>
         `;
@@ -2098,7 +2175,39 @@ window.testPurchase = function(type, isPremium = true) {
 
 window.loadArchiveData();
 window.switchArchiveTab('script');
-        
+        // ==========================================
+// 📥 보관함 통합 저장 엔진 (일반 / 프리미엄)
+// ==========================================
+
+window.saveToArchive = function(type, itemData, isPremium) {
+    // 데이터베이스 초기화 방어 로직
+    if (!window.archiveData) window.archiveData = { script: [], vocab: [], freetalk: [] };
+    if (!window.archiveData[type]) window.archiveData[type] = [];
+
+    if (isPremium) {
+        const isConfirmed = confirm("🌙 초승달 1개를 사용하여 최고급 원어민 음성으로 영구 소장하시겠습니까?");
+        if (!isConfirmed) return;
+        alert("✨ 초승달이 사용되었습니다! 프리미엄 보관함에 저장 완료.");
+    } else {
+        alert("💾 일반 보관함에 저장되었습니다.");
+    }
+
+    const newItem = {
+        id: 'archive_' + Date.now(),
+        isPremium: isPremium,
+        audioPath: '',
+        ...itemData
+    };
+
+    window.archiveData[type].unshift(newItem); // 데이터 추가
+    window.saveArchiveData(); // 로컬스토리지에 즉시 저장
+    
+    console.log(`[저장 성공] 카테고리: ${type}, 데이터:`, newItem); // 🔍 저장 확인용 로그
+    
+    if (window.currentArchiveTab === type) {
+        window.renderArchiveList();
+    }
+};
 
 // 🌟 다국어 지원 & 스크롤 고정형 AI 속마음 모듈
 window.updateMemoryDisplay = function() {
@@ -2375,11 +2484,11 @@ window.addStudyMission = function(type) {
             let rwMoons = 3; 
 
             // 🌟 스페셜 캐릭터 잠금 해제 로직을 완전히 삭제하고, 순수하게 초승달 보상만 남김
-            if (streakData.streak === 5) rwMoons = 10;
+            if (streakData.streak === 5) rwMoons = 3;
             
-            else if (streakData.streak === 10) rwMoons = 20;
-            else if (streakData.streak === 20) rwMoons = 30;
-            else if (streakData.streak === 30) rwMoons = 30; 
+            else if (streakData.streak === 10) rwMoons = 5;
+            else if (streakData.streak === 20) rwMoons = 10;
+            else if (streakData.streak === 30) rwMoons = 15; 
             else if (streakData.streak > 30 && streakData.streak % 10 === 0) rwMoons = 30; 
 
             setTimeout(() => { 
