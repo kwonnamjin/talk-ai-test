@@ -3013,30 +3013,26 @@ setTimeout(() => {
 
 
 // ==========================================
-// 🔊 앱 전체 공통 TTS 재생기 (보관함, 단어장, 대본, 프리토킹 공용)
+// 🔊 앱 전체 공통 TTS 재생기 & 미리듣기 (오류 완벽 해결 버전)
 // ==========================================
+
+// 1. 통합 재생기 (보관함, 단어장 등)
 window.playAppAudio = async function(text, type, langCode = 'en-US') {
     if (!text) return;
-
     const currentLang = langCode || document.getElementById('targetLanguage').value || 'en-US';
 
     if (type === 'premium') {
         const selectedVoiceCode = localStorage.getItem('premium_voice_code') || 'Zephyr';
-        
         try {
             const response = await fetch(`${WORKER_URL}/tts`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ text: text, voiceCode: selectedVoiceCode })
             });
-
             const data = await response.json();
-
             if (data.audioContent) {
-                // 🔥 수정 완료: mp3 대신 wav로 처리하여 브라우저 에러 해결!
                 const audio = new Audio("data:audio/wav;base64," + data.audioContent);
                 await audio.play();
-                
                 return new Promise(resolve => {
                     audio.onended = resolve;
                 });
@@ -3044,7 +3040,7 @@ window.playAppAudio = async function(text, type, langCode = 'en-US') {
                 throw new Error("오디오 데이터가 없습니다.");
             }
         } catch (error) {
-            console.error("프리미엄 음성 재생 실패, 일반 음성으로 대체합니다:", error);
+            console.error("프리미엄 재생 실패, 일반 음성으로 대체:", error);
             return playBasicAudio(text, currentLang);
         }
     } else {
@@ -3052,7 +3048,7 @@ window.playAppAudio = async function(text, type, langCode = 'en-US') {
     }
 };
 
-// 일반 음성 재생 전용 내부 함수 (유지)
+// 2. 일반 음성 전용
 function playBasicAudio(text, lang) {
     return new Promise((resolve) => {
         window.speechSynthesis.cancel();
@@ -3063,10 +3059,7 @@ function playBasicAudio(text, lang) {
     });
 }
 
-
-// ==========================================
-// 🔊 프리미엄 설정창 미리듣기 함수
-// ==========================================
+// 3. 설정창 미리듣기
 window.playSampleVoice = async function(type) {
     const targetLanguage = document.getElementById('targetLanguage').value || 'en-US';
     const baseLang = targetLanguage.substring(0, 2); 
@@ -3083,7 +3076,7 @@ window.playSampleVoice = async function(type) {
         "ru": "О, привет! Эм... не ожидал увидеть тебя здесь. Честно говоря... это был очень долгий день, но, ха-ха, я рад, что мы столкнулись!",
         "th": "โอ้ สวัสดี! เอิ่ม... ไม่คิดว่าจะเจอคุณที่นี่เลย พูดตามตรง... วันนี้เป็นวันที่ยาวนานมาก แต่ ฮ่าฮ่า ดีใจนะที่บังเอิญเจอกัน!",
         "ar": "أوه، أهلاً! أمم... لم أتوقع رؤيتك هنا. بصراحة... لقد كان يوماً طويلاً جداً، لكن، هاها، أنا سعيد لأننا التقينا!",
-        "hi": "ओह, नमस्ते! उम्म... मुझे आपको यहाँ देखने की उम्मीद नहीं थी। सच कहूँ तो... आज का दिन बहुत लंबा रहा, लेकिन, हाहा, मुझे खुशी है कि हम टकरा गए!",
+        "hi": "ओह, नमस्ते! उम्म... मुझे आपको यहाँ देखने की उम्मीद नहीं थी। सच कहूँ तो... आज का दिन লম্বা रहा, लेकिन, हाहा, मुझे खुशी है कि हम टकरा गए!",
         "pl": "O, cześć! Eem... nie spodziewałem się, że cię tu zobaczę. Szczerze mówiąc... to był naprawdę długi dzień, ale, haha, cieszę się, że na siebie wpadliśmy!",
         "gd": "Ò, latha math! Uill... bha mi a' smaoineachadh nach fhaiceadh mi thu an seo. Gu fìrinneach... bha e na latha glè fhada, ach, haha, tha mi toilichte gun do choinnich sinn!",
         "la": "O, salve! Em... non exspectabam te hic videre. Vere... dies valde longus fuit, sed, haha, gaudeo nos convenisse!",
@@ -3103,8 +3096,7 @@ window.playSampleVoice = async function(type) {
         } else {
             alert("일반 기기 음성: " + sampleText);
         }
-    } 
-    else if (type === 'premium') {
+    } else if (type === 'premium') {
         const selectedVoiceCode = localStorage.getItem('premium_voice_code') || 'Zephyr';
         const avatarWrap = document.getElementById('avatarWrap');
         if(avatarWrap) avatarWrap.style.borderColor = "#f59e0b"; 
@@ -3115,19 +3107,13 @@ window.playSampleVoice = async function(type) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ text: sampleText, voiceCode: selectedVoiceCode })
             });
-
             const data = await response.json();
-
+            
             if (data.audioContent) {
-                // 🔥 수정 완료: mp3 대신 wav로 변경
                 const audio = new Audio("data:audio/wav;base64," + data.audioContent);
                 audio.play();
-
-                audio.onended = () => {
-                    if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe";
-                };
+                audio.onended = () => { if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe"; };
             } else {
-                console.error("TTS 에러:", data);
                 alert("음성 생성 실패");
                 if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe";
             }
@@ -3137,8 +3123,7 @@ window.playSampleVoice = async function(type) {
         }
     }
 };
-
-
+// ==========================================
 
 
 
