@@ -1963,11 +1963,11 @@ window.renderArchiveList = function() {
                 
                 <div class="relative z-10 pl-1 mb-3">
                     <p class="text-xs font-black ${item.isPremium ? 'text-slate-900' : 'text-slate-800'} mb-0.5 leading-snug">${title}</p>
-                    ${sub1 ? `<p class="text-[10px] font-bold text-slate-500 mb-2">${sub1}</p>` : ''}
+                    ${sub1 ? `<p class="text-[12px] font-bold text-slate-500 mb-2">${sub1}</p>` : ''}
                     ${sub2 ? `
                     <div class="pl-2 border-l-2 ${item.isPremium ? 'border-amber-200' : 'border-slate-200'} mt-2">
-                        <p class="text-[10px] font-bold text-slate-600 leading-snug">${sub2}</p>
-                        ${sub3 ? `<p class="text-[9px] text-slate-400 leading-snug mt-0.5">${sub3}</p>` : ''}
+                        <p class="text-[12px] font-black text-slate-600 leading-snug">${sub2}</p>
+                        ${sub3 ? `<p class="text-[11px] text-slate-400 leading-snug mt-0.5">${sub3}</p>` : ''}
                     </div>` : ''}
                 </div>
                 
