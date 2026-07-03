@@ -2019,8 +2019,50 @@ window.deleteArchiveItem = function(id) {
     }
 };
 
-window.playArchiveAudio = function(id, isPremium) {
-    alert(isPremium ? "💎 프리미엄 음성 재생 준비 중!" : "🔊 일반 음성 재생 준비 중!");
+// 5. 보관함 오디오 재생 (일반/프리미엄 완벽 연동)
+window.playArchiveAudio = async function(id, isPremium) {
+    // 1. 현재 보고 있는 보관함 탭(script/vocab/freetalk)에서 클릭한 아이템 데이터 찾기
+    const currentTab = window.currentArchiveTab;
+    const item = window.archiveData[currentTab].find(i => i.id === id);
+    
+    if (!item) {
+        alert("데이터를 찾을 수 없습니다.");
+        return;
+    }
+
+    // 2. 탭 종류에 따라 읽어줄 텍스트 영리하게 추출하기
+    let textToRead = "";
+    if (currentTab === 'vocab') {
+        // 단어장은 단어를 먼저 읽고, 뒤에 예문을 이어서 읽음
+        textToRead = item.word;
+        if (item.example && item.example.trim() !== "null" && item.example.trim() !== "") {
+            textToRead += ". " + item.example; 
+        }
+    } else {
+        // 대본(script)과 프리토킹(freetalk)은 저장된 원문(original) 그대로 재생
+        textToRead = item.original; 
+    }
+
+    if (!textToRead) return;
+
+    // 기계음 발음이 꼬이지 않도록 특수문자 및 이모지 깔끔하게 필터링
+    const cleanText = textToRead.replace(/[\*\#\`\~\"\'\(\)\[\]]/g, ' ').replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '').trim();
+
+    // 3. 프리미엄 여부에 맞춰 통합 오디오 재생기 출격!
+    const audioType = isPremium ? 'premium' : 'basic';
+    const targetLang = localStorage.getItem('target_language') || 'en-US';
+    
+    if (typeof window.updateStatus === 'function') {
+        window.updateStatus(isPremium ? "💎 최고급 원어민 음성 불러오는 중..." : "🔊 일반 기기 음성 재생 중...");
+    }
+
+    try {
+        await window.playAppAudio(cleanText, audioType, targetLang);
+        if (typeof window.updateStatus === 'function') window.updateStatus("재생 완료!");
+    } catch (error) {
+        console.error("보관함 오디오 재생 실패:", error);
+        if (typeof window.updateStatus === 'function') window.updateStatus("재생 실패");
+    }
 };
 
 // 앱 켤 때 즉시 데이터 불러오고 탭 세팅!
@@ -2899,27 +2941,27 @@ window.playSampleVoice = async function(type) {
 // 🌍 제미나이 3.1 플래시 TTS 전용 보이스 DB
 // ==========================================
 const geminiVoices = [
-    { code: "Zephyr", name: "제파 (Zephyr - 여성, 세련/차분함 🌟)" },
-    { code: "Fenrir", name: "펜리르 (Fenrir - 남성, 신뢰감/안정감)" },
-    { code: "Sulafat", name: "술라파트 (Sulafat - 여성, 밝음/활기참)" },
-    { code: "Umbriel", name: "움브리엘 (Umbriel - 남성, 중후함)" },
-    { code: "Puck", name: "퍼크 (Puck - 여성, 톡톡 튀는 일상톤)" },
-    { code: "Charon", name: "카론 (Charon - 남성, 차분함)" },
-    { code: "Aoede", name: "아오에데 (Aoede - 여성, 부드러움)" },
-    { code: "Kore", name: "코레 (Kore - 여성, 일상대화)" },
-    { code: "Leda", name: "레다 (Leda)" },
-    { code: "Erinome", name: "에리노메 (Erinome)" },
-    { code: "Enceladus", name: "엔셀라두스 (Enceladus)" },
-    { code: "Sadachbia", name: "사다크비아 (Sadachbia)" },
-    { code: "Puck", name: "퍼크 (Puck)" },
-    { code: "Achird", name: "아키르드 (Achird)" },
-    { code: "Algenib", name: "알게니브 (Algenib)" },
-    { code: "Algieba", name: "알지에바 (Algieba)" },
-    { code: "Alnilam", name: "알닐람 (Alnilam)" },
-    { code: "Aoede", name: "아오에데 (Aoede)" },
-    { code: "Autonoe", name: "아우토노에 (Autonoe)" },
-    { code: "Callirrhoe", name: "칼리로에 (Callirrhoe)" },
-    { code: "Despina", name: "데스피나 (Despina)" }
+    { code: "Zephyr", name: "제파 (여성, 세련/차분함 🌟)" },
+    { code: "Sulafat", name: "술라파트 (여성, 밝음/활기참)" },
+    { code: "Puck", name: "퍼크 (여성, 톡톡 튀는 일상톤)" },
+    { code: "Aoede", name: "아오에데 (여성, 부드러움)" },
+    { code: "Kore", name: "코레 (여성, 일상대화)" }, 
+    { code: "Leda", name: "레다 (여성, 앳되고 생기있는)" },
+    { code: "Erinome", name: "에리노메 (여성, 맑고 또렷한)" },
+    { code: "Aoede", name: "아오에데 (여성, 산뜻하고 경쾌한)" },
+    { code: "Autonoe", name: "아우토노에 (여성, 밝고 화사한)" },
+    { code: "Callirrhoe", name: "칼리로에 (여성, 느긋하고 편안한)" },
+    { code: "Despina", name: "데스피나 (여성, 차분하고 부드러운)" },
+    { code: "Umbriel", name: "움브리엘 (남성, 중후함)" },
+    { code: "Charon", name: "카론 (남성, 차분함)" },
+    { code: "Fenrir", name: "펜리르 (남성, 신뢰감/안정감)" },
+    { code: "Enceladus", name: "엔셀라두스 (남성, 감성적인 숨소리)" },
+    { code: "Sadachbia", name: "사다크비아 (남성, 생동감 넘치는)" },
+    { code: "Puck", name: "퍼크 (남성, 경쾌하고 신나는)" },
+    { code: "Achird", name: "아키르드 (남성, 친근하고 다정한)" },
+    { code: "Algenib", name: "알게니브 (남성, 거칠고 허스키한)" },
+    { code: "Algieba", name: "알지에바 (남성, 젠틀하고 매끄러운)" },
+    { code: "Alnilam", name: "알닐람 (남성, 단호하고 확고한)" }
 ];
 
 // 요청하신 21개 국어 학습 언어에 최고급 제미나이 목소리 일괄 연결!
@@ -2992,6 +3034,72 @@ setTimeout(() => {
         document.getElementById('disp-voiceName-premium').innerText = savedPremiumVoice;
     }
 }, 500);
+
+
+
+// ==========================================
+// 🔊 앱 전체 공통 TTS 재생기 (보관함, 단어장, 대본, 프리토킹 공용)
+// ==========================================
+window.playAppAudio = async function(text, type, langCode = 'en-US') {
+    if (!text) return;
+
+    // 만약 언어 코드가 안 넘어왔다면 현재 학습 언어로 기본 세팅
+    const currentLang = langCode || document.getElementById('targetLanguage').value || 'en-US';
+
+    // 💎 프리미엄 재생 모드일 때
+    if (type === 'premium') {
+        const selectedVoiceCode = localStorage.getItem('premium_voice_code') || 'Zephyr';
+        
+        try {
+            // 🚨 WORKER_URL은 대표님의 실제 워커 주소로 설정되어 있어야 합니다.
+            const response = await fetch(`${WORKER_URL}/tts`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    text: text,
+                    voiceCode: selectedVoiceCode
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.audioContent) {
+                const audio = new Audio("data:audio/mp3;base64," + data.audioContent);
+                await audio.play();
+                
+                // 재생이 끝나는 시점을 기다릴 수 있도록 Promise 반환 (UI 상태 변경용)
+                return new Promise(resolve => {
+                    audio.onended = resolve;
+                });
+            } else {
+                throw new Error("오디오 데이터가 없습니다.");
+            }
+        } catch (error) {
+            console.error("프리미엄 음성 재생 실패, 일반 음성으로 대체합니다:", error);
+            // 프리미엄 실패 시(네트워크 오류 등) 자동으로 일반 음성으로 넘어가는 안전장치
+            return playBasicAudio(text, currentLang);
+        }
+    } 
+    // 🤖 일반 재생 모드일 때
+    else {
+        return playBasicAudio(text, currentLang);
+    }
+};
+
+// 일반 음성(Web Speech API) 재생 전용 내부 함수
+function playBasicAudio(text, lang) {
+    return new Promise((resolve) => {
+        // 기존에 재생 중인 소리가 있다면 끄기
+        window.speechSynthesis.cancel();
+        
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = lang;
+        utterance.onend = resolve; // 재생이 끝나면 알려줌
+        window.speechSynthesis.speak(utterance);
+    });
+}
+
+
 
 
 
