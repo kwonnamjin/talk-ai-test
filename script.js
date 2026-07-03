@@ -2475,7 +2475,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const sttSelect = document.getElementById('sttInputLanguage');
     const expSelect = document.getElementById('explanationLanguage');
 
-    if (targetSelect) targetSelect.value = savedTargetLang;
+    // 👇👇 [여기서부터 수정됨] 프리미엄 보이스 자동 갱신 로직 추가 👇👇
+    if (targetSelect) {
+        targetSelect.value = savedTargetLang;
+        
+        // 언어를 바꿀 때마다 리스트 싹 다시 그리기!
+        targetSelect.addEventListener('change', function(e) {
+            if (typeof window.updatePremiumVoiceList === 'function') {
+                window.updatePremiumVoiceList(e.target.value);
+            }
+        });
+        
+        // 앱을 처음 켰을 때, 하드코딩된 글씨 밀어버리고 바로 리스트 그리기!
+        setTimeout(() => {
+            if (typeof window.updatePremiumVoiceList === 'function') {
+                window.updatePremiumVoiceList(targetSelect.value);
+            }
+        }, 300); // 다른 UI들이 렌더링될 시간을 0.3초 벌어주고 안전하게 실행
+    }
+    // 👆👆 [여기까지 수정됨] 👆👆
+
     if (expSelect) expSelect.value = savedExpLang;
     if (sttSelect) {
         sttSelect.value = savedSttLang;
@@ -2934,45 +2953,34 @@ const premiumVoicesDB = {
 };
 
 
-// 앱 로딩 시 저장된 프리미엄 목소리 이름 불러오기
-setTimeout(() => {
-    const savedPremiumVoice = localStorage.getItem('premium_voice_name');
-    if (savedPremiumVoice) {
-        document.getElementById('disp-voiceName-premium').innerText = savedPremiumVoice;
-    }
-}, 500);
+
 
 
 // 🔄 프리미엄 리스트 UI 업데이트 함수
-window.updatePremiumVoiceList = function (langCode) {
-    const baseLang = langCode.substring(0, 2); // 예: 'es-ES' -> 'es'
-    const availableVoices = premiumVoicesDB[baseLang] || premiumVoicesDB["en"]; // DB에서 찾기
+window.updatePremiumVoiceList = function(langCode) {
+    const baseLang = langCode.substring(0, 2); 
+    const availableVoices = premiumVoicesDB[baseLang] || premiumVoicesDB["en"]; 
 
     const dropdownWrap = document.getElementById('drop-voice-premium'); 
+    if (!dropdownWrap) return; // 에러 방지
     
-    // 기존 리스트 싹 지우기
     dropdownWrap.innerHTML = ''; 
 
-    // 새 언어의 성우들로 리스트 꽉꽉 채우기
     availableVoices.forEach(voice => {
         const item = document.createElement('div');
-        // 기존 대표님 UI의 디자인 클래스
         item.className = 'cursor-pointer hover:bg-gray-100 p-2 text-sm text-gray-700'; 
         item.innerText = voice.name;
         
-        // 클릭하면 선택되게 연결
         item.onclick = function() {
             window.selectPremiumVoice(voice.code, voice.name);
         };
-        
         dropdownWrap.appendChild(item);
     });
 
-    // 🌟 핵심: 리스트를 새로 그렸으니, 화면에 표시되는 기본 목소리도 새 리스트의 '첫 번째 성우'로 자동 세팅!
     if (availableVoices.length > 0) {
         window.selectPremiumVoice(availableVoices[0].code, availableVoices[0].name);
     }
-}
+};
 
 // 2. 학습 언어 변경 감지기 (기존 코드 대신 이것만 남깁니다)
 const targetLangSelect = document.getElementById('targetLanguage');
@@ -2987,7 +2995,13 @@ if (targetLangSelect) {
     });
 }
 
-
+// 앱 로딩 시 저장된 프리미엄 목소리 이름 불러오기
+setTimeout(() => {
+    const savedPremiumVoice = localStorage.getItem('premium_voice_name');
+    if (savedPremiumVoice) {
+        document.getElementById('disp-voiceName-premium').innerText = savedPremiumVoice;
+    }
+}, 500);
 
 
 
