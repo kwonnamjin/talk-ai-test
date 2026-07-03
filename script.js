@@ -2775,33 +2775,25 @@ initSpeechRecognition();
 
 
 // ==========================================
-// 🔊 Setting 탭: 목소리 미리듣기 & 프리미엄 음성 선택 로직
+// 🔊 Setting 탭: 목소리 미리듣기 & 워커 연동 (보안 완성형)
 // ==========================================
 
-// 1. 프리미엄 목소리 선택하기
 window.selectPremiumVoice = function(voiceCode, voiceName) {
-    // 선택한 값을 저장
     localStorage.setItem('premium_voice_code', voiceCode);
     localStorage.setItem('premium_voice_name', voiceName);
     
-    // UI 글씨 업데이트
     document.getElementById('disp-voiceName-premium').innerText = voiceName;
-    document.getElementById('drop-voice-premium').classList.add('hidden'); // 드롭다운 닫기
+    document.getElementById('drop-voice-premium').classList.add('hidden'); 
     
-    // 샘플 재생
     window.playSampleVoice('premium');
 };
 
-// 2. [듣기] 버튼 클릭 시 미리듣기 엔진
-window.playSampleVoice = function(type) {
-    // 텍스트는 현재 유저가 설정한 앱 표시 언어에 따라 인사말로 설정 (기본은 영어)
+window.playSampleVoice = async function(type) {
     const sampleText = "Hello! I am your AI language tutor. Let's study together!";
     
     if (type === 'basic') {
-        // 일반 음성은 기존의 기기 기본 TTS를 사용해 읽어줍니다.
+        // 1. 일반 음성 (기존 로직)
         const targetLangCode = document.getElementById('targetLanguage').value || 'en-US';
-        
-        // 플러터 웹뷰인지 브라우저인지에 따라 기존 함수 호출
         if (typeof window.speakText === 'function') {
             window.speakText(sampleText, targetLangCode);
         } else {
@@ -2809,17 +2801,46 @@ window.playSampleVoice = function(type) {
         }
     } 
     else if (type === 'premium') {
-        // 프리미엄 음성 (임시)
-        // TODO: 향후 구글 TTS API 연동 시, 미리 생성해둔 mp3 url을 재생하게 됩니다.
-        const selectedVoice = localStorage.getItem('premium_voice_name') || '미국 (여성 1)';
+        // 💎 2. 프리미엄 음성 (클라우드플레어 워커 우회 호출)
+        const selectedVoiceCode = localStorage.getItem('premium_voice_code') || 'en-US-Journey-F';
+        const langCode = selectedVoiceCode.substring(0, 5); 
         
-        alert(`💎 [프리미엄 미리듣기]\n\n현재 선택된 목소리: ${selectedVoice}\n(실제 앱 완성 시, 서버에서 가져온 퀄리티 높은 mp3 파일이 재생됩니다.)`);
-        
-        // 시각적 효과 (아바타 테두리 반짝임)
         const avatarWrap = document.getElementById('avatarWrap');
-        if(avatarWrap) {
-            avatarWrap.style.borderColor = "#f59e0b"; // 앰버 색상
-            setTimeout(() => { avatarWrap.style.borderColor = "#bfdbfe"; }, 2000);
+        if(avatarWrap) avatarWrap.style.borderColor = "#f59e0b"; // 로딩 중 주황색 불빛
+
+        try {
+            // 기존에 정의된 WORKER_URL 변수가 있다면 사용하고, 없으면 본인의 워커 주소를 적어주세요.
+            // 예시: const WORKER_URL = "https://your-worker.workers.dev";
+            const response = await fetch(`${WORKER_URL}/tts`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    text: sampleText,
+                    voiceCode: selectedVoiceCode,
+                    langCode: langCode
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.audioContent) {
+                // 백엔드가 안전하게 훔쳐다 준 mp3 데이터를 그대로 재생!
+                const audio = new Audio("data:audio/mp3;base64," + data.audioContent);
+                audio.play();
+
+                audio.onended = () => {
+                    if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe";
+                };
+            } else {
+                console.error("워커 TTS 반환 에러:", data);
+                alert("음성 생성에 실패했습니다. 워커 설정이나 크레딧을 확인하세요.");
+                if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe";
+            }
+
+        } catch (error) {
+            console.error("네트워크 에러:", error);
+            alert("서버 연결에 실패했습니다.");
+            if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe";
         }
     }
 };
