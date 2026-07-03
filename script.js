@@ -20,52 +20,6 @@ const WORKER_URL = "https://talkaitest.thin770.workers.dev/";
 
 
 
-
-
-
-
-
-
-        // 1. 파이 SDK 초기화 (sandbox: true 는 실제 코인이 안 나가는 테스트 모드입니다)
-const Pi = window.Pi;
-Pi.init({ version: "2.0", sandbox: true });
-
-// 2. 파이 유저 로그인 요청 함수
-async function authPiUser() {
-    try {
-        const scopes = ['username', 'payments']; // 닉네임과 결제 권한을 요청
-        const authResults = await Pi.authenticate(scopes, onIncompletePaymentFound);
-        
-        console.log("파이 로그인 성공! 환영합니다:", authResults.user.username);
-        window.updateStatus("파이 계정 연결 완료: " + authResults.user.username);
-        
-    } catch (error) {
-        console.error("파이 로그인 실패:", error);
-        window.updateStatus("파이 로그인 실패");
-    }
-}
-
-// 3. 결제 오류 대비용 빈 함수 (파이 규정상 필수로 적어둬야 합니다)
-function onIncompletePaymentFound(payment) {
-    console.log("처리되지 않은 결제 발견:", payment);
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         // ==========================================
 // 💖 AI 친밀도 & 감성 시스템 모듈
 // ==========================================
@@ -2768,3 +2722,46 @@ window.addEventListener('flutterInAppWebViewPlatformReady', function(event) {
   //  localStorage.setItem('moon_coins', '3'); // 초승달 3개 줌
  //   window.updateBadgeUI();
   //  alert("삐빅! 번개 0, 초승달 3개로 조작 완료!");};
+
+
+
+
+
+
+
+
+        // 1. 파이 SDK 초기화 (sandbox: true 는 실제 코인이 안 나가는 테스트 모드입니다)
+const Pi = window.Pi;
+Pi.init({ version: "2.0", sandbox: true });
+
+// 2. 파이 유저 로그인 요청 함수
+async function authPiUser() {
+    try {
+        const scopes = ['username', 'payments']; // 닉네임과 결제 권한을 요청
+        const authResults = await Pi.authenticate(scopes, onIncompletePaymentFound);
+        
+        console.log("파이 로그인 성공! 환영합니다:", authResults.user.username);
+        window.updateStatus("파이 계정 연결 완료: " + authResults.user.username);
+        
+    } catch (error) {
+        console.error("파이 로그인 실패:", error);
+        window.updateStatus("파이 로그인 실패");
+    }
+}
+
+// 3. 결제 오류 대비용 빈 함수 (파이 규정상 필수로 적어둬야 합니다)
+function onIncompletePaymentFound(payment) {
+    console.log("처리되지 않은 결제 발견:", payment);
+}
+document.addEventListener("DOMContentLoaded", function() {
+    authPiUser();
+});
+
+
+
+
+
+
+
+
+
