@@ -2521,6 +2521,7 @@ window.closeAllPanels = function() {
     document.querySelectorAll('.panel-popup').forEach(p => p.classList.add('hidden'));
 };
 
+// 🌟 1. 통합 페르소나 선택 함수
 window.selectPersona = function(mode, customId = null) {
     window.currentPersona = mode;
     localStorage.setItem('ai_persona', mode);
@@ -2534,6 +2535,7 @@ window.selectPersona = function(mode, customId = null) {
         localStorage.removeItem('user_custom_persona'); 
     }
 
+    // 스타일 초기화 후 선택된 것만 불 켜기
     document.querySelectorAll('.persona-btn').forEach(btn => {
         btn.classList.remove('bg-gradient-to-r', 'from-blue-500', 'to-indigo-500', 'text-white', 'border-transparent', 'scale-105');
         btn.classList.add('bg-white', 'text-slate-400', 'border-slate-200');
@@ -2550,6 +2552,7 @@ window.selectPersona = function(mode, customId = null) {
     window.updateStatus(`${mode === 'custom' ? '나만의 AI' : mode} 모드 적용!`);
 };
 
+// 🌟 2. 커스텀 캐릭터 생성 (슬롯 제한 및 클릭 방지)
 window.saveCustomCharacter = function() {
     const nameInput = document.getElementById('newCharName');
     const promptInput = document.getElementById('newCharPrompt');
@@ -2560,15 +2563,17 @@ window.saveCustomCharacter = function() {
     
     if (!name || !prompt) return alert("이름과 성격을 모두 입력해주세요!");
 
+    // 💡 핵심 1: 글자 수 50자 철벽 방어
     if (prompt.length > 50) {
         return alert("서버 쾌적화를 위해 캐릭터 성격은 50자 이내로 굵고 짧게 적어주세요!");
     }
 
     let chars = JSON.parse(localStorage.getItem('my_custom_characters') || '[]');
     
+    // 💡 핵심 2: 슬롯을 3개에서 1개로 축소 (1개 이상이면 기존 것 덮어쓰기)
     if (chars.length >= 1) {
         alert("커스텀 AI는 1명만 생성 가능합니다. 기존 AI가 새로운 AI로 교체됩니다.");
-        chars = []; 
+        chars = []; // 기존 배열을 아예 비워버림
     }
 
     const newId = Date.now().toString();
@@ -2582,6 +2587,7 @@ window.saveCustomCharacter = function() {
     window.selectPersona('custom', newId);
 };
 
+// 🌟 3. 커스텀 캐릭터 삭제
 window.deleteCustomCharacter = function(id, event) {
     event.stopPropagation(); 
     if(!confirm("이 캐릭터를 삭제하시겠습니까?")) return;
@@ -2594,34 +2600,39 @@ window.deleteCustomCharacter = function(id, event) {
     window.renderCustomCharacters();
 };
 
+// 🌟 4. 캐릭터 리스트 화면 그리기
+// 🌟 커스텀 캐릭터 리스트 렌더링 (높이 압축 & 33% 너비 적용)
 window.renderCustomCharacters = function() {
     const listArea = document.getElementById('customCharacterList');
     if(!listArea) return;
     let chars = JSON.parse(localStorage.getItem('my_custom_characters') || '[]');
     listArea.innerHTML = ''; 
     
+    // 다국어 사전 가져오기
     const baseLang = (document.getElementById('explanationLanguage').value || 'ko-KR').split('-')[0];
-    const dict = UI_DICTIONARY[baseLang] || UI_DICTIONARY['en'];
+    const dict = window.UI_DICTIONARY ? (window.UI_DICTIONARY[baseLang] || window.UI_DICTIONARY['en']) : {};
     
     if(chars.length === 0) {
-        listArea.innerHTML = `<div class="text-center p-4 bg-slate-50 rounded-xl border border-slate-100 border-dashed text-slate-400 text-[10px] font-bold">${dict.ui_no_custom_ai || "생성된 나만의 AI가 없습니다."}</div>`;
+        // 데이터가 없을 때는 3칸을 모두 차지하게 (col-span-3)
+        listArea.innerHTML = `<div class="col-span-3 text-center p-3 bg-slate-50 rounded-xl border border-slate-100 border-dashed text-slate-400 text-[10px] font-bold">${dict.ui_no_custom_ai || "생성된 나만의 AI가 없습니다."}</div>`;
         return;
     }
 
     chars.forEach(char => {
+        // 💡 버튼 디자인 수정: 높이를 대폭 줄이고(py-1.5), 성격(prompt) 텍스트는 숨김 처리
         listArea.insertAdjacentHTML('beforeend', `
-            <button id="btn_persona_custom_${char.id}" onclick="window.selectPersona('custom', '${char.id}')" class="persona-btn flex justify-between items-center w-full p-3 border border-slate-200 bg-white rounded-xl transition-all shadow-sm">
-                <div class="flex flex-col text-left overflow-hidden">
-                    <span class="text-xs font-black text-slate-700">${char.name}</span>
-                    <span class="text-[9px] text-slate-400 truncate max-w-[200px] mt-0.5">${char.prompt}</span>
-                </div>
-                <div onclick="window.deleteCustomCharacter('${char.id}', event)" class="text-rose-300 p-2 bg-rose-50 rounded-lg hover:text-rose-600 hover:bg-rose-100 transition-colors ml-2">
-                    <i class="fa-solid fa-trash-can text-sm"></i>
+            <button id="btn_persona_custom_${char.id}" onclick="window.selectPersona('custom', '${char.id}')" class="persona-btn relative flex items-center justify-center w-full py-1.5 px-2 border border-slate-200 bg-white rounded-lg transition-all shadow-sm group">
+                <span class="text-[10px] font-black text-slate-700 truncate w-full text-center mr-2">${char.name}</span>
+                
+                <!-- 💡 삭제 버튼: 우측 상단에 작게 엑스(X) 마크로 변경 -->
+                <div onclick="window.deleteCustomCharacter('${char.id}', event)" class="absolute top-0 right-0 p-1 text-rose-300 hover:text-rose-500 transition-colors z-10">
+                    <i class="fa-solid fa-xmark text-[9px]"></i>
                 </div>
             </button>
         `);
     });
     
+    // 선택된 버튼 색상 칠하기
     let savedMode = localStorage.getItem('current_persona') || 'friend';
     let customData = JSON.parse(localStorage.getItem('user_custom_persona') || '{}');
     if (savedMode === 'custom' && customData.id) {
@@ -2629,9 +2640,13 @@ window.renderCustomCharacters = function() {
         if(activeBtn) {
             activeBtn.classList.remove('bg-white', 'text-slate-400', 'border-slate-200');
             activeBtn.classList.add('bg-gradient-to-r', 'from-blue-500', 'to-indigo-500', 'text-white', 'border-transparent', 'scale-105');
+            // 글자색 흰색으로 변경
+            const spanText = activeBtn.querySelector('span');
+            if(spanText) spanText.classList.replace('text-slate-700', 'text-white');
         }
     }
 };
+
 
 setTimeout(() => {
     if(typeof window.renderCustomCharacters === 'function') {
@@ -2674,10 +2689,148 @@ window.addEventListener('flutterInAppWebViewPlatformReady', function(event) {
 });
 
 
+// ==========================================
+// 🚀 자동 전송 토글 기능 추가
+// ==========================================
+window.isAutoSend = false; // 기본값: 안전하게 텍스트창에서 검토하는 모드
+
+window.toggleAutoSend = function() {
+    window.isAutoSend = !window.isAutoSend; // 상태 반전
+    const btn = document.getElementById('autoSendToggleBtn');
+    const icon = document.getElementById('autoSendIcon');
+    
+    if(window.isAutoSend) {
+        // ON 상태 디자인 (파란색 불 켜짐)
+        btn.classList.replace('bg-slate-100', 'bg-blue-50');
+        btn.classList.replace('text-slate-500', 'text-blue-600');
+        btn.classList.replace('border-slate-200', 'border-blue-200');
+        icon.classList.replace('fa-toggle-off', 'fa-toggle-on');
+        window.updateStatus("자동 전송 ON");
+    } else {
+        // OFF 상태 디자인 (회색 불 꺼짐)
+        btn.classList.replace('bg-blue-50', 'bg-slate-100');
+        btn.classList.replace('text-blue-600', 'text-slate-500');
+        btn.classList.replace('border-blue-200', 'border-slate-200');
+        icon.classList.replace('fa-toggle-on', 'fa-toggle-off');
+        window.updateStatus("자동 전송 OFF");
+    }
+};
+
+// ==========================================
+// 🎤 마이크 인식 및 전송 처리 (이중 방어막 및 자동전송 지원)
+// ==========================================
+window.initSpeechRecognition = function() {
+    if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+        recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        
+        recognition.onstart = () => {
+            isListening = true; 
+            if(window.stopSpeaking) window.stopSpeaking(); 
+            if(micBtn) { micBtn.classList.replace('from-blue-400', 'from-red-400'); micBtn.classList.replace('to-blue-600', 'to-red-600'); }
+            if(micIcon) { micIcon.classList.replace('fa-microphone', 'fa-ear-listen'); }
+            window.updateStatus("듣는 중...");
+        };
+        
+        recognition.onresult = (e) => {
+            resetMic();
+            if(e.results && e.results[0] && e.results[0][0]) {
+                let transcript = e.results[0][0].transcript;
+                let inputField = document.getElementById('textInput');
+                const MAX_CHARS = 300; // 글자수 제한 300자로 넉넉하게 확장
+                
+                if (inputField) {
+                    let currentText = inputField.value.trim();
+                    let newText = currentText !== '' ? currentText + ' ' + transcript : transcript;
+                    
+                    // 글자수 자르기 방어막
+                    if (newText.length > MAX_CHARS) {
+                        newText = newText.substring(0, MAX_CHARS);
+                    }
+
+                    inputField.value = newText;
+                    
+                    // 🚨 핵심 분기점: 스위치 상태에 따라 다르게 작동
+                    if (window.isAutoSend) {
+                        window.updateStatus("메시지 전송 중...");
+                        if (typeof sendTextMessage === 'function') sendTextMessage(); // 즉시 전송 발사!
+                    } else {
+                        inputField.focus(); // 텍스트창에 멈춰서 검토 대기
+                        window.updateStatus("확인 후 전송하세요"); 
+                    }
+                }
+            }
+        };
+        
+        recognition.onerror = (e) => { 
+            resetMic(); 
+            window.updateStatus("마이크 인식 실패"); 
+        };
+        
+        recognition.onend = () => resetMic();
+    }
+}
+initSpeechRecognition();
 
 
+// ==========================================
+// 🔊 Setting 탭: 목소리 미리듣기 & 프리미엄 음성 선택 로직
+// ==========================================
 
+// 1. 프리미엄 목소리 선택하기
+window.selectPremiumVoice = function(voiceCode, voiceName) {
+    // 선택한 값을 저장
+    localStorage.setItem('premium_voice_code', voiceCode);
+    localStorage.setItem('premium_voice_name', voiceName);
+    
+    // UI 글씨 업데이트
+    document.getElementById('disp-voiceName-premium').innerText = voiceName;
+    document.getElementById('drop-voice-premium').classList.add('hidden'); // 드롭다운 닫기
+    
+    // 샘플 재생
+    window.playSampleVoice('premium');
+};
 
+// 2. [듣기] 버튼 클릭 시 미리듣기 엔진
+window.playSampleVoice = function(type) {
+    // 텍스트는 현재 유저가 설정한 앱 표시 언어에 따라 인사말로 설정 (기본은 영어)
+    const sampleText = "Hello! I am your AI language tutor. Let's study together!";
+    
+    if (type === 'basic') {
+        // 일반 음성은 기존의 기기 기본 TTS를 사용해 읽어줍니다.
+        const targetLangCode = document.getElementById('targetLanguage').value || 'en-US';
+        
+        // 플러터 웹뷰인지 브라우저인지에 따라 기존 함수 호출
+        if (typeof window.speakText === 'function') {
+            window.speakText(sampleText, targetLangCode);
+        } else {
+            alert("일반 기기 음성: " + sampleText);
+        }
+    } 
+    else if (type === 'premium') {
+        // 프리미엄 음성 (임시)
+        // TODO: 향후 구글 TTS API 연동 시, 미리 생성해둔 mp3 url을 재생하게 됩니다.
+        const selectedVoice = localStorage.getItem('premium_voice_name') || '미국 (여성 1)';
+        
+        alert(`💎 [프리미엄 미리듣기]\n\n현재 선택된 목소리: ${selectedVoice}\n(실제 앱 완성 시, 서버에서 가져온 퀄리티 높은 mp3 파일이 재생됩니다.)`);
+        
+        // 시각적 효과 (아바타 테두리 반짝임)
+        const avatarWrap = document.getElementById('avatarWrap');
+        if(avatarWrap) {
+            avatarWrap.style.borderColor = "#f59e0b"; // 앰버 색상
+            setTimeout(() => { avatarWrap.style.borderColor = "#bfdbfe"; }, 2000);
+        }
+    }
+};
+
+// 앱 로딩 시 저장된 프리미엄 목소리 이름 불러오기
+setTimeout(() => {
+    const savedPremiumVoice = localStorage.getItem('premium_voice_name');
+    if (savedPremiumVoice) {
+        document.getElementById('disp-voiceName-premium').innerText = savedPremiumVoice;
+    }
+}, 500);
 
 
 
