@@ -19,6 +19,53 @@ const WORKER_URL = "https://talkaitest.thin770.workers.dev/";
         const selectionTooltip = document.getElementById('selectionTooltip');
 
 
+
+
+
+
+
+
+
+        // 1. 파이 SDK 초기화 (sandbox: true 는 실제 코인이 안 나가는 테스트 모드입니다)
+const Pi = window.Pi;
+Pi.init({ version: "2.0", sandbox: true });
+
+// 2. 파이 유저 로그인 요청 함수
+async function authPiUser() {
+    try {
+        const scopes = ['username', 'payments']; // 닉네임과 결제 권한을 요청
+        const authResults = await Pi.authenticate(scopes, onIncompletePaymentFound);
+        
+        console.log("파이 로그인 성공! 환영합니다:", authResults.user.username);
+        window.updateStatus("파이 계정 연결 완료: " + authResults.user.username);
+        
+    } catch (error) {
+        console.error("파이 로그인 실패:", error);
+        window.updateStatus("파이 로그인 실패");
+    }
+}
+
+// 3. 결제 오류 대비용 빈 함수 (파이 규정상 필수로 적어둬야 합니다)
+function onIncompletePaymentFound(payment) {
+    console.log("처리되지 않은 결제 발견:", payment);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         // ==========================================
 // 💖 AI 친밀도 & 감성 시스템 모듈
 // ==========================================
@@ -673,33 +720,89 @@ window.swapLanguages = function() {
         }
         initDeviceID();
 
+// ==========================================
+// 🚀 자동 전송 토글 기능 추가
+// ==========================================
+window.isAutoSend = false; // 기본값: 안전하게 텍스트창에서 검토하는 모드
+
+window.toggleAutoSend = function() {
+    window.isAutoSend = !window.isAutoSend; // 상태 반전
+    const btn = document.getElementById('autoSendToggleBtn');
+    const icon = document.getElementById('autoSendIcon');
+    
+    if(window.isAutoSend) {
+        // ON 상태 디자인 (파란색 불 켜짐)
+        btn.classList.replace('bg-slate-100', 'bg-blue-50');
+        btn.classList.replace('text-slate-500', 'text-blue-600');
+        btn.classList.replace('border-slate-200', 'border-blue-200');
+        icon.classList.replace('fa-toggle-off', 'fa-toggle-on');
+        window.updateStatus("자동 전송 ON");
+    } else {
+        // OFF 상태 디자인 (회색 불 꺼짐)
+        btn.classList.replace('bg-blue-50', 'bg-slate-100');
+        btn.classList.replace('text-blue-600', 'text-slate-500');
+        btn.classList.replace('border-blue-200', 'border-slate-200');
+        icon.classList.replace('fa-toggle-on', 'fa-toggle-off');
+        window.updateStatus("자동 전송 OFF");
+    }
+};
+
+// ==========================================
+// 🎤 마이크 인식 및 전송 처리 (이중 방어막 및 자동전송 지원)
+// ==========================================
 window.initSpeechRecognition = function() {
-            if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
-                recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-                recognition.continuous = false;
-                recognition.interimResults = false;
-                recognition.onstart = () => {
-                    isListening = true; 
-                    if(window.stopSpeaking) window.stopSpeaking(); 
-                    if(micBtn) { micBtn.classList.replace('from-blue-400', 'from-red-400'); micBtn.classList.replace('to-blue-600', 'to-red-600'); }
-                    if(micIcon) { micIcon.classList.replace('fa-microphone', 'fa-ear-listen'); }
-                    window.updateStatus("듣는 중...");
-                };
-                recognition.onresult = (e) => {
-                    resetMic();
-                    if(e.results && e.results[0] && e.results[0][0]) {
-                        handleUserMessage(e.results[0][0].transcript);
+    if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+        recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        
+        recognition.onstart = () => {
+            isListening = true; 
+            if(window.stopSpeaking) window.stopSpeaking(); 
+            if(micBtn) { micBtn.classList.replace('from-blue-400', 'from-red-400'); micBtn.classList.replace('to-blue-600', 'to-red-600'); }
+            if(micIcon) { micIcon.classList.replace('fa-microphone', 'fa-ear-listen'); }
+            window.updateStatus("듣는 중...");
+        };
+        
+        recognition.onresult = (e) => {
+            resetMic();
+            if(e.results && e.results[0] && e.results[0][0]) {
+                let transcript = e.results[0][0].transcript;
+                let inputField = document.getElementById('textInput');
+                const MAX_CHARS = 300; // 글자수 제한 300자로 넉넉하게 확장
+                
+                if (inputField) {
+                    let currentText = inputField.value.trim();
+                    let newText = currentText !== '' ? currentText + ' ' + transcript : transcript;
+                    
+                    // 글자수 자르기 방어막
+                    if (newText.length > MAX_CHARS) {
+                        newText = newText.substring(0, MAX_CHARS);
                     }
-                };
-                recognition.onerror = (e) => { 
-                    resetMic(); 
-                    window.updateStatus("마이크 인식 실패"); 
-                    console.error("Mic Error:", e.error);
-                };
-                recognition.onend = () => resetMic();
+
+                    inputField.value = newText;
+                    
+                    // 🚨 핵심 분기점: 스위치 상태에 따라 다르게 작동
+                    if (window.isAutoSend) {
+                        window.updateStatus("메시지 전송 중...");
+                        if (typeof sendTextMessage === 'function') sendTextMessage(); // 즉시 전송 발사!
+                    } else {
+                        inputField.focus(); // 텍스트창에 멈춰서 검토 대기
+                        window.updateStatus("확인 후 전송하세요"); 
+                    }
+                }
             }
-        }
-        initSpeechRecognition();
+        };
+        
+        recognition.onerror = (e) => { 
+            resetMic(); 
+            window.updateStatus("마이크 인식 실패"); 
+        };
+        
+        recognition.onend = () => resetMic();
+    }
+}
+initSpeechRecognition();
 
         window.resetMic = function() { 
             isListening = false; 
@@ -1938,7 +2041,7 @@ window.updateMemoryDisplay = function() {
         // 🌟 [수정됨] AI 튜터의 속마음(기억)을 사용자의 언어 설정에 맞춰 다국어로 요약하는 기능
         window.compressMemory = async function() {
             // 대화가 8줄 이상 쌓였을 때만 기억 압축 실행
-            if (conversationHistory.length < 14) return; 
+            if (conversationHistory.length < 8) return; 
             const savedMem = localStorage.getItem('user_compressed_memory') || 'Empty';
             const chatLog = JSON.stringify(conversationHistory);
             
@@ -2552,6 +2655,7 @@ window.deleteCustomCharacter = function(id, event) {
 };
 
 // 🌟 4. 캐릭터 리스트 화면 그리기
+// 🌟 커스텀 캐릭터 리스트 렌더링 (높이 압축 & 33% 너비 적용)
 window.renderCustomCharacters = function() {
     const listArea = document.getElementById('customCharacterList');
     if(!listArea) return;
@@ -2560,28 +2664,29 @@ window.renderCustomCharacters = function() {
     
     // 다국어 사전 가져오기
     const baseLang = (document.getElementById('explanationLanguage').value || 'ko-KR').split('-')[0];
-    const dict = UI_DICTIONARY[baseLang] || UI_DICTIONARY['en'];
+    const dict = window.UI_DICTIONARY ? (window.UI_DICTIONARY[baseLang] || window.UI_DICTIONARY['en']) : {};
     
     if(chars.length === 0) {
-        // 번역 데이터 적용
-        listArea.innerHTML = `<div class="text-center p-4 bg-slate-50 rounded-xl border border-slate-100 border-dashed text-slate-400 text-[10px] font-bold">${dict.ui_no_custom_ai || "생성된 나만의 AI가 없습니다."}</div>`;
+        // 데이터가 없을 때는 3칸을 모두 차지하게 (col-span-3)
+        listArea.innerHTML = `<div class="col-span-3 text-center p-3 bg-slate-50 rounded-xl border border-slate-100 border-dashed text-slate-400 text-[10px] font-bold">${dict.ui_no_custom_ai || "생성된 나만의 AI가 없습니다."}</div>`;
         return;
     }
 
     chars.forEach(char => {
+        // 💡 버튼 디자인 수정: 높이를 대폭 줄이고(py-1.5), 성격(prompt) 텍스트는 숨김 처리
         listArea.insertAdjacentHTML('beforeend', `
-            <button id="btn_persona_custom_${char.id}" onclick="window.selectPersona('custom', '${char.id}')" class="persona-btn flex justify-between items-center w-full p-3 border border-slate-200 bg-white rounded-xl transition-all shadow-sm">
-                <div class="flex flex-col text-left overflow-hidden">
-                    <span class="text-xs font-black text-slate-700">${char.name}</span>
-                    <span class="text-[9px] text-slate-400 truncate max-w-[200px] mt-0.5">${char.prompt}</span>
-                </div>
-                <div onclick="window.deleteCustomCharacter('${char.id}', event)" class="text-rose-300 p-2 bg-rose-50 rounded-lg hover:text-rose-600 hover:bg-rose-100 transition-colors ml-2">
-                    <i class="fa-solid fa-trash-can text-sm"></i>
+            <button id="btn_persona_custom_${char.id}" onclick="window.selectPersona('custom', '${char.id}')" class="persona-btn relative flex items-center justify-center w-full py-1.5 px-2 border border-slate-200 bg-white rounded-lg transition-all shadow-sm group">
+                <span class="text-[10px] font-black text-slate-700 truncate w-full text-center mr-2">${char.name}</span>
+                
+                <!-- 💡 삭제 버튼: 우측 상단에 작게 엑스(X) 마크로 변경 -->
+                <div onclick="window.deleteCustomCharacter('${char.id}', event)" class="absolute top-0 right-0 p-1 text-rose-300 hover:text-rose-500 transition-colors z-10">
+                    <i class="fa-solid fa-xmark text-[9px]"></i>
                 </div>
             </button>
         `);
     });
     
+    // 선택된 버튼 색상 칠하기
     let savedMode = localStorage.getItem('current_persona') || 'friend';
     let customData = JSON.parse(localStorage.getItem('user_custom_persona') || '{}');
     if (savedMode === 'custom' && customData.id) {
@@ -2589,6 +2694,9 @@ window.renderCustomCharacters = function() {
         if(activeBtn) {
             activeBtn.classList.remove('bg-white', 'text-slate-400', 'border-slate-200');
             activeBtn.classList.add('bg-gradient-to-r', 'from-blue-500', 'to-indigo-500', 'text-white', 'border-transparent', 'scale-105');
+            // 글자색 흰색으로 변경
+            const spanText = activeBtn.querySelector('span');
+            if(spanText) spanText.classList.replace('text-slate-700', 'text-white');
         }
     }
 };
