@@ -1967,7 +1967,7 @@ window.renderArchiveList = function() {
                     ${sub2 ? `
                     <div class="pl-2 border-l-2 ${item.isPremium ? 'border-amber-200' : 'border-slate-200'} mt-2">
                         <p class="text-[12px] font-black text-slate-600 leading-snug">${sub2}</p>
-                        ${sub3 ? `<p class="text-[11px] text-slate-400 leading-snug mt-0.5">${sub3}</p>` : ''}
+                        ${sub3 ? `<p class="text-[11px] text-slate-600 font-medium leading-snug mt-0.5">${sub3}</p>` : ''}
                     </div>` : ''}
                 </div>
                 
