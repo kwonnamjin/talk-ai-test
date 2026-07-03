@@ -2775,8 +2775,11 @@ initSpeechRecognition();
 
 
 // ==========================================
-// 🔊 Setting 탭: 목소리 미리듣기 & 워커 연동 (보안 완성형)
+// 🔊 Setting 탭: 목소리 미리듣기 & 워커 연동 (다국어 + 캐싱 완벽 적용)
 // ==========================================
+
+// 💾 음성 임시 보관함 (앱을 켜두는 동안 다운받은 mp3를 0원으로 재사용)
+window.audioCache = window.audioCache || {};
 
 window.selectPremiumVoice = function(voiceCode, voiceName) {
     localStorage.setItem('premium_voice_code', voiceCode);
@@ -2789,28 +2792,51 @@ window.selectPremiumVoice = function(voiceCode, voiceName) {
 };
 
 window.playSampleVoice = async function(type) {
-    const sampleText = "Hello! I am your AI language tutor. Let's study together!";
+    // 🌍 1. 현재 설정된 학습 언어 가져오기 (예: 'en-US' -> 'en')
+    const targetLanguage = document.getElementById('targetLanguage').value || 'en-US';
+    const baseLang = targetLanguage.substring(0, 2); 
+
+    // 📝 2. 언어별 맞춤 테스트 대본
+    const previewTexts = {
+        "en": "Hello! I am your AI language tutor. Let's study together!",
+        "ko": "안녕하세요! 저는 당신의 AI 언어 튜터입니다. 함께 공부해요!",
+        "ja": "こんにちは！私はあなたのAI言語チューターです。一緒に勉強しましょう！",
+        "zh": "你好！我是你的AI语言导师。我们一起学习吧！",
+        "es": "¡Hola! Soy tu tutor de idiomas con IA. ¡Estudiemos juntos!",
+        "fr": "Bonjour ! Je suis votre tuteur de langue IA. Étudions ensemble !",
+        "de": "Hallo! Ich bin dein KI-Sprachtutor. Lass uns zusammen lernen!"
+    };
+
+    // 설정된 언어의 대본이 없으면 기본값으로 영어 사용
+    const sampleText = previewTexts[baseLang] || previewTexts["en"];
     
     if (type === 'basic') {
-        // 1. 일반 음성 (기존 로직)
-        const targetLangCode = document.getElementById('targetLanguage').value || 'en-US';
         if (typeof window.speakText === 'function') {
-            window.speakText(sampleText, targetLangCode);
+            window.speakText(sampleText, targetLanguage);
         } else {
             alert("일반 기기 음성: " + sampleText);
         }
     } 
     else if (type === 'premium') {
-        // 💎 2. 프리미엄 음성 (클라우드플레어 워커 우회 호출)
         const selectedVoiceCode = localStorage.getItem('premium_voice_code') || 'en-US-Journey-F';
         const langCode = selectedVoiceCode.substring(0, 5); 
         
+        // 💾 3. 캐시 확인: [목소리_언어] 조합으로 이미 다운받은 소리가 있는지 체크
+        const cacheKey = selectedVoiceCode + "_" + baseLang; 
+
+        if (window.audioCache[cacheKey]) {
+            console.log("저장된 음성 재사용 (비용 0원!)");
+            const audio = new Audio("data:audio/mp3;base64," + window.audioCache[cacheKey]);
+            audio.play();
+            return; // 🛑 여기서 함수를 종료해서 워커(구글 API) 호출을 원천 차단!
+        }
+
+        // 캐시에 없으면 새로 서버에 요청
         const avatarWrap = document.getElementById('avatarWrap');
         if(avatarWrap) avatarWrap.style.borderColor = "#f59e0b"; // 로딩 중 주황색 불빛
 
         try {
-            // 기존에 정의된 WORKER_URL 변수가 있다면 사용하고, 없으면 본인의 워커 주소를 적어주세요.
-            // 예시: const WORKER_URL = "https://your-worker.workers.dev";
+            // 🚨 WORKER_URL은 대표님의 실제 워커 주소 변수명에 맞게 확인해주세요!
             const response = await fetch(`${WORKER_URL}/tts`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -2824,7 +2850,10 @@ window.playSampleVoice = async function(type) {
             const data = await response.json();
 
             if (data.audioContent) {
-                // 백엔드가 안전하게 훔쳐다 준 mp3 데이터를 그대로 재생!
+                // 💾 4. 캐시 저장: 다음에 돈 안 내고 듣기 위해 보관함에 쏙 넣기
+                window.audioCache[cacheKey] = data.audioContent;
+                
+                console.log("새 음성 생성 완료 (캐시에 저장됨)");
                 const audio = new Audio("data:audio/mp3;base64," + data.audioContent);
                 audio.play();
 
