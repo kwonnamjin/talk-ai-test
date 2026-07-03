@@ -3003,7 +3003,22 @@ setTimeout(() => {
     }
 }, 500);
 
-
+// ==========================================
+// 🚨 절대 끊어지지 않는 무적의 언어 변경 감지 센서
+// ==========================================
+document.addEventListener('change', function(e) {
+    // 앱 어디선가 변경이 일어났는데, 그게 'targetLanguage' 셀렉트 박스라면?
+    if (e.target && e.target.id === 'targetLanguage') {
+        const newLang = e.target.value; 
+        
+        console.log(`[무적 센서 작동] 학습 언어가 ${newLang}로 변경되었습니다! 리스트를 다시 그립니다.`);
+        
+        // 프리미엄 리스트 새로고침 함수 즉시 실행!
+        if (typeof window.updatePremiumVoiceList === 'function') {
+            window.updatePremiumVoiceList(newLang);
+        }
+    }
+});
 
 
 
