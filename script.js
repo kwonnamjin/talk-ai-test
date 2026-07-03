@@ -2900,63 +2900,24 @@ window.playSampleVoice = async function(type) {
     }
 };
 
-/// 🌍 언어별 구글 프리미엄 보이스 대규모 리스트 (숨소리/감정 특화 모델 포함)
+// ==========================================
+// 🌍 제미나이 3.1 플래시 TTS 전용 보이스 DB
+// ==========================================
+const geminiVoices = [
+    { code: "Zephyr", name: "제파 (Zephyr - 여성, 세련/차분함 🌟)" },
+    { code: "Fenrir", name: "펜리르 (Fenrir - 남성, 신뢰감/안정감)" },
+    { code: "Sulafat", name: "술라파트 (Sulafat - 여성, 밝음/활기참)" },
+    { code: "Umbriel", name: "움브리엘 (Umbriel - 남성, 중후함)" },
+    { code: "Puck", name: "퍼크 (Puck - 여성, 톡톡 튀는 일상톤)" },
+    { code: "Charon", name: "카론 (Charon - 남성, 차분함)" },
+    { code: "Aoede", name: "아오에데 (Aoede - 여성, 부드러움)" },
+    { code: "Kore", name: "코레 (Kore - 여성, 일상대화)" }
+];
+
+// 언어를 바꿔도 똑같은 최고급 목소리를 쓸 수 있도록 일괄 적용!
 const premiumVoicesDB = {
-    "en": [
-        { code: "en-US-Journey-F", name: "미국 여성 (Journey - 감정/숨소리 🌟)" },
-        { code: "en-US-Journey-D", name: "미국 남성 (Journey - 감정/숨소리 🌟)" },
-        { code: "en-US-Journey-O", name: "미국 여성 (Journey - 부드러운 톤)" },
-        { code: "en-US-Casual-K", name: "미국 남성 (Casual - 일상 대화톤)" },
-        { code: "en-US-Studio-O", name: "미국 여성 (Studio - 고음질)" },
-        { code: "en-US-Studio-Q", name: "미국 남성 (Studio - 고음질)" },
-        { code: "en-US-Neural2-F", name: "미국 여성 (Neural2 - 아나운서톤)" },
-        { code: "en-US-Neural2-J", name: "미국 남성 (Neural2 - 아나운서톤)" },
-        { code: "en-GB-Journey-F", name: "영국 여성 (Journey - 브리티시 🌟)" },
-        { code: "en-GB-Journey-D", name: "영국 남성 (Journey - 브리티시 🌟)" },
-        { code: "en-GB-Neural2-A", name: "영국 여성 (Neural2)" },
-        { code: "en-AU-Neural2-A", name: "호주 여성 (Neural2)" }
-    ],
-    "ko": [
-        { code: "ko-KR-Journey-F", name: "한국어 여성 (Journey - 감정/숨소리 🌟)" },
-        { code: "ko-KR-Journey-D", name: "한국어 남성 (Journey - 감정/숨소리 🌟)" },
-        { code: "ko-KR-Neural2-A", name: "한국어 여성 (Neural2 - 맑은 톤)" },
-        { code: "ko-KR-Neural2-B", name: "한국어 여성 (Neural2 - 차분한 톤)" },
-        { code: "ko-KR-Neural2-C", name: "한국어 남성 (Neural2 - 묵직한 톤)" },
-        { code: "ko-KR-Wavenet-A", name: "한국어 여성 (Wavenet - 표준)" },
-        { code: "ko-KR-Wavenet-C", name: "한국어 남성 (Wavenet - 표준)" }
-    ],
-    "ja": [
-        { code: "ja-JP-Neural2-B", name: "일본어 여성 (Neural2 - 부드러운 톤)" },
-        { code: "ja-JP-Neural2-C", name: "일본어 남성 (Neural2 - 차분한 톤)" },
-        { code: "ja-JP-Neural2-D", name: "일본어 남성 (Neural2 - 굵은 톤)" },
-        { code: "ja-JP-Wavenet-A", name: "일본어 여성 (Wavenet - 표준)" },
-        { code: "ja-JP-Wavenet-C", name: "일본어 남성 (Wavenet - 표준)" }
-    ],
-    "zh": [
-        { code: "cmn-CN-Wavenet-A", name: "중국어 여성 (Wavenet)" },
-        { code: "cmn-CN-Wavenet-B", name: "중국어 남성 (Wavenet)" },
-        { code: "cmn-CN-Wavenet-C", name: "중국어 남성 (Wavenet - 굵은 톤)" },
-        { code: "cmn-TW-Wavenet-A", name: "대만 중국어 여성 (Wavenet)" }
-    ],
-    "es": [
-        { code: "es-ES-Journey-F", name: "스페인 여성 (Journey - 감정/숨소리 🌟)" },
-        { code: "es-ES-Journey-D", name: "스페인 남성 (Journey - 감정/숨소리 🌟)" },
-        { code: "es-US-Neural2-A", name: "미국 스페인어 여성 (Neural2)" },
-        { code: "es-US-Neural2-B", name: "미국 스페인어 남성 (Neural2)" },
-        { code: "es-ES-Neural2-B", name: "스페인 남성 (Neural2)" }
-    ],
-    "fr": [
-        { code: "fr-FR-Journey-F", name: "프랑스 여성 (Journey - 감정/숨소리 🌟)" },
-        { code: "fr-FR-Journey-D", name: "프랑스 남성 (Journey - 감정/숨소리 🌟)" },
-        { code: "fr-FR-Neural2-A", name: "프랑스 여성 (Neural2)" },
-        { code: "fr-FR-Neural2-B", name: "프랑스 남성 (Neural2)" }
-    ],
-    "de": [
-        { code: "de-DE-Journey-F", name: "독일 여성 (Journey - 감정/숨소리 🌟)" },
-        { code: "de-DE-Journey-D", name: "독일 남성 (Journey - 감정/숨소리 🌟)" },
-        { code: "de-DE-Neural2-F", name: "독일 여성 (Neural2)" },
-        { code: "de-DE-Neural2-B", name: "독일 남성 (Neural2)" }
-    ]
+    "en": geminiVoices, "ko": geminiVoices, "ja": geminiVoices,
+    "zh": geminiVoices, "es": geminiVoices, "fr": geminiVoices, "de": geminiVoices
 };
 
 
