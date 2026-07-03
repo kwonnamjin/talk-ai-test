@@ -2800,14 +2800,21 @@ initSpeechRecognition();
 // 💾 음성 임시 보관함 (앱을 켜두는 동안 다운받은 mp3를 0원으로 재사용)
 window.audioCache = window.audioCache || {};
 
-window.selectPremiumVoice = function(voiceCode, voiceName) {
+// 🔊 선택 함수 (자동재생 방지 스위치 추가)
+window.selectPremiumVoice = function(voiceCode, voiceName, isUserClick = true) {
     localStorage.setItem('premium_voice_code', voiceCode);
     localStorage.setItem('premium_voice_name', voiceName);
     
-    document.getElementById('disp-voiceName-premium').innerText = voiceName;
-    document.getElementById('drop-voice-premium').classList.add('hidden'); 
+    const voiceNameDisp = document.getElementById('disp-voiceName-premium');
+    if(voiceNameDisp) voiceNameDisp.innerText = voiceName;
     
-    window.playSampleVoice('premium');
+    const dropMenu = document.getElementById('drop-voice-premium');
+    if(dropMenu) dropMenu.classList.add('hidden'); 
+    
+    // 🔥 핵심: isUserClick이 true일 때(유저가 직접 클릭했을 때)만 소리 재생!
+    if (isUserClick) {
+        window.playSampleVoice('premium');
+    }
 };
 
 window.playSampleVoice = async function(type) {
@@ -2956,13 +2963,16 @@ const premiumVoicesDB = {
 
 
 
-// 🔄 프리미엄 리스트 UI 업데이트 함수
+// ==========================================
+// 🌍 프리미엄 리스트 갱신 & 무적의 감시 카메라
+// ==========================================
+
 window.updatePremiumVoiceList = function(langCode) {
     const baseLang = langCode.substring(0, 2); 
     const availableVoices = premiumVoicesDB[baseLang] || premiumVoicesDB["en"]; 
 
     const dropdownWrap = document.getElementById('drop-voice-premium'); 
-    if (!dropdownWrap) return; // 에러 방지
+    if (!dropdownWrap) return; 
     
     dropdownWrap.innerHTML = ''; 
 
@@ -2972,28 +2982,35 @@ window.updatePremiumVoiceList = function(langCode) {
         item.innerText = voice.name;
         
         item.onclick = function() {
-            window.selectPremiumVoice(voice.code, voice.name);
+            // 유저가 마우스로 '직접' 클릭했으니 소리 재생 O (true)
+            window.selectPremiumVoice(voice.code, voice.name, true);
         };
         dropdownWrap.appendChild(item);
     });
 
     if (availableVoices.length > 0) {
-        window.selectPremiumVoice(availableVoices[0].code, availableVoices[0].name);
+        // 리스트를 처음 세팅할 때는 소리 재생 X (false) -> 자동재생 완벽 차단!
+        window.selectPremiumVoice(availableVoices[0].code, availableVoices[0].name, false);
     }
 };
 
-// 2. 학습 언어 변경 감지기 (기존 코드 대신 이것만 남깁니다)
-const targetLangSelect = document.getElementById('targetLanguage');
-if (targetLangSelect) {
-    targetLangSelect.addEventListener('change', function(e) {
-        const newLang = e.target.value; 
+// 🚨 무적의 감시 카메라: 디자인(UI)에 상관없이 0.5초마다 언어 변경을 100% 잡아냅니다!
+let lastCheckedLang = localStorage.getItem('target_language') || 'en-US';
+
+setInterval(() => {
+    // 앱 어딘가에서 언어를 바꿔서 로컬 스토리지 값이 변했다면?!
+    const currentSavedLang = localStorage.getItem('target_language');
+    
+    if (currentSavedLang && currentSavedLang !== lastCheckedLang) {
+        console.log(`[감시 카메라] 언어 변경 감지! ${lastCheckedLang} -> ${currentSavedLang}`);
+        lastCheckedLang = currentSavedLang;
         
-        // 복잡한 덮어쓰기 로직 없이, 위에서 만든 함수 하나만 호출하면 끝!
-        updatePremiumVoiceList(newLang); 
-        
-        console.log(`[언어 변경 감지] ${newLang} 프리미엄 성우 목록 및 기본값 리셋 완료!`);
-    });
-}
+        // 프리미엄 리스트 즉시 새로고침!
+        if (typeof window.updatePremiumVoiceList === 'function') {
+            window.updatePremiumVoiceList(currentSavedLang);
+        }
+    }
+}, 500);
 
 // 앱 로딩 시 저장된 프리미엄 목소리 이름 불러오기
 setTimeout(() => {
@@ -3003,22 +3020,6 @@ setTimeout(() => {
     }
 }, 500);
 
-// ==========================================
-// 🚨 절대 끊어지지 않는 무적의 언어 변경 감지 센서
-// ==========================================
-document.addEventListener('change', function(e) {
-    // 앱 어디선가 변경이 일어났는데, 그게 'targetLanguage' 셀렉트 박스라면?
-    if (e.target && e.target.id === 'targetLanguage') {
-        const newLang = e.target.value; 
-        
-        console.log(`[무적 센서 작동] 학습 언어가 ${newLang}로 변경되었습니다! 리스트를 다시 그립니다.`);
-        
-        // 프리미엄 리스트 새로고침 함수 즉시 실행!
-        if (typeof window.updatePremiumVoiceList === 'function') {
-            window.updatePremiumVoiceList(newLang);
-        }
-    }
-});
 
 
 
