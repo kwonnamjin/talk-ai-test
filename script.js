@@ -2818,22 +2818,35 @@ window.selectPremiumVoice = function(voiceCode, voiceName, isUserClick = true) {
 };
 
 window.playSampleVoice = async function(type) {
-    // 🌍 1. 현재 설정된 학습 언어 가져오기 (예: 'en-US' -> 'en')
     const targetLanguage = document.getElementById('targetLanguage').value || 'en-US';
     const baseLang = targetLanguage.substring(0, 2); 
 
-    // 📝 감정, 숨소리, 말더듬, 자연스러운 억양 변화가 돋보이는 대본
+    // 📝 제미나이 3.1 Flash TTS의 숨소리와 감정선을 제대로 뽐낼 프리미엄 전용 다국어 문구
+    // 📝 21개국어 지원! 제미나이 3.1 Flash 감정선 극대화 대본
     const previewTexts = {
         "en": "Oh, hi there! Um... I didn't expect to see you here. (Sigh) Honestly... it's been a really long day, but, haha, I'm glad we ran into each other!",
         "ko": "어, 안녕하세요! 음... 여기서 뵐 줄은 진짜 몰랐네요. 후우... 오늘 정말 정신없는 하루였는데, 하하, 그래도 이렇게 마주치니까 반갑네요!",
-        "ja": "あ、こんにちは！えっと…ここで会うとは思わなかったです。ふぅ…今日は本当に忙しい一日だったんですけど、あはは、でも会えて嬉しいです！",
+        "ja": "こんにちは！えっと…ここで会うとは思わなかったです。ふぅ…今日は本当に忙しい一日だったんですけど、あはは、でも会えて嬉しいです！",
         "zh": "啊，你好！嗯……真没想到会在这里见到你。呼……今天真是忙碌的一天，哈哈，不过很高兴能碰见你！",
         "es": "¡Oh, hola! Eh... no esperaba verte por aquí. Uf... ha sido un día realmente largo, pero, jaja, ¡qué bueno que nos cruzamos!",
         "fr": "Oh, salut ! Euh... je ne m'attendais pas à te voir ici. Pff... la journée a été vraiment longue, mais, haha, je suis content qu'on se soit croisés !",
-        "de": "Oh, hallo! Ähm... ich hätte nicht erwartet, dich hier zu sehen. Puh... es war ein wirklich langer Tag, aber, haha, ich bin froh, dass wir uns über den Weg gelaufen sind!"
+        "de": "Oh, hallo! Ähm... ich hätte nicht erwartet, dich hier zu sehen. Puh... es war ein wirklich langer Tag, aber, haha, ich bin froh, dass wir uns über den Weg gelaufen sind!",
+        "vi": "Ồ, chào bạn! Ừm... không ngờ lại gặp bạn ở đây. Thật sự... hôm nay là một ngày rất dài, nhưng, haha, rất vui vì chúng ta tình cờ gặp nhau!",
+        "ru": "О, привет! Эм... не ожидал увидеть тебя здесь. Честно говоря... это был очень долгий день, но, ха-ха, я рад, что мы столкнулись!",
+        "th": "โอ้ สวัสดี! เอิ่ม... ไม่คิดว่าจะเจอคุณที่นี่เลย พูดตามตรง... วันนี้เป็นวันที่ยาวนานมาก แต่ ฮ่าฮ่า ดีใจนะที่บังเอิญเจอกัน!",
+        "ar": "أوه، أهلاً! أمم... لم أتوقع رؤيتك هنا. بصراحة... لقد كان يوماً طويلاً جداً، لكن، هاها، أنا سعيد لأننا التقينا!",
+        "hi": "ओह, नमस्ते! उम्म... मुझे आपको यहाँ देखने की उम्मीद नहीं थी। सच कहूँ तो... आज का दिन बहुत लंबा रहा, लेकिन, हाहा, मुझे खुशी है कि हम टकरा गए!",
+        "pl": "O, cześć! Eem... nie spodziewałem się, że cię tu zobaczę. Szczerze mówiąc... to był naprawdę długi dzień, ale, haha, cieszę się, że na siebie wpadliśmy!",
+        "gd": "Ò, latha math! Uill... bha mi a' smaoineachadh nach fhaiceadh mi thu an seo. Gu fìrinneach... bha e na latha glè fhada, ach, haha, tha mi toilichte gun do choinnich sinn!",
+        "la": "O, salve! Em... non exspectabam te hic videre. Vere... dies valde longus fuit, sed, haha, gaudeo nos convenisse!",
+        "he": "או, היי! אהמ... לא ציפיתי לראות אותך כאן. בכנות... זה היה יום ממש ארוך, אבל, חחח, אני שמח שנתקלנו אחד בשני!",
+        "ne": "ओहो, नमस्ते! उम... मैले तपाईंलाई यहाँ देख्ने आश गरेको थिइनँ। साँचो भन्नुपर्दा... आजको दिन निकै लामो रह्यो, तर, हाहा, हामी यसरी भेट भएकोमा खुसी लाग्यो!",
+        "mn": "Өө, сайн уу! Өө... чамайг энд харж магадгүй гэж бодсонгүй. Үнэндээ... өнөөдөр үнэхээр урт өдөр байлаа, гэхдээ, хаха, ингээд таарсандаа баяртай байна!",
+        "bo": "ཨོ་ལེགས་སོ། ཨེམ... ང་ཁྱེད་རང་འདིར་མཐོང་བའི་རེ་བ་བྱས་མེད། དྲང་པོར་བཤད་ན... དེ་རིང་ཉིན་མ་ཧ་ཅང་རིང་པོ་ཞིག་རེད། ཡིན་ནའང་། ཧ་ཧ། ང་ཚོ་ཐུག་པ་འདིར་དགའ་པོ་བྱུང་།",
+        "sw": "Oh, mambo! Um... sikutarajia kukuona hapa. Kusema kweli... imekuwa siku ndefu sana, lakini, haha, nina furaha tumekutana!",
+        "id": "Oh, hai! Um... aku nggak nyangka bakal ketemu kamu di sini. Jujur ya... hari ini panjang banget, tapi, haha, aku seneng kita bisa kebetulan ketemu!"
     };
 
-    // 설정된 언어의 대본이 없으면 기본값으로 영어 사용
     const sampleText = previewTexts[baseLang] || previewTexts["en"];
     
     if (type === 'basic') {
@@ -2844,42 +2857,26 @@ window.playSampleVoice = async function(type) {
         }
     } 
     else if (type === 'premium') {
-        const selectedVoiceCode = localStorage.getItem('premium_voice_code') || 'en-US-Journey-F';
-        const langCode = selectedVoiceCode.substring(0, 5); 
+        const selectedVoiceCode = localStorage.getItem('premium_voice_code') || 'Zephyr';
         
-        // 💾 3. 캐시 확인: [목소리_언어] 조합으로 이미 다운받은 소리가 있는지 체크
-        const cacheKey = selectedVoiceCode + "_" + baseLang; 
-
-        if (window.audioCache[cacheKey]) {
-            console.log("저장된 음성 재사용 (비용 0원!)");
-            const audio = new Audio("data:audio/mp3;base64," + window.audioCache[cacheKey]);
-            audio.play();
-            return; // 🛑 여기서 함수를 종료해서 워커(구글 API) 호출을 원천 차단!
-        }
-
-        // 캐시에 없으면 새로 서버에 요청
         const avatarWrap = document.getElementById('avatarWrap');
-        if(avatarWrap) avatarWrap.style.borderColor = "#f59e0b"; // 로딩 중 주황색 불빛
+        if(avatarWrap) avatarWrap.style.borderColor = "#f59e0b"; // 주황색 로딩 불빛
 
         try {
-            // 🚨 WORKER_URL은 대표님의 실제 워커 주소 변수명에 맞게 확인해주세요!
+            // 🚨 WORKER_URL 변수가 정의되어 있는지 꼭 확인하세요!
             const response = await fetch(`${WORKER_URL}/tts`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     text: sampleText,
-                    voiceCode: selectedVoiceCode,
-                    langCode: langCode
+                    voiceCode: selectedVoiceCode
                 })
             });
 
             const data = await response.json();
 
             if (data.audioContent) {
-                // 💾 4. 캐시 저장: 다음에 돈 안 내고 듣기 위해 보관함에 쏙 넣기
-                window.audioCache[cacheKey] = data.audioContent;
-                
-                console.log("새 음성 생성 완료 (캐시에 저장됨)");
+                // 클라우드가 내려준 (또는 실시간 생성된) 프리미엄 사운드 즉시 재생
                 const audio = new Audio("data:audio/mp3;base64," + data.audioContent);
                 audio.play();
 
@@ -2887,14 +2884,12 @@ window.playSampleVoice = async function(type) {
                     if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe";
                 };
             } else {
-                console.error("워커 TTS 반환 에러:", data);
-                alert("음성 생성에 실패했습니다. 워커 설정이나 크레딧을 확인하세요.");
+                console.error("TTS 에러:", data);
+                alert("음성 생성 실패");
                 if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe";
             }
-
         } catch (error) {
             console.error("네트워크 에러:", error);
-            alert("서버 연결에 실패했습니다.");
             if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe";
         }
     }
@@ -2911,13 +2906,30 @@ const geminiVoices = [
     { code: "Puck", name: "퍼크 (Puck - 여성, 톡톡 튀는 일상톤)" },
     { code: "Charon", name: "카론 (Charon - 남성, 차분함)" },
     { code: "Aoede", name: "아오에데 (Aoede - 여성, 부드러움)" },
-    { code: "Kore", name: "코레 (Kore - 여성, 일상대화)" }
+    { code: "Kore", name: "코레 (Kore - 여성, 일상대화)" },
+    { code: "Leda", name: "레다 (Leda)" },
+    { code: "Erinome", name: "에리노메 (Erinome)" },
+    { code: "Enceladus", name: "엔셀라두스 (Enceladus)" },
+    { code: "Sadachbia", name: "사다크비아 (Sadachbia)" },
+    { code: "Puck", name: "퍼크 (Puck)" },
+    { code: "Achird", name: "아키르드 (Achird)" },
+    { code: "Algenib", name: "알게니브 (Algenib)" },
+    { code: "Algieba", name: "알지에바 (Algieba)" },
+    { code: "Alnilam", name: "알닐람 (Alnilam)" },
+    { code: "Aoede", name: "아오에데 (Aoede)" },
+    { code: "Autonoe", name: "아우토노에 (Autonoe)" },
+    { code: "Callirrhoe", name: "칼리로에 (Callirrhoe)" },
+    { code: "Despina", name: "데스피나 (Despina)" }
 ];
 
-// 언어를 바꿔도 똑같은 최고급 목소리를 쓸 수 있도록 일괄 적용!
+// 요청하신 21개 국어 학습 언어에 최고급 제미나이 목소리 일괄 연결!
 const premiumVoicesDB = {
-    "en": geminiVoices, "ko": geminiVoices, "ja": geminiVoices,
-    "zh": geminiVoices, "es": geminiVoices, "fr": geminiVoices, "de": geminiVoices
+    "en": geminiVoices, "ko": geminiVoices, "ja": geminiVoices, "zh": geminiVoices,
+    "es": geminiVoices, "fr": geminiVoices, "de": geminiVoices, "vi": geminiVoices,
+    "ru": geminiVoices, "th": geminiVoices, "ar": geminiVoices, "hi": geminiVoices,
+    "pl": geminiVoices, "gd": geminiVoices, "la": geminiVoices, "he": geminiVoices,
+    "ne": geminiVoices, "mn": geminiVoices, "bo": geminiVoices, "sw": geminiVoices,
+    "id": geminiVoices // 인도네시아어
 };
 
 
