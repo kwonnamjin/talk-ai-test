@@ -2796,15 +2796,15 @@ window.playSampleVoice = async function(type) {
     const targetLanguage = document.getElementById('targetLanguage').value || 'en-US';
     const baseLang = targetLanguage.substring(0, 2); 
 
-    // 📝 2. 언어별 맞춤 테스트 대본
+    // 📝 감정, 숨소리, 말더듬, 자연스러운 억양 변화가 돋보이는 대본
     const previewTexts = {
-        "en": "Hello! I am your AI language tutor. Let's study together!",
-        "ko": "안녕하세요! 저는 당신의 AI 언어 튜터입니다. 함께 공부해요!",
-        "ja": "こんにちは！私はあなたのAI言語チューターです。一緒に勉強しましょう！",
-        "zh": "你好！我是你的AI语言导师。我们一起学习吧！",
-        "es": "¡Hola! Soy tu tutor de idiomas con IA. ¡Estudiemos juntos!",
-        "fr": "Bonjour ! Je suis votre tuteur de langue IA. Étudions ensemble !",
-        "de": "Hallo! Ich bin dein KI-Sprachtutor. Lass uns zusammen lernen!"
+        "en": "Oh, hi there! Um... I didn't expect to see you here. (Sigh) Honestly... it's been a really long day, but, haha, I'm glad we ran into each other!",
+        "ko": "어, 안녕하세요! 음... 여기서 뵐 줄은 진짜 몰랐네요. 후우... 오늘 정말 정신없는 하루였는데, 하하, 그래도 이렇게 마주치니까 반갑네요!",
+        "ja": "あ、こんにちは！えっと…ここで会うとは思わなかったです。ふぅ…今日は本当に忙しい一日だったんですけど、あはは、でも会えて嬉しいです！",
+        "zh": "啊，你好！嗯……真没想到会在这里见到你。呼……今天真是忙碌的一天，哈哈，不过很高兴能碰见你！",
+        "es": "¡Oh, hola! Eh... no esperaba verte por aquí. Uf... ha sido un día realmente largo, pero, jaja, ¡qué bueno que nos cruzamos!",
+        "fr": "Oh, salut ! Euh... je ne m'attendais pas à te voir ici. Pff... la journée a été vraiment longue, mais, haha, je suis content qu'on se soit croisés !",
+        "de": "Oh, hallo! Ähm... ich hätte nicht erwartet, dich hier zu sehen. Puh... es war ein wirklich langer Tag, aber, haha, ich bin froh, dass wir uns über den Weg gelaufen sind!"
     };
 
     // 설정된 언어의 대본이 없으면 기본값으로 영어 사용
@@ -2874,44 +2874,65 @@ window.playSampleVoice = async function(type) {
     }
 };
 
-// ==========================================
-// 🔄 학습 언어 변경 감지 & 목소리 초기화 로직
-// ==========================================
-
-// 언어별 구글 프리미엄 기본 성우 매핑 (대표님이 원하시는 성우 코드로 변경 가능)
-const defaultPremiumVoices = {
-    "en": { code: "en-US-Journey-F", name: "미국 영어 (여성/Journey)" },
-    "ko": { code: "ko-KR-Journey-F", name: "한국어 (여성/Journey)" },
-    "ja": { code: "ja-JP-Neural2-B", name: "일본어 (여성/Neural2)" },
-    "zh": { code: "cmn-CN-Wavenet-A", name: "중국어 (여성/Wavenet)" },
-    "es": { code: "es-ES-Journey-F", name: "스페인어 (여성/Journey)" },
-    "fr": { code: "fr-FR-Journey-F", name: "프랑스어 (여성/Journey)" },
-    "de": { code: "de-DE-Journey-F", name: "독일어 (여성/Journey)" }
+/// 🌍 언어별 구글 프리미엄 보이스 대규모 리스트 (숨소리/감정 특화 모델 포함)
+const premiumVoicesDB = {
+    "en": [
+        { code: "en-US-Journey-F", name: "미국 여성 (Journey - 감정/숨소리 🌟)" },
+        { code: "en-US-Journey-D", name: "미국 남성 (Journey - 감정/숨소리 🌟)" },
+        { code: "en-US-Journey-O", name: "미국 여성 (Journey - 부드러운 톤)" },
+        { code: "en-US-Casual-K", name: "미국 남성 (Casual - 일상 대화톤)" },
+        { code: "en-US-Studio-O", name: "미국 여성 (Studio - 고음질)" },
+        { code: "en-US-Studio-Q", name: "미국 남성 (Studio - 고음질)" },
+        { code: "en-US-Neural2-F", name: "미국 여성 (Neural2 - 아나운서톤)" },
+        { code: "en-US-Neural2-J", name: "미국 남성 (Neural2 - 아나운서톤)" },
+        { code: "en-GB-Journey-F", name: "영국 여성 (Journey - 브리티시 🌟)" },
+        { code: "en-GB-Journey-D", name: "영국 남성 (Journey - 브리티시 🌟)" },
+        { code: "en-GB-Neural2-A", name: "영국 여성 (Neural2)" },
+        { code: "en-AU-Neural2-A", name: "호주 여성 (Neural2)" }
+    ],
+    "ko": [
+        { code: "ko-KR-Journey-F", name: "한국어 여성 (Journey - 감정/숨소리 🌟)" },
+        { code: "ko-KR-Journey-D", name: "한국어 남성 (Journey - 감정/숨소리 🌟)" },
+        { code: "ko-KR-Neural2-A", name: "한국어 여성 (Neural2 - 맑은 톤)" },
+        { code: "ko-KR-Neural2-B", name: "한국어 여성 (Neural2 - 차분한 톤)" },
+        { code: "ko-KR-Neural2-C", name: "한국어 남성 (Neural2 - 묵직한 톤)" },
+        { code: "ko-KR-Wavenet-A", name: "한국어 여성 (Wavenet - 표준)" },
+        { code: "ko-KR-Wavenet-C", name: "한국어 남성 (Wavenet - 표준)" }
+    ],
+    "ja": [
+        { code: "ja-JP-Neural2-B", name: "일본어 여성 (Neural2 - 부드러운 톤)" },
+        { code: "ja-JP-Neural2-C", name: "일본어 남성 (Neural2 - 차분한 톤)" },
+        { code: "ja-JP-Neural2-D", name: "일본어 남성 (Neural2 - 굵은 톤)" },
+        { code: "ja-JP-Wavenet-A", name: "일본어 여성 (Wavenet - 표준)" },
+        { code: "ja-JP-Wavenet-C", name: "일본어 남성 (Wavenet - 표준)" }
+    ],
+    "zh": [
+        { code: "cmn-CN-Wavenet-A", name: "중국어 여성 (Wavenet)" },
+        { code: "cmn-CN-Wavenet-B", name: "중국어 남성 (Wavenet)" },
+        { code: "cmn-CN-Wavenet-C", name: "중국어 남성 (Wavenet - 굵은 톤)" },
+        { code: "cmn-TW-Wavenet-A", name: "대만 중국어 여성 (Wavenet)" }
+    ],
+    "es": [
+        { code: "es-ES-Journey-F", name: "스페인 여성 (Journey - 감정/숨소리 🌟)" },
+        { code: "es-ES-Journey-D", name: "스페인 남성 (Journey - 감정/숨소리 🌟)" },
+        { code: "es-US-Neural2-A", name: "미국 스페인어 여성 (Neural2)" },
+        { code: "es-US-Neural2-B", name: "미국 스페인어 남성 (Neural2)" },
+        { code: "es-ES-Neural2-B", name: "스페인 남성 (Neural2)" }
+    ],
+    "fr": [
+        { code: "fr-FR-Journey-F", name: "프랑스 여성 (Journey - 감정/숨소리 🌟)" },
+        { code: "fr-FR-Journey-D", name: "프랑스 남성 (Journey - 감정/숨소리 🌟)" },
+        { code: "fr-FR-Neural2-A", name: "프랑스 여성 (Neural2)" },
+        { code: "fr-FR-Neural2-B", name: "프랑스 남성 (Neural2)" }
+    ],
+    "de": [
+        { code: "de-DE-Journey-F", name: "독일 여성 (Journey - 감정/숨소리 🌟)" },
+        { code: "de-DE-Journey-D", name: "독일 남성 (Journey - 감정/숨소리 🌟)" },
+        { code: "de-DE-Neural2-F", name: "독일 여성 (Neural2)" },
+        { code: "de-DE-Neural2-B", name: "독일 남성 (Neural2)" }
+    ]
 };
 
-// 타겟 언어 셀렉트 박스에 변경 이벤트 감지기 부착
-const targetLangSelect = document.getElementById('targetLanguage');
-if (targetLangSelect) {
-    targetLangSelect.addEventListener('change', function(e) {
-        const newLang = e.target.value; // 예: 'es-ES'
-        const baseLang = newLang.substring(0, 2); // 예: 'es'
-
-        // 1. 바뀐 언어에 맞는 기본 프리미엄 목소리 찾기 (없으면 영어로)
-        const newDefaultVoice = defaultPremiumVoices[baseLang] || defaultPremiumVoices["en"];
-        
-        // 2. 로컬 스토리지 데이터(현재 선택된 목소리) 강제 덮어쓰기
-        localStorage.setItem('premium_voice_code', newDefaultVoice.code);
-        localStorage.setItem('premium_voice_name', newDefaultVoice.name);
-        
-        // 3. 화면(UI)에 표시된 목소리 이름도 새 성우로 업데이트
-        const voiceNameDisp = document.getElementById('disp-voiceName-premium');
-        if (voiceNameDisp) {
-            voiceNameDisp.innerText = newDefaultVoice.name;
-        }
-
-        console.log(`[언어 변경 감지] ${newLang} -> 프리미엄 성우가 ${newDefaultVoice.code}로 초기화되었습니다.`);
-    });
-}
 
 // 앱 로딩 시 저장된 프리미엄 목소리 이름 불러오기
 setTimeout(() => {
@@ -2920,6 +2941,55 @@ setTimeout(() => {
         document.getElementById('disp-voiceName-premium').innerText = savedPremiumVoice;
     }
 }, 500);
+
+
+// 🔄 프리미엄 리스트 UI 업데이트 함수
+window.updatePremiumVoiceList = function (langCode) {
+    const baseLang = langCode.substring(0, 2); // 예: 'es-ES' -> 'es'
+    const availableVoices = premiumVoicesDB[baseLang] || premiumVoicesDB["en"]; // DB에서 찾기
+
+    const dropdownWrap = document.getElementById('drop-voice-premium'); 
+    
+    // 기존 리스트 싹 지우기
+    dropdownWrap.innerHTML = ''; 
+
+    // 새 언어의 성우들로 리스트 꽉꽉 채우기
+    availableVoices.forEach(voice => {
+        const item = document.createElement('div');
+        // 기존 대표님 UI의 디자인 클래스
+        item.className = 'cursor-pointer hover:bg-gray-100 p-2 text-sm text-gray-700'; 
+        item.innerText = voice.name;
+        
+        // 클릭하면 선택되게 연결
+        item.onclick = function() {
+            window.selectPremiumVoice(voice.code, voice.name);
+        };
+        
+        dropdownWrap.appendChild(item);
+    });
+
+    // 🌟 핵심: 리스트를 새로 그렸으니, 화면에 표시되는 기본 목소리도 새 리스트의 '첫 번째 성우'로 자동 세팅!
+    if (availableVoices.length > 0) {
+        window.selectPremiumVoice(availableVoices[0].code, availableVoices[0].name);
+    }
+}
+
+// 2. 학습 언어 변경 감지기 (기존 코드 대신 이것만 남깁니다)
+const targetLangSelect = document.getElementById('targetLanguage');
+if (targetLangSelect) {
+    targetLangSelect.addEventListener('change', function(e) {
+        const newLang = e.target.value; 
+        
+        // 복잡한 덮어쓰기 로직 없이, 위에서 만든 함수 하나만 호출하면 끝!
+        updatePremiumVoiceList(newLang); 
+        
+        console.log(`[언어 변경 감지] ${newLang} 프리미엄 성우 목록 및 기본값 리셋 완료!`);
+    });
+}
+
+
+
+
 
 
 
