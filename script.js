@@ -1905,164 +1905,199 @@ if (window.speechSynthesis && typeof window.speechSynthesis.getVoices === 'funct
 
 
         // ==========================================
-// 📂 내 보관함 (Archive) 핵심 로직 (Window 전역 할당)
+// 📂 내 보관함 (Archive) 상하 분리형 로직 (Window 전역 할당)
 // ==========================================
 
-// 1. 보관함 데이터베이스 전역 변수
-window.archiveData = {
-    script: [],   // 대본 저장소
-    vocab: [],    // 단어장 저장소
-    freetalk: []  // 프리토킹 저장소
-};
-window.currentArchiveTab = 'script'; // 현재 보고 있는 탭
+window.archiveData = { script: [], vocab: [], freetalk: [] };
+window.currentArchiveTab = 'script';
+window.currentArchiveIndex = -1; // 상단 플레이어에 띄울 현재 항목 번호
 
-// 브라우저 켤 때 기존 데이터 불러오기
+// 1. 데이터 불러오기/저장하기
 window.loadArchiveData = function() {
     const saved = localStorage.getItem('talkai_archive_db');
-    if (saved) {
-        window.archiveData = JSON.parse(saved);
-    }
+    if (saved) window.archiveData = JSON.parse(saved);
 };
-
-// 데이터 스마트폰(로컬)에 저장하기
 window.saveArchiveData = function() {
     localStorage.setItem('talkai_archive_db', JSON.stringify(window.archiveData));
 };
 
-// 2. 상단 탭 전환 함수
+// 2. 탭 전환
 window.switchArchiveTab = function(tabName) {
     window.currentArchiveTab = tabName;
+    const items = window.archiveData[tabName];
     
-    // 탭 버튼 색상 변경 (활성화/비활성화)
+    // 탭 선택 시 자동으로 첫 번째 항목을 플레이어에 장전
+    window.currentArchiveIndex = items.length > 0 ? 0 : -1;
+    
     const tabs = ['script', 'vocab', 'freetalk'];
     tabs.forEach(t => {
         const btn = document.getElementById(`tab_${t}`);
         if(btn) {
-            if(t === tabName) {
-                btn.className = "flex-1 bg-amber-50 border border-amber-400 text-amber-700 text-xs font-bold py-2.5 rounded-xl shadow-sm transition-all text-center flex flex-col items-center justify-center gap-0.5";
-            } else {
-                btn.className = "flex-1 bg-white border border-slate-200 text-slate-500 text-xs font-bold py-2.5 rounded-xl hover:bg-slate-50 transition-all text-center flex flex-col items-center justify-center gap-0.5";
-            }
+            btn.className = (t === tabName) 
+                ? "flex-1 bg-amber-50 border border-amber-400 text-amber-700 text-xs font-bold py-2.5 rounded-xl shadow-sm transition-all text-center flex flex-col items-center justify-center gap-0.5"
+                : "flex-1 bg-white border border-slate-200 text-slate-500 text-xs font-bold py-2.5 rounded-xl hover:bg-slate-50 transition-all text-center flex flex-col items-center justify-center gap-0.5";
         }
     });
     
-    // 리스트 다시 그리기
+    window.renderArchivePlayer();
     window.renderArchiveList();
 };
 
-// 3. 화면에 리스트 출력하기 (카드 렌더링)
-window.renderArchiveList = function() {
-    const container = document.getElementById('archiveListContainer');
-    if (!container) return;
-
-    container.innerHTML = ''; 
+// 3. 상단 고정 플레이어 그리기
+window.renderArchivePlayer = function() {
+    const player = document.getElementById('archiveMainPlayer');
+    const playBtn = document.getElementById('archivePlayBtn');
+    const playBtnText = document.getElementById('archivePlayBtnText');
     const items = window.archiveData[window.currentArchiveTab];
+    const idx = window.currentArchiveIndex;
 
-    // 데이터가 없으면 빈 화면 표시
-    if (items.length === 0) {
-        container.innerHTML = `
-            <div class="flex flex-col items-center justify-center h-48 opacity-60 mt-10">
-                <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-300 text-3xl mb-3"><i class="fa-solid fa-folder-open"></i></div>
-                <p class="text-xs font-bold text-slate-500">아직 보관된 항목이 없습니다.</p>
-            </div>
-        `;
+    if (idx === -1 || !items[idx]) {
+        player.className = "w-full bg-white rounded-2xl border border-slate-200 shadow-sm p-5 relative overflow-hidden min-h-[140px] flex flex-col items-center justify-center text-center transition-all";
+        player.innerHTML = `<p class="text-xs font-bold text-slate-400">하단 목록에서 학습할 항목을 선택하세요.</p>`;
+        playBtn.className = "flex-1 bg-slate-100 text-slate-400 rounded-xl shadow-sm border border-slate-200 flex items-center justify-center gap-2 transition-colors cursor-not-allowed";
+        playBtnText.innerText = "재생 대기중";
         return;
     }
 
-    // 데이터가 있으면 카드 생성
-    items.forEach(item => {
-        let cardHTML = '';
+    const item = items[idx];
+    const isPremium = item.isPremium;
+
+    // 플레이어 껍데기 테마 (프리미엄 vs 일반)
+    if (isPremium) {
+        player.className = "w-full bg-white rounded-2xl border-[2px] border-amber-400 shadow-lg p-5 relative overflow-hidden min-h-[140px] flex flex-col items-center justify-center text-center transition-all transform";
+        playBtn.className = "flex-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl shadow-md flex items-center justify-center gap-2 hover:from-amber-600 hover:to-orange-600 transition-colors";
+        playBtnText.innerText = "최고급 음성 다시듣기";
+    } else {
+        player.className = "w-full bg-white rounded-2xl border-[2px] border-blue-400 shadow-md p-5 relative overflow-hidden min-h-[140px] flex flex-col items-center justify-center text-center transition-all";
+        playBtn.className = "flex-1 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl shadow-md flex items-center justify-center gap-2 hover:from-blue-600 hover:to-indigo-600 transition-colors";
+        playBtnText.innerText = "일반 음성 듣기";
+    }
+
+    // 플레이어 내용물 (단어장 vs 문장)
+    let innerHTML = '';
+    if (isPremium) {
+        innerHTML += `<div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-amber-200/40 to-transparent rounded-full -mr-10 -mt-10 pointer-events-none"></div>
+                      <div class="absolute -bottom-4 -right-2 text-6xl opacity-10 pointer-events-none"><i class="fa-solid fa-moon text-amber-500"></i></div>`;
+    }
+
+    if (window.currentArchiveTab === 'vocab') {
+        innerHTML += `
+            <div class="relative z-10 flex flex-col items-center w-full">
+                <span class="text-[9px] font-black ${isPremium ? 'text-amber-600 bg-amber-50 border-amber-200' : 'text-blue-600 bg-blue-50 border-blue-200'} px-2 py-0.5 rounded border mb-2"><i class="fa-solid fa-book-open"></i> ${isPremium ? '프리미엄 단어' : '일반 단어'}</span>
+                <p class="text-xl font-black text-slate-800 mb-0.5 tracking-tight">${item.word}</p>
+                <p class="text-xs font-bold text-slate-500 mb-3">${item.meaning}</p>
+                <div class="w-[80%] h-px bg-slate-100 mb-3"></div>
+                <p class="text-[11px] font-extrabold text-slate-700 mb-1 leading-snug">${item.example}</p>
+                <p class="text-[10px] text-slate-400">${item.exampleMeaning}</p>
+            </div>
+        `;
+    } else {
+        innerHTML += `
+            <div class="relative z-10 flex flex-col items-center w-full">
+                <span class="text-[9px] font-black ${isPremium ? 'text-amber-600 bg-amber-50 border-amber-200' : 'text-blue-600 bg-blue-50 border-blue-200'} px-2 py-0.5 rounded border mb-3"><i class="fa-solid fa-microphone-lines"></i> ${isPremium ? '프리미엄 문장' : '일반 문장'}</span>
+                <p class="text-sm font-extrabold text-slate-800 mb-2 leading-relaxed">${item.original}</p>
+                <p class="text-[11px] font-bold text-slate-500">${item.translation}</p>
+            </div>
+        `;
+    }
+    player.innerHTML = innerHTML;
+};
+
+// 4. 하단 미니 리스트 그리기
+window.renderArchiveList = function() {
+    const container = document.getElementById('archiveListContainer');
+    if (!container) return;
+    container.innerHTML = ''; 
+    const items = window.archiveData[window.currentArchiveTab];
+
+    if (items.length === 0) return;
+
+    items.forEach((item, index) => {
+        const isSelected = (index === window.currentArchiveIndex);
+        const bgClass = isSelected ? 'bg-slate-100 border-slate-300' : 'bg-white border-slate-200';
+        const iconColor = item.isPremium ? 'text-amber-500' : 'text-blue-500';
+        const title = window.currentArchiveTab === 'vocab' ? item.word : item.original;
         
-        if (window.currentArchiveTab === 'vocab') {
-            cardHTML = `
-            <div class="bg-white rounded-2xl border-[2px] border-amber-400 shadow-md p-4 relative overflow-hidden mb-3 transform transition hover:-translate-y-0.5" id="archive_item_${item.id}">
-                <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-amber-200/40 to-transparent rounded-full -mr-10 -mt-10 pointer-events-none"></div>
-                <div class="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-amber-400 to-orange-400"></div>
-                
-                <div class="flex justify-between items-start mb-2 pl-2 relative z-10">
-                    <span class="text-[9px] font-black text-amber-800 bg-amber-100 px-2 py-0.5 rounded border border-amber-300 flex items-center gap-1 shadow-sm">
-                        <i class="fa-solid fa-book-open"></i> 단어장 (소장 완료)
-                    </span>
-                    <button onclick="window.deleteArchiveItem('${item.id}')" class="text-slate-300 hover:text-red-500 transition-colors p-1"><i class="fa-solid fa-trash-can text-sm"></i></button>
+        container.innerHTML += `
+            <div class="flex items-center justify-between p-3 rounded-xl border ${bgClass} shadow-sm cursor-pointer hover:bg-slate-50 transition-colors" onclick="window.selectArchiveItem(${index})">
+                <div class="flex items-center gap-3 overflow-hidden flex-1">
+                    <div class="w-8 h-8 rounded-full bg-white border border-slate-100 flex items-center justify-center shrink-0 shadow-inner">
+                        <i class="fa-solid fa-${item.isPremium ? 'moon' : 'volume-high'} ${iconColor} text-[10px]"></i>
+                    </div>
+                    <p class="text-[11px] font-bold text-slate-700 truncate w-full">${title}</p>
                 </div>
-                <div class="pl-2 mb-2.5 relative z-10">
-                    <p class="text-[14px] font-black text-indigo-700 mb-0.5 tracking-tight">${item.word}</p>
-                    <p class="text-[11px] font-bold text-slate-500">${item.meaning}</p>
-                </div>
-                <div class="h-px bg-slate-100 my-2 ml-2 mr-2"></div>
-                <div class="mb-4 ml-2 pl-2.5 border-l-[2px] border-indigo-100 relative z-10">
-                    <p class="text-[11px] font-extrabold text-slate-800 mb-1 leading-snug">${item.example}</p>
-                    <p class="text-[10px] text-slate-500">${item.exampleMeaning}</p>
-                </div>
-                <button onclick="window.playPremiumAudio('${item.id}')" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white py-3 rounded-xl text-[11px] font-black flex items-center justify-center gap-1.5 shadow-[0_4px_12px_rgba(245,158,11,0.3)] relative z-10">
-                    <i class="fa-solid fa-play text-xs"></i> 최고급 음성 다시듣기
+                <button onclick="event.stopPropagation(); window.deleteArchiveItem('${item.id}')" class="text-slate-300 hover:text-red-500 p-2 ml-2 transition-colors shrink-0">
+                    <i class="fa-solid fa-trash-can text-[11px]"></i>
                 </button>
-            </div>`;
-        } else {
-            let icon = window.currentArchiveTab === 'script' ? 'fa-clapperboard' : 'fa-comments';
-            let label = window.currentArchiveTab === 'script' ? '대본' : '프리토킹';
-            
-            cardHTML = `
-            <div class="bg-white rounded-2xl border-[2px] border-amber-400 shadow-md p-4 relative overflow-hidden mb-3 transform transition hover:-translate-y-0.5" id="archive_item_${item.id}">
-                <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-amber-200/40 to-transparent rounded-full -mr-10 -mt-10 pointer-events-none"></div>
-                <div class="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-amber-400 to-orange-400"></div>
-                
-                <div class="flex justify-between items-start mb-2 pl-2 relative z-10">
-                    <span class="text-[9px] font-black text-amber-800 bg-amber-100 px-2 py-0.5 rounded border border-amber-300 flex items-center gap-1 shadow-sm">
-                        <i class="fa-solid ${icon}"></i> ${label} (소장 완료)
-                    </span>
-                    <button onclick="window.deleteArchiveItem('${item.id}')" class="text-slate-300 hover:text-red-500 transition-colors p-1"><i class="fa-solid fa-trash-can text-sm"></i></button>
-                </div>
-                <div class="pl-2 mb-4 relative z-10">
-                    <p class="text-xs font-extrabold text-slate-900 mb-1 leading-snug">${item.original}</p>
-                    <p class="text-[11px] text-slate-500">${item.translation}</p>
-                </div>
-                <button onclick="window.playPremiumAudio('${item.id}')" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white py-3 rounded-xl text-[11px] font-black flex items-center justify-center gap-1.5 shadow-[0_4px_12px_rgba(245,158,11,0.3)] relative z-10">
-                    <i class="fa-solid fa-play text-xs"></i> 최고급 음성 다시듣기
-                </button>
-            </div>`;
-        }
-        container.innerHTML += cardHTML;
+            </div>
+        `;
     });
 };
 
-// 4. 아이템 삭제하기
+// 5. 컨트롤러 조작 (선택, 이전, 다음, 재생)
+window.selectArchiveItem = function(index) {
+    window.currentArchiveIndex = index;
+    window.renderArchivePlayer();
+    window.renderArchiveList(); // 선택된 리스트 배경색 갱신
+};
+
+window.prevArchiveItem = function() {
+    if (window.currentArchiveIndex > 0) {
+        window.selectArchiveItem(window.currentArchiveIndex - 1);
+    }
+};
+
+window.nextArchiveItem = function() {
+    const items = window.archiveData[window.currentArchiveTab];
+    if (window.currentArchiveIndex < items.length - 1) {
+        window.selectArchiveItem(window.currentArchiveIndex + 1);
+    }
+};
+
+window.playCurrentArchiveAudio = function() {
+    const items = window.archiveData[window.currentArchiveTab];
+    const item = items[window.currentArchiveIndex];
+    if(item) alert(`🔊 [${item.isPremium ? '프리미엄' : '일반'}] 재생 중...\nID: ${item.id}`);
+};
+
+// 6. 삭제 기능
 window.deleteArchiveItem = function(id) {
-    if(confirm("이 항목을 보관함에서 삭제하시겠습니까?\n(다운로드된 오디오 파일도 함께 삭제됩니다)")) {
-        window.archiveData[window.currentArchiveTab] = window.archiveData[window.currentArchiveTab].filter(item => item.id !== id);
-        window.saveArchiveData();
-        window.renderArchiveList(); // 화면 즉시 갱신
-    }
-};
-
-// 5. 오디오 재생 (더미)
-window.playPremiumAudio = function(id) {
-    alert("🔊 재생 중... (추후 기기에 다운로드된 " + id + ".mp3 파일을 찾아 재생합니다.)");
-};
-
-// 6. [테스트용 함수] 가상 결제로 데이터 밀어넣기
-window.testPurchase = function(type) {
-    const isConfirm = confirm("초승달 1개를 사용하여 최고급 원어민 음성을 소장하시겠습니까?");
-    if(isConfirm) {
-        let newData = { id: 'item_' + Date.now(), isPremium: true, audioPath: '' };
+    if(confirm("이 항목을 보관함에서 삭제하시겠습니까?")) {
+        const items = window.archiveData[window.currentArchiveTab];
+        window.archiveData[window.currentArchiveTab] = items.filter(item => item.id !== id);
         
-        if(type === 'vocab') {
-            newData.word = "Refund"; newData.meaning = "환불하다";
-            newData.example = "I would like to get a refund."; newData.exampleMeaning = "환불받고 싶습니다.";
-        } else {
-            newData.original = "I'd like an iced americano, please."; newData.translation = "아이스 아메리카노 한 잔 부탁드립니다.";
+        // 지운 항목이 현재 보고 있던 항목이거나, 마지막 항목일 경우 인덱스 조정
+        if(window.currentArchiveIndex >= window.archiveData[window.currentArchiveTab].length) {
+            window.currentArchiveIndex = window.archiveData[window.currentArchiveTab].length - 1;
         }
-        
-        window.archiveData[type].unshift(newData);
         window.saveArchiveData();
-        if(window.currentArchiveTab === type) window.renderArchiveList();
-        alert("✨ 소장 완료! 보관함을 확인하세요.");
+        window.renderArchivePlayer();
+        window.renderArchiveList();
     }
 };
 
-// 앱 시작 시 즉시 로드 및 렌더링 실행
+// 7. 가상 결제 및 저장 (테스트용)
+window.testPurchase = function(type, isPremium = true) {
+    let newData = { id: 'item_' + Date.now(), isPremium: isPremium, audioPath: '' };
+    if(type === 'vocab') {
+        newData.word = "Refund"; newData.meaning = "환불하다";
+        newData.example = "I would like to get a refund."; newData.exampleMeaning = "환불받고 싶습니다.";
+    } else {
+        newData.original = "I'd like an iced americano, please."; newData.translation = "아이스 아메리카노 한 잔 부탁드립니다.";
+    }
+    
+    window.archiveData[type].unshift(newData);
+    window.saveArchiveData();
+    if(window.currentArchiveTab === type) {
+        window.currentArchiveIndex = 0; // 새 항목을 바로 플레이어에 장착
+        window.renderArchivePlayer();
+        window.renderArchiveList();
+    }
+    alert(isPremium ? "✨ 프리미엄 소장 완료!" : "💾 일반 저장 완료!");
+};
+
 window.loadArchiveData();
-window.renderArchiveList();
+window.switchArchiveTab('script');
         
 
 // 🌟 다국어 지원 & 스크롤 고정형 AI 속마음 모듈
