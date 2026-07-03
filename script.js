@@ -2874,6 +2874,45 @@ window.playSampleVoice = async function(type) {
     }
 };
 
+// ==========================================
+// 🔄 학습 언어 변경 감지 & 목소리 초기화 로직
+// ==========================================
+
+// 언어별 구글 프리미엄 기본 성우 매핑 (대표님이 원하시는 성우 코드로 변경 가능)
+const defaultPremiumVoices = {
+    "en": { code: "en-US-Journey-F", name: "미국 영어 (여성/Journey)" },
+    "ko": { code: "ko-KR-Journey-F", name: "한국어 (여성/Journey)" },
+    "ja": { code: "ja-JP-Neural2-B", name: "일본어 (여성/Neural2)" },
+    "zh": { code: "cmn-CN-Wavenet-A", name: "중국어 (여성/Wavenet)" },
+    "es": { code: "es-ES-Journey-F", name: "스페인어 (여성/Journey)" },
+    "fr": { code: "fr-FR-Journey-F", name: "프랑스어 (여성/Journey)" },
+    "de": { code: "de-DE-Journey-F", name: "독일어 (여성/Journey)" }
+};
+
+// 타겟 언어 셀렉트 박스에 변경 이벤트 감지기 부착
+const targetLangSelect = document.getElementById('targetLanguage');
+if (targetLangSelect) {
+    targetLangSelect.addEventListener('change', function(e) {
+        const newLang = e.target.value; // 예: 'es-ES'
+        const baseLang = newLang.substring(0, 2); // 예: 'es'
+
+        // 1. 바뀐 언어에 맞는 기본 프리미엄 목소리 찾기 (없으면 영어로)
+        const newDefaultVoice = defaultPremiumVoices[baseLang] || defaultPremiumVoices["en"];
+        
+        // 2. 로컬 스토리지 데이터(현재 선택된 목소리) 강제 덮어쓰기
+        localStorage.setItem('premium_voice_code', newDefaultVoice.code);
+        localStorage.setItem('premium_voice_name', newDefaultVoice.name);
+        
+        // 3. 화면(UI)에 표시된 목소리 이름도 새 성우로 업데이트
+        const voiceNameDisp = document.getElementById('disp-voiceName-premium');
+        if (voiceNameDisp) {
+            voiceNameDisp.innerText = newDefaultVoice.name;
+        }
+
+        console.log(`[언어 변경 감지] ${newLang} -> 프리미엄 성우가 ${newDefaultVoice.code}로 초기화되었습니다.`);
+    });
+}
+
 // 앱 로딩 시 저장된 프리미엄 목소리 이름 불러오기
 setTimeout(() => {
     const savedPremiumVoice = localStorage.getItem('premium_voice_name');
