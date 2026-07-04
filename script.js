@@ -2993,46 +2993,55 @@ window.playSampleVoice = async function(type) {
 };
 
 // ==========================================
-// 🔊 제미나이 전용 오디오 재생기 (전문가용 Web Audio API 엔진)
+// 🔊 제미나이 전용 오디오 재생기 (완전체: Raw PCM 직결 방식)
 // ==========================================
 window.playGeminiAudio = async function(base64Data) {
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
         try {
-            // 1. 비정상 데이터 컷!
             if (!base64Data || base64Data.length < 100) {
-                alert("🚨 수신된 데이터가 오디오 포맷이 아닙니다!");
-                return reject("Data corrupted");
+                alert("🚨 수신된 데이터가 없습니다.");
+                return reject("Empty data");
             }
 
-            // 💡 [핵심] 브라우저의 심장부에 있는 '오디오 해독 엔진' 깨우기
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            const audioCtx = new AudioContext();
-
-            // 2. Base64 텍스트를 순수 바이너리(기계어)로 변환
+            // 1. 구글이 던진 날것의 텍스트를 기계어 배열로 변환
             const cleanBase64 = base64Data.replace(/[^A-Za-z0-9+/=]/g, "");
             const binaryString = atob(cleanBase64);
-            const bytes = new Uint8Array(binaryString.length);
+            
+            // 2. 제미나이는 16-bit PCM(2바이트 묶음)을 사용하므로 그릇을 준비
+            const buffer = new ArrayBuffer(binaryString.length);
+            const view = new DataView(buffer);
             for (let i = 0; i < binaryString.length; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
+                view.setUint8(i, binaryString.charCodeAt(i));
             }
-
-            console.log("✅ 기계어로 변환 완료. 오디오 엔진 디코딩 시작...");
-
-            // 3. 일반 스피커가 못 읽는 포맷도 오디오 엔진이 강제로 분석해서 풀어냄!
-            const audioBuffer = await audioCtx.decodeAudioData(bytes.buffer);
-
-            // 4. 스피커에 직결해서 쏴버리기!
+            
+            // 3. 기계어를 소리 파형 데이터(Int16)로 묶어줌
+            const int16Array = new Int16Array(buffer);
+            
+            // 💡 [핵심] 브라우저 스피커 엔진 가동 (제미나이 표준 주파수 24,000Hz 세팅)
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            const audioCtx = new AudioContext();
+            
+            // 1채널(모노), 데이터 길이, 24kHz 주파수
+            const audioBuffer = audioCtx.createBuffer(1, int16Array.length, 24000);
+            const channelData = audioBuffer.getChannelData(0);
+            
+            // 4. 날것의 파형을 스피커가 이해할 수 있는 전기 신호(-1.0 ~ 1.0)로 변환
+            for (let i = 0; i < int16Array.length; i++) {
+                channelData[i] = int16Array[i] / 32768.0; 
+            }
+            
+            // 5. 스피커에 다이렉트 꽂기!
             const source = audioCtx.createBufferSource();
             source.buffer = audioBuffer;
             source.connect(audioCtx.destination);
             
             source.onended = resolve;
-            source.start(0); // 재생!
+            source.start(0); 
             
-            console.log("✅ Web Audio API로 멱살 잡고 재생 성공!");
+            console.log("✅ 제미나이 PCM 날것 데이터 해독 및 직결 재생 성공!");
 
         } catch (error) {
-            console.error("🚨 오디오 엔진 디코딩 실패 (구글이 이상한 걸 줬음):", error);
+            console.error("🚨 PCM 변환 완전 실패:", error);
             reject(error);
         }
     });
