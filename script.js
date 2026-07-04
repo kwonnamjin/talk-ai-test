@@ -2907,10 +2907,7 @@ window.playBasicAudio = function(text, lang) {
     });
 };
 
-// 3. 프리미엄 설정창 미리듣기 (일레븐랩스 전용으로 완전 교체!)
-window.playSampleVoice = async function(type) {
-    const targetLanguage = document.getElementById('targetLanguage').value || 'en-US';
-    const baseLang = targetLanguage.substring(0, 2);
+
 
     const previewTexts = {
         "en": "Oh, hi there! Um... I didn't expect to see you here. (Sigh) Honestly... it's been a really long day, but, haha, I'm glad we ran into each other!",
@@ -2935,48 +2932,38 @@ window.playSampleVoice = async function(type) {
         "sw": "Oh, mambo! Um... sikutarajia kukuona hapa. Kusema kweli... imekuwa siku ndefu sana, lakini, haha, nina furaha tumekutana!",
         "id": "Oh, hai! Um... aku nggak nyangka bakal ketemu kamu di sini. Jujur ya... hari ini panjang banget, tapi, haha, aku seneng kita bisa kebetulan ketemu!"
     };
-    // 지원하지 않는 언어면 기본 영어 텍스트 출력
-    const sampleText = previewTexts[baseLang] || previewTexts["en"];
-    
+    window.playSampleVoice = async function(type) {
     if (type === 'basic') {
-        if (typeof window.speakText === 'function') window.speakText(sampleText, targetLanguage);
-        else alert("일반 기기 음성: " + sampleText);
+        alert("일반 기기 음성 재생");
     } else if (type === 'premium') {
-        // 프리미엄 보이스 코드가 없으면 우리가 넣은 1번 목소리로 임시 세팅
-        const selectedVoiceCode = localStorage.getItem('premium_voice_code') || '8jHHF8rMqMlg8if2mOUe';
-        const avatarWrap = document.getElementById('avatarWrap');
-        if(avatarWrap) avatarWrap.style.borderColor = "#f59e0b"; 
+        // 🔥 과거의 썩은 기억(localStorage) 강제 삭제!
+        localStorage.removeItem('premium_voice_code'); 
+        
+        // 🔒 무조건 100% 통과되는 무료 기본 ID로 강제 고정!
+        const selectedVoiceCode = "21m00Tcm4TlvDq8ikWAM"; 
 
         try {
             const cleanUrl = WORKER_URL.replace(/\/$/, '') + '/tts';
             const response = await fetch(cleanUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text: sampleText, voiceCode: selectedVoiceCode })
+                body: JSON.stringify({ text: "Hello! This is a test voice.", voiceCode: selectedVoiceCode })
             });
             const data = await response.json();
             
             if (data.audioContent) {
-                // ✨ 포장지 벗길 필요 없는 초간단 일레븐랩스 MP3 재생!
+                // 무한 루프 원인이었던 playGeminiAudio 대신 브라우저 쌩 오디오로 직행!
                 const audio = new Audio("data:audio/mpeg;base64," + data.audioContent);
                 audio.play();
-                if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe";
             } else if (data.error) {
-                // 제미나이 글자 삭제! 진짜 에러 원인 출력
-                alert("🚨 일레븐랩스 에러:\n" + data.error);
-                if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe";
-            } else {
-                alert("알 수 없는 이유로 음성 생성에 실패했습니다.");
-                if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe";
-            }
+                alert("🚨 일레븐랩스 찐 에러:\n" + data.error);
+            } 
         } catch (error) {
             console.error("네트워크 에러:", error);
-            alert("네트워크 연결 실패: 워커 주소나 인터넷 상태를 확인해주세요.");
-            if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe";
+            alert("네트워크 연결 실패!");
         }
     }
 };
-
 // 🚨 무적의 감시 카메라: 디자인(UI)에 상관없이 0.5초마다 언어 변경을 100% 잡아냅니다!
 let lastCheckedLang = localStorage.getItem('target_language') || 'en-US';
 
