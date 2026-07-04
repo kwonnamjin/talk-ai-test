@@ -2818,12 +2818,31 @@ window.audioCache = window.audioCache || {};
 
 
 // ==========================================
-// 💎 1. 프리미엄 보이스 DB (일레븐랩스 기본 목소리 6인방 - 무료 사용 가능!)
+// 💎 1. 프리미엄 보이스 DB (제미나이 별자리 19종 원상복구!)
 // ==========================================
 const premiumVoices = [
-    { code: "21m00Tcm4TlvDq8ikWAM", name: "Rachel (무한루프 탈출용)" }
+    { code: "Zephyr", name: "제파 (여성, 세련/차분함 🌟)" },
+    { code: "Sulafat", name: "술라파트 (여성, 밝음/활기참)" },
+    { code: "Puck", name: "퍼크 (여성, 톡톡 튀는 일상톤)" },
+    { code: "Aoede", name: "아오에데 (여성, 산뜻하고 경쾌한)" },
+    { code: "Kore", name: "코레 (여성, 일상대화)" }, 
+    { code: "Leda", name: "레다 (여성, 앳되고 생기있는)" },
+    { code: "Erinome", name: "에리노메 (여성, 맑고 또렷한)" },
+    { code: "Autonoe", name: "아우토노에 (여성, 밝고 화사한)" },
+    { code: "Callirrhoe", name: "칼리로에 (여성, 느긋하고 편안한)" },
+    { code: "Despina", name: "데스피나 (여성, 차분하고 부드러운)" },
+    { code: "Umbriel", name: "움브리엘 (남성, 중후함)" },
+    { code: "Charon", name: "카론 (남성, 차분함)" },
+    { code: "Fenrir", name: "펜리르 (남성, 신뢰감/안정감)" },
+    { code: "Enceladus", name: "엔셀라두스 (남성, 감성적인 숨소리)" },
+    { code: "Sadachbia", name: "사다크비아 (남성, 생동감 넘치는)" },
+    { code: "Achird", name: "아키르드 (남성, 친근하고 다정한)" },
+    { code: "Algenib", name: "알게니브 (남성, 거칠고 허스키한)" },
+    { code: "Algieba", name: "알지에바 (남성, 젠틀하고 매끄러운)" },
+    { code: "Alnilam", name: "알닐람 (남성, 단호하고 확고한)" }
 ];
-// 언어 상관없이 똑같이 할당
+
+// 다시 언어 상관없이 제미나이 리스트로 통일
 const premiumVoicesDB = {
     "en": premiumVoices, "ko": premiumVoices, "ja": premiumVoices, "zh": premiumVoices,
     "es": premiumVoices, "fr": premiumVoices, "de": premiumVoices, "vi": premiumVoices,
@@ -2907,7 +2926,10 @@ window.playBasicAudio = function(text, lang) {
     });
 };
 
-
+// 3. 프리미엄 설정창 미리듣기 (제미나이 셋팅 원상복구)
+window.playSampleVoice = async function(type) {
+    const targetLanguage = document.getElementById('targetLanguage').value || 'en-US';
+    const baseLang = targetLanguage.substring(0, 2);
 
     const previewTexts = {
         "en": "Oh, hi there! Um... I didn't expect to see you here. (Sigh) Honestly... it's been a really long day, but, haha, I'm glad we ran into each other!",
@@ -2932,38 +2954,44 @@ window.playBasicAudio = function(text, lang) {
         "sw": "Oh, mambo! Um... sikutarajia kukuona hapa. Kusema kweli... imekuwa siku ndefu sana, lakini, haha, nina furaha tumekutana!",
         "id": "Oh, hai! Um... aku nggak nyangka bakal ketemu kamu di sini. Jujur ya... hari ini panjang banget, tapi, haha, aku seneng kita bisa kebetulan ketemu!"
     };
-    window.playSampleVoice = async function(type) {
+    const sampleText = previewTexts[baseLang] || previewTexts["en"];
+    
     if (type === 'basic') {
-        alert("일반 기기 음성 재생");
+        if (typeof window.speakText === 'function') window.speakText(sampleText, targetLanguage);
+        else alert("일반 기기 음성: " + sampleText);
     } else if (type === 'premium') {
-        // 🔥 과거의 썩은 기억(localStorage) 강제 삭제!
-        localStorage.removeItem('premium_voice_code'); 
-        
-        // 🔒 무조건 100% 통과되는 무료 기본 ID로 강제 고정!
-        const selectedVoiceCode = "21m00Tcm4TlvDq8ikWAM"; 
+        const selectedVoiceCode = localStorage.getItem('premium_voice_code') || 'Zephyr';
+        const avatarWrap = document.getElementById('avatarWrap');
+        if(avatarWrap) avatarWrap.style.borderColor = "#f59e0b"; 
 
         try {
             const cleanUrl = WORKER_URL.replace(/\/$/, '') + '/tts';
             const response = await fetch(cleanUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text: "Hello! This is a test voice.", voiceCode: selectedVoiceCode })
+                body: JSON.stringify({ text: sampleText, voiceCode: selectedVoiceCode })
             });
             const data = await response.json();
             
             if (data.audioContent) {
-                // 무한 루프 원인이었던 playGeminiAudio 대신 브라우저 쌩 오디오로 직행!
-                const audio = new Audio("data:audio/mpeg;base64," + data.audioContent);
-                audio.play();
+                // 🔥 원래 쓰시던 무적의 제미나이 재생기 출격!
+                await window.playGeminiAudio(data.audioContent);
+                if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe";
             } else if (data.error) {
-                alert("🚨 일레븐랩스 찐 에러:\n" + data.error);
-            } 
+                alert("🚨 제미나이 생성 에러:\n" + data.error);
+                if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe";
+            } else {
+                alert("알 수 없는 이유로 음성 생성에 실패했습니다.");
+                if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe";
+            }
         } catch (error) {
             console.error("네트워크 에러:", error);
-            alert("네트워크 연결 실패!");
+            alert("네트워크 연결 실패: 워커 주소나 인터넷 상태를 확인해주세요.");
+            if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe";
         }
     }
 };
+
 // 🚨 무적의 감시 카메라: 디자인(UI)에 상관없이 0.5초마다 언어 변경을 100% 잡아냅니다!
 let lastCheckedLang = localStorage.getItem('target_language') || 'en-US';
 
