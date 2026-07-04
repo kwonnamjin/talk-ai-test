@@ -2814,13 +2814,29 @@ window.audioCache = window.audioCache || {};
 
 
 
+
+
+
+// ==========================================
+// 💎 1. 프리미엄 보이스 DB (일레븐랩스 정예 6인방)
+// ==========================================
+const premiumVoices = [
+    { code: "8jHHF8rMqMlg8if2mOUe", name: "Voice 1 (여성 튜터)" },
+    { code: "fUjY9K2nAIwlALOwSiwc", name: "Voice 2 (여성 비서)" },
+    { code: "MXKtCrra8fvlDUbfKUT1", name: "Voice 3 (여성 가이드)" },
+    { code: "4oeIbMTUt5QeJy4ZX1FC", name: "Voice 4 (남성 튜터)" },
+    { code: "OSwaPSNdfituxkWcjlkR", name: "Voice 5 (남성 비서)" },
+    { code: "El018FmI047NtSsCfyrY", name: "Voice 6 (남성 가이드)" }
+];
+
+// 일레븐랩스는 '다국어 만능'이니까 모든 언어에 똑같은 6명 리스트를 줍니다.
 const premiumVoicesDB = {
-    "en": geminiVoices, "ko": geminiVoices, "ja": geminiVoices, "zh": geminiVoices,
-    "es": geminiVoices, "fr": geminiVoices, "de": geminiVoices, "vi": geminiVoices,
-    "ru": geminiVoices, "th": geminiVoices, "ar": geminiVoices, "hi": geminiVoices,
-    "pl": geminiVoices, "gd": geminiVoices, "la": geminiVoices, "he": geminiVoices,
-    "ne": geminiVoices, "mn": geminiVoices, "bo": geminiVoices, "sw": geminiVoices,
-    "id": geminiVoices
+    "en": premiumVoices, "ko": premiumVoices, "ja": premiumVoices, "zh": premiumVoices,
+    "es": premiumVoices, "fr": premiumVoices, "de": premiumVoices, "vi": premiumVoices,
+    "ru": premiumVoices, "th": premiumVoices, "ar": premiumVoices, "hi": premiumVoices,
+    "pl": premiumVoices, "gd": premiumVoices, "la": premiumVoices, "he": premiumVoices,
+    "ne": premiumVoices, "mn": premiumVoices, "bo": premiumVoices, "sw": premiumVoices,
+    "id": premiumVoices
 };
 
 // ==========================================
