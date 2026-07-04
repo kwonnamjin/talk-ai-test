@@ -2926,58 +2926,113 @@ window.playBasicAudio = function(text, lang) {
     });
 };
 
+// 3. 프리미엄 설정창 미리듣기 (제미나이 셋팅 원상복구)
+window.playSampleVoice = async function(type) {
+    const targetLanguage = document.getElementById('targetLanguage').value || 'en-US';
+    const baseLang = targetLanguage.substring(0, 2);
+
+    const previewTexts = {
+        "en": "Oh, hi there! Um... I didn't expect to see you here. (Sigh) Honestly... it's been a really long day, but, haha, I'm glad we ran into each other!",
+        "ko": "어, 안녕하세요! 음... 여기서 뵐 줄은 진짜 몰랐네요. 후우... 오늘 정말 정신없는 하루였는데, 하하, 그래도 이렇게 마주치니까 반갑네요!",
+        "ja": "こんにちは！えっと…ここで会うとは思わなかったです。ふぅ…今日は本当に忙しい一日だったんですけど、あはは、でも会えて嬉しいです！",
+        "zh": "啊，你好！嗯……真没想到会在这里见到你。呼……今天真是忙碌的一天，哈哈，不过很高兴能碰见你！",
+        "es": "¡Oh, hola! Eh... no esperaba verte por aquí. Uf... ha sido un día realmente largo, pero, jaja, ¡qué bueno que nos cruzamos!",
+        "fr": "Oh, salut ! Euh... je ne m'attendais pas à te voir ici. Pff... la journée a été vraiment longue, mais, haha, je suis content qu'on se soit croisés !",
+        "de": "Oh, hallo! Ähm... ich hätte nicht erwartet, dich hier zu sehen. Puh... es war ein wirklich langer Tag, aber, haha, ich bin froh, dass wir uns über den Weg gelaufen sind!",
+        "vi": "Ồ, chào bạn! Ừm... không ngờ lại gặp bạn ở đây. Thật sự... hôm nay là một ngày rất dài, nhưng, haha, rất vui vì chúng ta tình cờ gặp nhau!",
+        "ru": "О, привет! Эм... не ожидал увидеть тебя здесь. Честно говоря... это был очень долгий день, но, ха-ха, я рад, что мы столкнулись!",
+        "th": "โอ้ สวัสดี! เอิ่ม... ไม่คิดว่าจะเจอคุณที่นี่เลย พูดตามตรง... วันนี้เป็นวันที่ยาวนานมาก แต่ ฮ่าฮ่า ดีใจนะที่บังเอิญเจอกัน!",
+        "ar": "أوه، أهلاً! أمم... لم أتوقع رؤيتك هنا. بصراحة... لقد كان يوماً طويلاً جداً، لكن، هاها، أنا سعيد لأننا التقينا!",
+        "hi": "ओह, नमस्ते! उम्म... मुझे आपको यहाँ देखने की उम्मीद नहीं थी। सच कहूँ तो... आज का दिन बहुत लंबा रहा, लेकिन, हाहा, मुझे खुशी है कि हम टकरा गए!",
+        "pl": "O, cześć! Eem... nie spodziewałem się, że cię tu zobaczę. Szczerze mówiąc... to był naprawdę długi dzień, ale, haha, cieszę się, że na siebie wpadliśmy!",
+        "gd": "Ò, latha math! Uill... bha mi a' smaoineachadh nach fhaiceadh mi thu an seo. Gu fìrinneach... bha e na latha glè fhada, ach, haha, tha mi toilichte gun do choinnich sinn!",
+        "la": "O, salve! Em... non exspectabam te hic videre. Vere... dies valde longus fuit, sed, haha, gaudeo nos convenisse!",
+        "he": "או, היי! אהמ... לא ציפיתי לראות אותך כאן. בכנות... זה היה יום ממש ארוך, אבל, חחח, אני שמח שנתקלנו אחד בשני!",
+        "ne": "ओहो, नमस्ते! उम... मैले तपाईंलाई यहाँ देख्ने आश गरेको थिइनँ। साँचो भन्नुपर्दा... आजको दिन निकै लामो रह्यो, तर, हाहा, हामी यसरी भेट भएकोमा खुसी लाग्यो!",
+        "mn": "Өө, сайн уу! Өө... чамайг энд харж магадгүй гэж бодсонгүй. Үнэндээ... өнөөдөр үнэхээр урт өдөр байлаа, гэхдээ, хаха, ингээд таарсандаа баяртай байна!",
+        "bo": "ཨོ་ལེགས་སོ། ཨེམ... ང་ཁྱེད་རང་འདིར་མཐོང་བའི་རེ་བ་བྱས་མེད། དྲང་པོར་བཤད་ན... དེ་རིང་ཉིན་མ་ཧ་ཅང་རིང་པོ་ཞིག་རེད། ཡིན་ནའང་། ཧ་ཧ། ང་ཚོ་ཐུག་པ་འདིར་དགའ་པོ་བྱུང་།",
+        "sw": "Oh, mambo! Um... sikutarajia kukuona hapa. Kusema kweli... imekuwa siku ndefu sana, lakini, haha, nina furaha tumekutana!",
+        "id": "Oh, hai! Um... aku nggak nyangka bakal ketemu kamu di sini. Jujur ya... hari ini panjang banget, tapi, haha, aku seneng kita bisa kebetulan ketemu!"
+    };
+    const sampleText = previewTexts[baseLang] || previewTexts["en"];
+    
+    if (type === 'basic') {
+        if (typeof window.speakText === 'function') window.speakText(sampleText, targetLanguage);
+        else alert("일반 기기 음성: " + sampleText);
+    } else if (type === 'premium') {
+        const selectedVoiceCode = localStorage.getItem('premium_voice_code') || 'Zephyr';
+        const avatarWrap = document.getElementById('avatarWrap');
+        if(avatarWrap) avatarWrap.style.borderColor = "#f59e0b"; 
+
+        try {
+            const cleanUrl = WORKER_URL.replace(/\/$/, '') + '/tts';
+            const response = await fetch(cleanUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: sampleText, voiceCode: selectedVoiceCode })
+            });
+            const data = await response.json();
+            
+            if (data.audioContent) {
+                // 🔥 원래 쓰시던 무적의 제미나이 재생기 출격!
+                await window.playGeminiAudio(data.audioContent);
+                if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe";
+            } else if (data.error) {
+                alert("🚨 제미나이 생성 에러:\n" + data.error);
+                if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe";
+            } else {
+                alert("알 수 없는 이유로 음성 생성에 실패했습니다.");
+                if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe";
+            }
+        } catch (error) {
+            console.error("네트워크 에러:", error);
+            alert("네트워크 연결 실패: 워커 주소나 인터넷 상태를 확인해주세요.");
+            if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe";
+        }
+    }
+};
 
 // ==========================================
-// 🔊 제미나이 전용 오디오 재생기 (끝판왕: 가상 파일 변환 방식)
+// 🔊 제미나이 전용 오디오 재생기 (전문가용 Web Audio API 엔진)
 // ==========================================
 window.playGeminiAudio = async function(base64Data) {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         try {
-            // 1. 데이터가 너무 짧으면 에러로 간주
+            // 1. 비정상 데이터 컷!
             if (!base64Data || base64Data.length < 100) {
-                alert("🚨 받아온 음성 데이터가 너무 짧습니다! (API 에러 의심)");
-                return reject("Data too short");
+                alert("🚨 수신된 데이터가 오디오 포맷이 아닙니다!");
+                return reject("Data corrupted");
             }
 
-            // 2. 텍스트 안에 섞여 있을지 모르는 찌꺼기(공백, 줄바꿈) 완벽하게 소독!
+            // 💡 [핵심] 브라우저의 심장부에 있는 '오디오 해독 엔진' 깨우기
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            const audioCtx = new AudioContext();
+
+            // 2. Base64 텍스트를 순수 바이너리(기계어)로 변환
             const cleanBase64 = base64Data.replace(/[^A-Za-z0-9+/=]/g, "");
-
-            // 3. Base64 텍스트를 브라우저가 좋아하는 '가상 오디오 파일(Blob)'로 변환!
-            const byteCharacters = atob(cleanBase64);
-            const byteNumbers = new Array(byteCharacters.length);
-            for (let i = 0; i < byteCharacters.length; i++) {
-                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            const binaryString = atob(cleanBase64);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
             }
-            const byteArray = new Uint8Array(byteNumbers);
-            
-            // 브라우저야, 이건 완벽하게 깨끗한 오디오 파일이란다. 잔말 말고 재생해!
-            const blob = new Blob([byteArray], { type: 'audio/wav' });
-            const blobUrl = URL.createObjectURL(blob);
 
-            console.log("✅ 가상 오디오 파일 변환 완료! 재생 시작합니다.");
+            console.log("✅ 기계어로 변환 완료. 오디오 엔진 디코딩 시작...");
 
-            // 4. 변환된 가상 파일로 재생
-            const audio = new Audio(blobUrl);
-            
-            audio.onended = () => {
-                URL.revokeObjectURL(blobUrl); // 재생 끝나면 찌꺼기 메모리 청소
-                resolve();
-            };
-            
-            audio.onerror = (e) => {
-                console.error("🚨 Blob 가상 파일 재생 실패:", e);
-                URL.revokeObjectURL(blobUrl);
-                reject(e);
-            };
+            // 3. 일반 스피커가 못 읽는 포맷도 오디오 엔진이 강제로 분석해서 풀어냄!
+            const audioBuffer = await audioCtx.decodeAudioData(bytes.buffer);
 
-            // 소리 쏴라!
-            audio.play().catch(e => {
-                console.error("🚨 최종 재생 버튼(play) 실행 실패:", e);
-                reject(e);
-            });
+            // 4. 스피커에 직결해서 쏴버리기!
+            const source = audioCtx.createBufferSource();
+            source.buffer = audioBuffer;
+            source.connect(audioCtx.destination);
+            
+            source.onended = resolve;
+            source.start(0); // 재생!
+            
+            console.log("✅ Web Audio API로 멱살 잡고 재생 성공!");
 
         } catch (error) {
-            console.error("오디오 변환 중 치명적 에러 발생:", error);
+            console.error("🚨 오디오 엔진 디코딩 실패 (구글이 이상한 걸 줬음):", error);
             reject(error);
         }
     });
