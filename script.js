@@ -2932,9 +2932,9 @@ window.playSampleVoice = async function(type) {
     const baseLang = targetLanguage.substring(0, 2);
 
     const previewTexts = {
-        "en": "Oh, hi there! Um... I didn't expect to see you here. (Sigh) Honestly... it's been a really long day, but, haha, I'm glad we ran into each other!",
-        "ko": "어, 안녕하세요! 음... 여기서 뵐 줄은 진짜 몰랐네요. 후우... 오늘 정말 정신없는 하루였는데, 하하, 그래도 이렇게 마주치니까 반갑네요!",
-        "ja": "こんにちは！えっと…ここで会うとは思わなかったです。ふぅ…今日は本当に忙しい一日だったんですけど、あはは、でも会えて嬉しいです！",
+        "en": "Oh, hi there! Um... I didn't expect to see you here. (Sigh) Honestly... it's been a really long day, but, haha, I'm glad we ran into each other!123",
+        "ko": "어, 안녕하세요! 음... 여기서 뵐 줄은 진짜 몰랐네요. 후우... 오늘 정말 정신없는 하루였는데, 하하, 그래도 이렇게 마주치니까 반갑네요!123",
+        "ja": "こんにちは！えっと…ここで会うとは思わなかったです。ふぅ…今日は本当に忙しい一日だったんですけど、あはは、でも会えて嬉しいです！123",
         "zh": "啊，你好！嗯……真没想到会在这里见到你。呼……今天真是忙碌的一天，哈哈，不过很高兴能碰见你！",
         "es": "¡Oh, hola! Eh... no esperaba verte por aquí. Uf... ha sido un día realmente largo, pero, jaja, ¡qué bueno que nos cruzamos!",
         "fr": "Oh, salut ! Euh... je ne m'attendais pas à te voir ici. Pff... la journée a été vraiment longue, mais, haha, je suis content qu'on se soit croisés !",
@@ -2993,22 +2993,38 @@ window.playSampleVoice = async function(type) {
 };
 
 // ==========================================
-// 🔊 제미나이 전용 오디오 재생기 (잃어버린 스피커 부품 부활!)
+// 🔊 제미나이 전용 오디오 재생기 (썩은 데이터 방어 & mp3 폴백 추가!)
 // ==========================================
 window.playGeminiAudio = async function(base64Data) {
     return new Promise((resolve, reject) => {
         try {
-            // 워커에서 받아온 Base64 텍스트를 진짜 오디오 파일(wav)로 변환!
-            const audio = new Audio("data:audio/wav;base64," + base64Data);
+            // 1. 워커가 빈 껍데기나 에러 메시지를 줬는지 검사
+            if (!base64Data || base64Data.length < 100) {
+                console.error("🚨 수신된 데이터가 너무 짧음:", base64Data);
+                alert("과거의 에러 데이터가 서버에 꼬여있습니다!\n미리듣기 텍스트를 다른 말로 바꿔서 다시 시도해주세요.");
+                return reject("Data corrupted");
+            }
+
+            // 2. 브라우저가 wav를 거부할 경우를 대비해 범용적인 mp3로 들이밀기!
+            const audio = new Audio("data:audio/mp3;base64," + base64Data);
             
-            // 재생이 완전히 끝나면 다음 작업으로 넘어가도록 신호(resolve)를 줌
             audio.onended = resolve; 
-            audio.onerror = reject;
+            audio.onerror = () => {
+                // mp3로도 안 된다고? 그럼 최후의 보루 wav로 재도전!
+                console.warn("mp3 재생 거부됨, wav로 재시도합니다.");
+                const fallbackAudio = new Audio("data:audio/wav;base64," + base64Data);
+                fallbackAudio.onended = resolve;
+                fallbackAudio.onerror = reject;
+                fallbackAudio.play().catch(reject);
+            };
             
             // 소리 쏴라!
-            audio.play();
+            audio.play().catch(error => {
+                console.error("재생 실패:", error);
+                reject(error);
+            });
         } catch (error) {
-            console.error("오디오 재생 실패:", error);
+            console.error("오디오 재생 세팅 실패:", error);
             reject(error);
         }
     });
