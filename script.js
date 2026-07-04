@@ -411,25 +411,22 @@ window.checkUsageLimit = function() {
     return { allowed: true, tier: currentTier, count: usageObj.count, maxLimit };
 };
 
-// 2. 검문소 (초승달 실시간 차감 로직 완벽 적용)
 window.checkAndBlockAPI = function() {
-    const status = window.checkUsageLimit(); // 🌟 무조건 window. 으로 호출
+    const status = window.checkUsageLimit(); 
     
-    // 🌟 안전장치 3: 초승달 데이터가 'NaN(숫자아님)'으로 꼬여있으면 0으로 강제 처리
-    let currentMoons = parseInt(localStorage.getItem('moon_coins')) || 0;
-
-    // 1순위: 번개가 남아있다면 통과
+    // 1순위: 기본 요금제(무료/베이직/프리미엄) 한도가 남아있다면 통과!
     if (status.allowed) return true; 
 
-    // 2순위: 초승달이 있다면 1개 내고 통과
-    if (currentMoons > 0) {
-        localStorage.setItem('moon_coins', currentMoons - 1); 
+    // 2순위: 퀘스트로 모아둔 '번개'가 있다면 1개 내고 통과! (초승달 건드리지 않음)
+    let currentLightning = parseInt(localStorage.getItem('lightning_coins')) || 0;
+    if (currentLightning > 0) {
+        localStorage.setItem('lightning_coins', currentLightning - 1); 
         if (typeof window.updateBadgeUI === 'function') window.updateBadgeUI(); 
-        console.log("🌙 초승달 사용! 남은 개수:", currentMoons - 1);
+        console.log("⚡ 번개 사용! 남은 퀘스트 번개:", currentLightning - 1);
         return true; 
     }
 
-    // 3순위: 둘 다 없으면 결제창
+    // 3순위: 기본 한도도 없고 번개도 없으면 멤버십 결제창 띄우기
     if (typeof window.showSubscriptionModal === 'function') {
         window.showSubscriptionModal(status.reason); 
     }
@@ -442,22 +439,26 @@ window.updateBadgeUI = function() {
     
     const status = window.checkUsageLimit();
     let currentMoons = parseInt(localStorage.getItem('moon_coins')) || 0;
+    let savedLightning = parseInt(localStorage.getItem('lightning_coins')) || 0; // 퀘스트로 모은 번개
     
-    let remaining = 0;
+    let remainingDaily = 0;
     if (status.allowed) {
         const currentCount = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}').count || 0;
-        remaining = Math.max(0, status.maxLimit - currentCount);
+        remainingDaily = Math.max(0, status.maxLimit - currentCount);
     }
+
+    // ⚡ 번개 표시: (오늘 남은 기본량 + 모아둔 번개) 합산하여 표시
+    let totalLightning = remainingDaily + savedLightning;
 
     const moonHtml = `<div class="bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-full text-[11px] font-black border border-indigo-200 shadow-sm flex items-center gap-1.5"><i class="fa-solid fa-moon"></i> <span>${currentMoons}</span></div>`;
     let badgeContent = '';
 
     if (status.tier === 'premium') {
-        badgeContent = moonHtml + `<div class="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2.5 py-1 rounded-full text-[9px] font-black border border-amber-400 shadow-sm flex items-center gap-1.5 transition hover:scale-105"><i class="fa-solid fa-crown text-amber-200"></i> <span class="text-[9px] tracking-wide mt-[1px]">PREMIUM</span> <span class="text-amber-200 opacity-60 font-normal mx-0.5 text-[10px]">|</span> <i class="fa-solid fa-bolt text-amber-200"></i> ${remaining}</div>`;
+        badgeContent = moonHtml + `<div class="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2.5 py-1 rounded-full text-[9px] font-black border border-amber-400 shadow-sm flex items-center gap-1.5 transition hover:scale-105"><i class="fa-solid fa-crown text-amber-200"></i> <span class="text-[9px] tracking-wide mt-[1px]">PREMIUM</span> <span class="text-amber-200 opacity-60 font-normal mx-0.5 text-[10px]">|</span> <i class="fa-solid fa-bolt text-amber-200"></i> ${totalLightning}</div>`;
     } else if (status.tier === 'basic') {
-        badgeContent = moonHtml + `<div class="bg-gradient-to-r from-indigo-500 to-blue-500 text-white px-2.5 py-1 rounded-full text-[9px] font-black border border-indigo-400 shadow-sm flex items-center gap-1.5 transition hover:scale-105"><i class="fa-solid fa-star text-indigo-200"></i> <span class="text-[9px] tracking-wide mt-[1px]">BASIC</span> <span class="text-indigo-200 opacity-60 font-normal mx-0.5 text-[10px]">|</span> <i class="fa-solid fa-bolt text-indigo-200"></i> ${remaining}</div>`;
+        badgeContent = moonHtml + `<div class="bg-gradient-to-r from-indigo-500 to-blue-500 text-white px-2.5 py-1 rounded-full text-[9px] font-black border border-indigo-400 shadow-sm flex items-center gap-1.5 transition hover:scale-105"><i class="fa-solid fa-star text-indigo-200"></i> <span class="text-[9px] tracking-wide mt-[1px]">BASIC</span> <span class="text-indigo-200 opacity-60 font-normal mx-0.5 text-[10px]">|</span> <i class="fa-solid fa-bolt text-indigo-200"></i> ${totalLightning}</div>`;
     } else {
-        badgeContent = moonHtml + `<div class="bg-white text-slate-600 px-2.5 py-1 rounded-full text-[11px] font-black border border-slate-200 shadow-sm flex items-center gap-1.5 transition hover:bg-slate-50"><i class="fa-solid fa-bolt text-yellow-500"></i> <span>${remaining}</span></div>`;
+        badgeContent = moonHtml + `<div class="bg-white text-slate-600 px-2.5 py-1 rounded-full text-[11px] font-black border border-slate-200 shadow-sm flex items-center gap-1.5 transition hover:bg-slate-50"><i class="fa-solid fa-bolt text-yellow-500"></i> <span>${totalLightning}</span></div>`;
     }
 
     const badgeIds = ['usageBadge', 'usageBadge2'];
@@ -2291,19 +2292,25 @@ window.addStudyMission = function(type) {
             streakData.completedToday = true;
             streakData.streak += 1;
             INTIMACY_SYSTEM.addExp('quest');
-            let rwMoons = 3; 
+            
+            // 🌙 기존 rwMoons를 ⚡ rwLightning으로 변경
+            let rwLightning = 3; 
 
-            if (streakData.streak === 5) rwMoons = 3;
-            else if (streakData.streak === 10) rwMoons = 5;
-            else if (streakData.streak === 20) rwMoons = 10;
-            else if (streakData.streak === 30) rwMoons = 15; 
-            else if (streakData.streak > 30 && streakData.streak % 10 === 0) rwMoons = 30; 
+            if (streakData.streak === 5) rwLightning = 3;
+            else if (streakData.streak === 10) rwLightning = 5;
+            else if (streakData.streak === 20) rwLightning = 10;
+            else if (streakData.streak === 30) rwLightning = 15; 
+            else if (streakData.streak > 30 && streakData.streak % 10 === 0) rwLightning = 30; 
 
             setTimeout(() => { 
                 window.openStreakModal(); 
-                let currentMoons = parseInt(localStorage.getItem('moon_coins') || '0');
-                localStorage.setItem('moon_coins', currentMoons + rwMoons); 
-                alert(`🎉 퀘스트 완벽 달성! 오늘의 보상 초승달 +${rwMoons}개가 지급되었습니다! 🌙`);
+                
+                // localStorage 키값도 moon_coins에서 lightning_coins로 변경
+                let currentLightning = parseInt(localStorage.getItem('lightning_coins') || '0');
+                localStorage.setItem('lightning_coins', currentLightning + rwLightning); 
+                
+                // 알림창 텍스트와 이모지 교체
+                alert(`🎉 퀘스트 완벽 달성! 오늘의 보상 번개 +${rwLightning}개가 지급되었습니다! ⚡`);
                 window.updateBadgeUI(); 
             }, 800);
         }
