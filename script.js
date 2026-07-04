@@ -2992,6 +2992,28 @@ window.playSampleVoice = async function(type) {
     }
 };
 
+// ==========================================
+// 🔊 제미나이 전용 오디오 재생기 (잃어버린 스피커 부품 부활!)
+// ==========================================
+window.playGeminiAudio = async function(base64Data) {
+    return new Promise((resolve, reject) => {
+        try {
+            // 워커에서 받아온 Base64 텍스트를 진짜 오디오 파일(wav)로 변환!
+            const audio = new Audio("data:audio/wav;base64," + base64Data);
+            
+            // 재생이 완전히 끝나면 다음 작업으로 넘어가도록 신호(resolve)를 줌
+            audio.onended = resolve; 
+            audio.onerror = reject;
+            
+            // 소리 쏴라!
+            audio.play();
+        } catch (error) {
+            console.error("오디오 재생 실패:", error);
+            reject(error);
+        }
+    });
+};
+
 // 🚨 무적의 감시 카메라: 디자인(UI)에 상관없이 0.5초마다 언어 변경을 100% 잡아냅니다!
 let lastCheckedLang = localStorage.getItem('target_language') || 'en-US';
 
