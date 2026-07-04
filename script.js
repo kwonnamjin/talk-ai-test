@@ -2821,14 +2821,8 @@ window.audioCache = window.audioCache || {};
 // 💎 1. 프리미엄 보이스 DB (일레븐랩스 기본 목소리 6인방 - 무료 사용 가능!)
 // ==========================================
 const premiumVoices = [
-    { code: "21m00Tcm4TlvDq8ikWAM", name: "Rachel (여성, 차분하고 다정한)" },
-    { code: "EXAVITQu4vr4xnSDxMaL", name: "Bella (여성, 부드럽고 친근한)" },
-    { code: "MF3mGyEYCl7XYWbV9V6O", name: "Elli (여성, 앳되고 통통 튀는)" },
-    { code: "ErXwHDnIydoBq8X6Qx5z", name: "Antoni (남성, 중후하고 신뢰감 있는)" },
-    { code: "tx3xeHWmMIpZoyzSrlkk", name: "Josh (남성, 명확하고 전달력 좋은)" },
-    { code: "pNInz6obpgDQGcFmaJcg", name: "Adam (남성, 굵고 깊은 울림)" }
+    { code: "21m00Tcm4TlvDq8ikWAM", name: "Rachel (무한루프 탈출용)" }
 ];
-
 // 언어 상관없이 똑같이 할당
 const premiumVoicesDB = {
     "en": premiumVoices, "ko": premiumVoices, "ja": premiumVoices, "zh": premiumVoices,
