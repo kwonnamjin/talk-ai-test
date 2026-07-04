@@ -2828,25 +2828,17 @@ window.audioCache = window.audioCache || {};
 // 💎 1. 프리미엄 보이스 DB (제미나이 별자리 19종 원상복구!)
 // ==========================================
 const premiumVoices = [
-    { code: "Zephyr", name: "제파 (여성, 세련/차분함 🌟)" },
-    { code: "Sulafat", name: "술라파트 (여성, 밝음/활기참)" },
-    { code: "Puck", name: "퍼크 (여성, 톡톡 튀는 일상톤)" },
-    { code: "Aoede", name: "아오에데 (여성, 산뜻하고 경쾌한)" },
-    { code: "Kore", name: "코레 (여성, 일상대화)" }, 
-    { code: "Leda", name: "레다 (여성, 앳되고 생기있는)" },
-    { code: "Erinome", name: "에리노메 (여성, 맑고 또렷한)" },
-    { code: "Autonoe", name: "아우토노에 (여성, 밝고 화사한)" },
-    { code: "Callirrhoe", name: "칼리로에 (여성, 느긋하고 편안한)" },
+    { code: "Zephyr", name: "제파 (여성, 세련/차분함 )" },          { code: "Umbriel", name: "움브리엘 (남성, 중후함)" },
+    { code: "Sulafat", name: "술라파트 (여성, 밝음/활기참)" },      { code: "Charon", name: "카론 (남성, 차분함)" },
+    { code: "Puck", name: "퍼크 (여성, 톡톡 튀는 일상톤)" },        { code: "Fenrir", name: "펜리르 (남성, 신뢰감/안정감)" },
+    { code: "Aoede", name: "아오에데 (여성, 산뜻하고 경쾌한)" },     { code: "Enceladus", name: "엔셀라두스 (남성, 감성적인 숨소리)" },
+    { code: "Kore", name: "코레 (여성, 일상대화)" },                { code: "Sadachbia", name: "사다크비아 (남성, 생동감 넘치는)" },
+    { code: "Leda", name: "레다 (여성, 앳되고 생기있는)" },          { code: "Achird", name: "아키르드 (남성, 친근하고 다정한)" },
+    { code: "Erinome", name: "에리노메 (여성, 맑고 또렷한)" },       { code: "Algenib", name: "알게니브 (남성, 거칠고 허스키한)" },
+    { code: "Autonoe", name: "아우토노에 (여성, 밝고 화사한)" },      { code: "Algieba", name: "알지에바 (남성, 젠틀하고 매끄러운)" },
+    { code: "Callirrhoe", name: "칼리로에 (여성, 느긋하고 편안한)" }, { code: "Alnilam", name: "알닐람 (남성, 단호하고 확고한)" },
     { code: "Despina", name: "데스피나 (여성, 차분하고 부드러운)" },
-    { code: "Umbriel", name: "움브리엘 (남성, 중후함)" },
-    { code: "Charon", name: "카론 (남성, 차분함)" },
-    { code: "Fenrir", name: "펜리르 (남성, 신뢰감/안정감)" },
-    { code: "Enceladus", name: "엔셀라두스 (남성, 감성적인 숨소리)" },
-    { code: "Sadachbia", name: "사다크비아 (남성, 생동감 넘치는)" },
-    { code: "Achird", name: "아키르드 (남성, 친근하고 다정한)" },
-    { code: "Algenib", name: "알게니브 (남성, 거칠고 허스키한)" },
-    { code: "Algieba", name: "알지에바 (남성, 젠틀하고 매끄러운)" },
-    { code: "Alnilam", name: "알닐람 (남성, 단호하고 확고한)" }
+       
 ];
 
 // 다시 언어 상관없이 제미나이 리스트로 통일
@@ -2887,19 +2879,20 @@ window.updatePremiumVoiceList = function(langCode) {
     }
 };
 
-window.selectPremiumVoice = function(voiceCode, voiceName, isUserClick = true) {
+window.selectPremiumVoice = function(voiceCode, voiceName) {
+    // 1. 선택한 목소리 정보 저장
     localStorage.setItem('premium_voice_code', voiceCode);
     localStorage.setItem('premium_voice_name', voiceName);
     
+    // 2. 화면에 선택한 목소리 이름 표시
     const voiceNameDisp = document.getElementById('disp-voiceName-premium');
     if(voiceNameDisp) voiceNameDisp.innerText = voiceName;
     
+    // 3. 열려있던 드롭다운 메뉴 닫기
     const dropMenu = document.getElementById('drop-voice-premium');
     if(dropMenu) dropMenu.classList.add('hidden'); 
     
-    if (isUserClick) {
-        window.playSampleVoice('premium');
-    }
+    // 🔥 기존에 있던 자동 재생 코드(window.playSampleVoice)를 완전히 삭제했습니다!
 };
 
 
