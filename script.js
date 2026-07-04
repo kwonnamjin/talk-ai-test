@@ -2859,12 +2859,132 @@ window.selectPremiumVoice = function(voiceCode, voiceName, isUserClick = true) {
     }
 };
 
+
+
+// ==========================================
+// 💎 1. 프리미엄 보이스 DB (제미나이 3.1 별자리 19종)
+// ==========================================
+const geminiVoices = [
+    { code: "Zephyr", name: "제파 (여성, 세련/차분함 🌟)" },
+    { code: "Sulafat", name: "술라파트 (여성, 밝음/활기참)" },
+    { code: "Puck", name: "퍼크 (여성, 톡톡 튀는 일상톤)" },
+    { code: "Aoede", name: "아오에데 (여성, 산뜻하고 경쾌한)" },
+    { code: "Kore", name: "코레 (여성, 일상대화)" }, 
+    { code: "Leda", name: "레다 (여성, 앳되고 생기있는)" },
+    { code: "Erinome", name: "에리노메 (여성, 맑고 또렷한)" },
+    { code: "Autonoe", name: "아우토노에 (여성, 밝고 화사한)" },
+    { code: "Callirrhoe", name: "칼리로에 (여성, 느긋하고 편안한)" },
+    { code: "Despina", name: "데스피나 (여성, 차분하고 부드러운)" },
+    { code: "Umbriel", name: "움브리엘 (남성, 중후함)" },
+    { code: "Charon", name: "카론 (남성, 차분함)" },
+    { code: "Fenrir", name: "펜리르 (남성, 신뢰감/안정감)" },
+    { code: "Enceladus", name: "엔셀라두스 (남성, 감성적인 숨소리)" },
+    { code: "Sadachbia", name: "사다크비아 (남성, 생동감 넘치는)" },
+    { code: "Achird", name: "아키르드 (남성, 친근하고 다정한)" },
+    { code: "Algenib", name: "알게니브 (남성, 거칠고 허스키한)" },
+    { code: "Algieba", name: "알지에바 (남성, 젠틀하고 매끄러운)" },
+    { code: "Alnilam", name: "알닐람 (남성, 단호하고 확고한)" }
+];
+
+const premiumVoicesDB = {
+    "en": geminiVoices, "ko": geminiVoices, "ja": geminiVoices, "zh": geminiVoices,
+    "es": geminiVoices, "fr": geminiVoices, "de": geminiVoices, "vi": geminiVoices,
+    "ru": geminiVoices, "th": geminiVoices, "ar": geminiVoices, "hi": geminiVoices,
+    "pl": geminiVoices, "gd": geminiVoices, "la": geminiVoices, "he": geminiVoices,
+    "ne": geminiVoices, "mn": geminiVoices, "bo": geminiVoices, "sw": geminiVoices,
+    "id": geminiVoices
+};
+
+// ==========================================
+// 🌍 2. 드롭다운 리스트 갱신 & 선택 함수
+// ==========================================
+window.updatePremiumVoiceList = function(langCode) {
+    const baseLang = langCode.substring(0, 2); 
+    const availableVoices = premiumVoicesDB[baseLang] || premiumVoicesDB["en"]; 
+
+    const dropdownWrap = document.getElementById('drop-voice-premium'); 
+    if (!dropdownWrap) return; 
+    
+    dropdownWrap.innerHTML = ''; 
+
+    availableVoices.forEach(voice => {
+        const item = document.createElement('div');
+        item.className = 'cursor-pointer hover:bg-gray-100 p-2 text-sm text-gray-700'; 
+        item.innerText = voice.name;
+        
+        item.onclick = function() {
+            window.selectPremiumVoice(voice.code, voice.name, true);
+        };
+        dropdownWrap.appendChild(item);
+    });
+
+    if (availableVoices.length > 0) {
+        window.selectPremiumVoice(availableVoices[0].code, availableVoices[0].name, false);
+    }
+};
+
+window.selectPremiumVoice = function(voiceCode, voiceName, isUserClick = true) {
+    localStorage.setItem('premium_voice_code', voiceCode);
+    localStorage.setItem('premium_voice_name', voiceName);
+    
+    const voiceNameDisp = document.getElementById('disp-voiceName-premium');
+    if(voiceNameDisp) voiceNameDisp.innerText = voiceName;
+    
+    const dropMenu = document.getElementById('drop-voice-premium');
+    if(dropMenu) dropMenu.classList.add('hidden'); 
+    
+    if (isUserClick) {
+        window.playSampleVoice('premium');
+    }
+};
+
+// ==========================================
+// 🔊 3. 앱 전체 공통 재생기 & 미리듣기 엔진 (WAV 에러 해결)
+// ==========================================
+window.playAppAudio = async function(text, type, langCode = 'en-US') {
+    if (!text) return;
+    const currentLang = langCode || document.getElementById('targetLanguage').value || 'en-US';
+
+    if (type === 'premium') {
+        const selectedVoiceCode = localStorage.getItem('premium_voice_code') || 'Zephyr';
+        try {
+            const response = await fetch(`${WORKER_URL}/tts`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: text, voiceCode: selectedVoiceCode })
+            });
+            const data = await response.json();
+            if (data.audioContent) {
+                // mp3에서 wav로 완벽 수정!
+                const audio = new Audio("data:audio/wav;base64," + data.audioContent);
+                await audio.play();
+                return new Promise(resolve => { audio.onended = resolve; });
+            } else {
+                throw new Error("오디오 데이터가 없습니다.");
+            }
+        } catch (error) {
+            console.error("프리미엄 재생 실패, 일반 음성으로 대체:", error);
+            return playBasicAudio(text, currentLang);
+        }
+    } else {
+        return playBasicAudio(text, currentLang);
+    }
+};
+
+function playBasicAudio(text, lang) {
+    return new Promise((resolve) => {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = lang;
+        utterance.onend = resolve;
+        window.speechSynthesis.speak(utterance);
+    });
+}
+
 window.playSampleVoice = async function(type) {
     const targetLanguage = document.getElementById('targetLanguage').value || 'en-US';
-    const baseLang = targetLanguage.substring(0, 2); 
+    const baseLang = targetLanguage.substring(0, 2);
 
-    // 📝 제미나이 3.1 Flash TTS의 숨소리와 감정선을 제대로 뽐낼 프리미엄 전용 다국어 문구
-    // 📝 21개국어 지원! 제미나이 3.1 Flash 감정선 극대화 대본
     const previewTexts = {
         "en": "Oh, hi there! Um... I didn't expect to see you here. (Sigh) Honestly... it's been a really long day, but, haha, I'm glad we ran into each other!",
         "ko": "어, 안녕하세요! 음... 여기서 뵐 줄은 진짜 몰랐네요. 후우... 오늘 정말 정신없는 하루였는데, 하하, 그래도 이렇게 마주치니까 반갑네요!",
@@ -2888,7 +3008,7 @@ window.playSampleVoice = async function(type) {
         "sw": "Oh, mambo! Um... sikutarajia kukuona hapa. Kusema kweli... imekuwa siku ndefu sana, lakini, haha, nina furaha tumekutana!",
         "id": "Oh, hai! Um... aku nggak nyangka bakal ketemu kamu di sini. Jujur ya... hari ini panjang banget, tapi, haha, aku seneng kita bisa kebetulan ketemu!"
     };
-
+// 지원하지 않는 언어는 영어로 폴백
     const sampleText = previewTexts[baseLang] || previewTexts["en"];
     
     if (type === 'basic') {
@@ -2897,36 +3017,25 @@ window.playSampleVoice = async function(type) {
         } else {
             alert("일반 기기 음성: " + sampleText);
         }
-    } 
-    else if (type === 'premium') {
+    } else if (type === 'premium') {
         const selectedVoiceCode = localStorage.getItem('premium_voice_code') || 'Zephyr';
-        
         const avatarWrap = document.getElementById('avatarWrap');
-        if(avatarWrap) avatarWrap.style.borderColor = "#f59e0b"; // 주황색 로딩 불빛
+        if(avatarWrap) avatarWrap.style.borderColor = "#f59e0b"; 
 
         try {
-            // 🚨 WORKER_URL 변수가 정의되어 있는지 꼭 확인하세요!
             const response = await fetch(`${WORKER_URL}/tts`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    text: sampleText,
-                    voiceCode: selectedVoiceCode
-                })
+                body: JSON.stringify({ text: sampleText, voiceCode: selectedVoiceCode })
             });
-
             const data = await response.json();
-
+            
             if (data.audioContent) {
-                // 클라우드가 내려준 (또는 실시간 생성된) 프리미엄 사운드 즉시 재생
-                const audio = new Audio("data:audio/mp3;base64," + data.audioContent);
+                // mp3에서 wav로 완벽 수정!
+                const audio = new Audio("data:audio/wav;base64," + data.audioContent);
                 audio.play();
-
-                audio.onended = () => {
-                    if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe";
-                };
+                audio.onended = () => { if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe"; };
             } else {
-                console.error("TTS 에러:", data);
                 alert("음성 생성 실패");
                 if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe";
             }
@@ -2936,53 +3045,11 @@ window.playSampleVoice = async function(type) {
         }
     }
 };
-
-
-
-// 요청하신 21개 국어 학습 언어에 최고급 제미나이 목소리 일괄 연결!
-const premiumVoicesDB = {
-    "en": geminiVoices, "ko": geminiVoices, "ja": geminiVoices, "zh": geminiVoices,
-    "es": geminiVoices, "fr": geminiVoices, "de": geminiVoices, "vi": geminiVoices,
-    "ru": geminiVoices, "th": geminiVoices, "ar": geminiVoices, "hi": geminiVoices,
-    "pl": geminiVoices, "gd": geminiVoices, "la": geminiVoices, "he": geminiVoices,
-    "ne": geminiVoices, "mn": geminiVoices, "bo": geminiVoices, "sw": geminiVoices,
-    "id": geminiVoices // 인도네시아어
-};
+ 
 
 
 
 
-
-// ==========================================
-// 🌍 프리미엄 리스트 갱신 & 무적의 감시 카메라
-// ==========================================
-
-window.updatePremiumVoiceList = function(langCode) {
-    const baseLang = langCode.substring(0, 2); 
-    const availableVoices = premiumVoicesDB[baseLang] || premiumVoicesDB["en"]; 
-
-    const dropdownWrap = document.getElementById('drop-voice-premium'); 
-    if (!dropdownWrap) return; 
-    
-    dropdownWrap.innerHTML = ''; 
-
-    availableVoices.forEach(voice => {
-        const item = document.createElement('div');
-        item.className = 'cursor-pointer hover:bg-gray-100 p-2 text-sm text-gray-700'; 
-        item.innerText = voice.name;
-        
-        item.onclick = function() {
-            // 유저가 마우스로 '직접' 클릭했으니 소리 재생 O (true)
-            window.selectPremiumVoice(voice.code, voice.name, true);
-        };
-        dropdownWrap.appendChild(item);
-    });
-
-    if (availableVoices.length > 0) {
-        // 리스트를 처음 세팅할 때는 소리 재생 X (false) -> 자동재생 완벽 차단!
-        window.selectPremiumVoice(availableVoices[0].code, availableVoices[0].name, false);
-    }
-};
 
 // 🚨 무적의 감시 카메라: 디자인(UI)에 상관없이 0.5초마다 언어 변경을 100% 잡아냅니다!
 let lastCheckedLang = localStorage.getItem('target_language') || 'en-US';
@@ -3012,118 +3079,7 @@ setTimeout(() => {
 
 
 
-// ==========================================
-// 🔊 앱 전체 공통 TTS 재생기 & 미리듣기 (오류 완벽 해결 버전)
-// ==========================================
 
-// 1. 통합 재생기 (보관함, 단어장 등)
-window.playAppAudio = async function(text, type, langCode = 'en-US') {
-    if (!text) return;
-    const currentLang = langCode || document.getElementById('targetLanguage').value || 'en-US';
-
-    if (type === 'premium') {
-        const selectedVoiceCode = localStorage.getItem('premium_voice_code') || 'Zephyr';
-        try {
-            const response = await fetch(`${WORKER_URL}/tts`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text: text, voiceCode: selectedVoiceCode })
-            });
-            const data = await response.json();
-            if (data.audioContent) {
-                const audio = new Audio("data:audio/wav;base64," + data.audioContent);
-                await audio.play();
-                return new Promise(resolve => {
-                    audio.onended = resolve;
-                });
-            } else {
-                throw new Error("오디오 데이터가 없습니다.");
-            }
-        } catch (error) {
-            console.error("프리미엄 재생 실패, 일반 음성으로 대체:", error);
-            return playBasicAudio(text, currentLang);
-        }
-    } else {
-        return playBasicAudio(text, currentLang);
-    }
-};
-
-// 2. 일반 음성 전용
-function playBasicAudio(text, lang) {
-    return new Promise((resolve) => {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = lang;
-        utterance.onend = resolve;
-        window.speechSynthesis.speak(utterance);
-    });
-}
-
-// 3. 설정창 미리듣기
-window.playSampleVoice = async function(type) {
-    const targetLanguage = document.getElementById('targetLanguage').value || 'en-US';
-    const baseLang = targetLanguage.substring(0, 2); 
-
-    const previewTexts = {
-        "en": "Oh, hi there! Um... I didn't expect to see you here. (Sigh) Honestly... it's been a really long day, but, haha, I'm glad we ran into each other!",
-        "ko": "어, 안녕하세요! 음... 여기서 뵐 줄은 진짜 몰랐네요. 후우... 오늘 정말 정신없는 하루였는데, 하하, 그래도 이렇게 마주치니까 반갑네요!",
-        "ja": "こんにちは！えっと…ここで会うとは思わなかったです。ふぅ…今日は本当に忙しい一日だったんですけど、あはは、でも会えて嬉しいです！",
-        "zh": "啊，你好！嗯……真没想到会在这里见到你。呼……今天真是忙碌的一天，哈哈，不过很高兴能碰见你！",
-        "es": "¡Oh, hola! Eh... no esperaba verte por aquí. Uf... ha sido un día realmente largo, pero, jaja, ¡qué bueno que nos cruzamos!",
-        "fr": "Oh, salut ! Euh... je ne m'attendais pas à te voir ici. Pff... la journée a été vraiment longue, mais, haha, je suis content qu'on se soit croisés !",
-        "de": "Oh, hallo! Ähm... ich hätte nicht erwartet, dich hier zu sehen. Puh... es war ein wirklich langer Tag, aber, haha, ich bin froh, dass wir uns über den Weg gelaufen sind!",
-        "vi": "Ồ, chào bạn! Ừm... không ngờ lại gặp bạn ở đây. Thật sự... hôm nay là một ngày rất dài, nhưng, haha, rất vui vì chúng ta tình cờ gặp nhau!",
-        "ru": "О, привет! Эм... не ожидал увидеть тебя здесь. Честно говоря... это был очень долгий день, но, ха-ха, я рад, что мы столкнулись!",
-        "th": "โอ้ สวัสดี! เอิ่ม... ไม่คิดว่าจะเจอคุณที่นี่เลย พูดตามตรง... วันนี้เป็นวันที่ยาวนานมาก แต่ ฮ่าฮ่า ดีใจนะที่บังเอิญเจอกัน!",
-        "ar": "أوه، أهلاً! أمم... لم أتوقع رؤيتك هنا. بصراحة... لقد كان يوماً طويلاً جداً، لكن، هاها، أنا سعيد لأننا التقينا!",
-        "hi": "ओह, नमस्ते! उम्म... मुझे आपको यहाँ देखने की उम्मीद नहीं थी। सच कहूँ तो... आज का दिन লম্বা रहा, लेकिन, हाहा, मुझे खुशी है कि हम टकरा गए!",
-        "pl": "O, cześć! Eem... nie spodziewałem się, że cię tu zobaczę. Szczerze mówiąc... to był naprawdę długi dzień, ale, haha, cieszę się, że na siebie wpadliśmy!",
-        "gd": "Ò, latha math! Uill... bha mi a' smaoineachadh nach fhaiceadh mi thu an seo. Gu fìrinneach... bha e na latha glè fhada, ach, haha, tha mi toilichte gun do choinnich sinn!",
-        "la": "O, salve! Em... non exspectabam te hic videre. Vere... dies valde longus fuit, sed, haha, gaudeo nos convenisse!",
-        "he": "או, היי! אהמ... לא ציפיתי לראות אותך כאן. בכנות... זה היה יום ממש ארוך, אבל, חחח, אני שמח שנתקלנו אחד בשני!",
-        "ne": "ओहो, नमस्ते! उम... मैले तपाईंलाई यहाँ देख्ने आश गरेको थिइनँ। साँचो भन्नुपर्दा... आजको दिन निकै लामो रह्यो, तर, हाहा, हामी यसरी भेट भएकोमा खुसी लाग्यो!",
-        "mn": "Өө, сайн уу! Өө... чамайг энд харж магадгүй гэж бодсонгүй. Үнэндээ... өнөөдөр үнэхээр урт өдөр байлаа, гэхдээ, хаха, ингээд таарсандаа баяртай байна!",
-        "bo": "ཨོ་ལེགས་སོ། ཨེམ... ང་ཁྱེད་རང་འདིར་མཐོང་བའི་རེ་བ་བྱས་མེད། དྲང་པོར་བཤད་ན... དེ་རིང་ཉིན་མ་ཧ་ཅང་རིང་པོ་ཞིག་རེད། ཡིན་ནའང་། ཧ་ཧ། ང་ཚོ་ཐུག་པ་འདིར་དགའ་པོ་བྱུང་།",
-        "sw": "Oh, mambo! Um... sikutarajia kukuona hapa. Kusema kweli... imekuwa siku ndefu sana, lakini, haha, nina furaha tumekutana!",
-        "id": "Oh, hai! Um... aku nggak nyangka bakal ketemu kamu di sini. Jujur ya... hari ini panjang banget, tapi, haha, aku seneng kita bisa kebetulan ketemu!"
-    };
-
-    const sampleText = previewTexts[baseLang] || previewTexts["en"];
-    
-    if (type === 'basic') {
-        if (typeof window.speakText === 'function') {
-            window.speakText(sampleText, targetLanguage);
-        } else {
-            alert("일반 기기 음성: " + sampleText);
-        }
-    } else if (type === 'premium') {
-        const selectedVoiceCode = localStorage.getItem('premium_voice_code') || 'Zephyr';
-        const avatarWrap = document.getElementById('avatarWrap');
-        if(avatarWrap) avatarWrap.style.borderColor = "#f59e0b"; 
-
-        try {
-            const response = await fetch(`${WORKER_URL}/tts`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text: sampleText, voiceCode: selectedVoiceCode })
-            });
-            const data = await response.json();
-            
-            if (data.audioContent) {
-                const audio = new Audio("data:audio/wav;base64," + data.audioContent);
-                audio.play();
-                audio.onended = () => { if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe"; };
-            } else {
-                alert("음성 생성 실패");
-                if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe";
-            }
-        } catch (error) {
-            console.error("네트워크 에러:", error);
-            if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe";
-        }
-    }
-};
-// ==========================================
 
 
 
