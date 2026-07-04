@@ -664,33 +664,7 @@ async function initDeviceID() {
 }
 initDeviceID();
 
-window.initSpeechRecognition = function() {
-    if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
-        recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        recognition.continuous = false;
-        recognition.interimResults = false;
-        recognition.onstart = () => {
-            isListening = true; 
-            if(window.stopSpeaking) window.stopSpeaking(); 
-            if(micBtn) { micBtn.classList.replace('from-blue-400', 'from-red-400'); micBtn.classList.replace('to-blue-600', 'to-red-600'); }
-            if(micIcon) { micIcon.classList.replace('fa-microphone', 'fa-ear-listen'); }
-            window.updateStatus("듣는 중...");
-        };
-        recognition.onresult = (e) => {
-            resetMic();
-            if(e.results && e.results[0] && e.results[0][0]) {
-                handleUserMessage(e.results[0][0].transcript);
-            }
-        };
-        recognition.onerror = (e) => { 
-            resetMic(); 
-            window.updateStatus("마이크 인식 실패"); 
-            console.error("Mic Error:", e.error);
-        };
-        recognition.onend = () => resetMic();
-    }
-}
-initSpeechRecognition();
+
 
 window.resetMic = function() { 
     isListening = false; 
@@ -2835,29 +2809,10 @@ window.initSpeechRecognition = function() {
 initSpeechRecognition();
 
 
-// ==========================================
-// 🔊 Setting 탭: 목소리 미리듣기 & 워커 연동 (다국어 + 캐싱 완벽 적용)
-// ==========================================
 
-// 💾 음성 임시 보관함 (앱을 켜두는 동안 다운받은 mp3를 0원으로 재사용)
 window.audioCache = window.audioCache || {};
 
-// 🔊 선택 함수 (자동재생 방지 스위치 추가)
-window.selectPremiumVoice = function(voiceCode, voiceName, isUserClick = true) {
-    localStorage.setItem('premium_voice_code', voiceCode);
-    localStorage.setItem('premium_voice_name', voiceName);
-    
-    const voiceNameDisp = document.getElementById('disp-voiceName-premium');
-    if(voiceNameDisp) voiceNameDisp.innerText = voiceName;
-    
-    const dropMenu = document.getElementById('drop-voice-premium');
-    if(dropMenu) dropMenu.classList.add('hidden'); 
-    
-    // 🔥 핵심: isUserClick이 true일 때(유저가 직접 클릭했을 때)만 소리 재생!
-    if (isUserClick) {
-        window.playSampleVoice('premium');
-    }
-};
+
 
 
 
