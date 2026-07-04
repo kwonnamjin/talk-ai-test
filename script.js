@@ -2939,8 +2939,10 @@ window.selectPremiumVoice = function(voiceCode, voiceName, isUserClick = true) {
 };
 
 // ==========================================
-// 🔊 1. 앱 전체 공통 TTS 재생기
+// 🔊 앱 전체 공통 TTS 재생기 & 미리듣기 (강제 오디오 디코딩 엔진 탑재!)
 // ==========================================
+
+// 1. 통합 재생기
 window.playAppAudio = async function(text, type, langCode = 'en-US') {
     if (!text) return;
     const currentLang = langCode || document.getElementById('targetLanguage').value || 'en-US';
@@ -2957,10 +2959,22 @@ window.playAppAudio = async function(text, type, langCode = 'en-US') {
             const data = await response.json();
             
             if (data.audioContent) {
-                const mimeType = data.mimeType || 'audio/wav';
-                const audio = new Audio(`data:${mimeType};base64,` + data.audioContent);
-                await audio.play();
-                return new Promise(resolve => { audio.onended = resolve; });
+                // 🔥 Web Audio API: 브라우저가 확장자를 거부해도 강제로 해독해서 재생하는 무적 코드!
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const binaryStr = window.atob(data.audioContent);
+                const bytes = new Uint8Array(binaryStr.length);
+                for (let i = 0; i < binaryStr.length; i++) {
+                    bytes[i] = binaryStr.charCodeAt(i);
+                }
+                const audioBuffer = await audioCtx.decodeAudioData(bytes.buffer);
+                const source = audioCtx.createBufferSource();
+                source.buffer = audioBuffer;
+                source.connect(audioCtx.destination);
+                source.start(0);
+                
+                return new Promise(resolve => {
+                    source.onended = resolve;
+                });
             } else if (data.error) {
                 alert("🚨 백엔드 에러 발생:\n" + data.error);
                 throw new Error(data.error);
@@ -2969,18 +2983,14 @@ window.playAppAudio = async function(text, type, langCode = 'en-US') {
             }
         } catch (error) {
             console.error("프리미엄 재생 실패, 일반 음성으로 대체:", error);
-            // 🔥 여기도 window. 을 붙여서 절대 길을 잃지 않게 수정!
             return window.playBasicAudio(text, currentLang);
         }
     } else {
-        // 🔥 여기도 window. 을 붙여서 명확하게 호출!
         return window.playBasicAudio(text, currentLang);
     }
 };
 
-// ==========================================
-// 🔊 2. 일반 음성 재생 전용 함수 (window. 부착 완료!)
-// ==========================================
+// 2. 일반 음성 재생 전용 함수
 window.playBasicAudio = function(text, lang) {
     return new Promise((resolve) => {
         window.speechSynthesis.cancel();
@@ -2991,7 +3001,7 @@ window.playBasicAudio = function(text, lang) {
     });
 };
 
-// 🔊 2. 프리미엄 설정창 미리듣기
+// 3. 프리미엄 설정창 미리듣기
 window.playSampleVoice = async function(type) {
     const targetLanguage = document.getElementById('targetLanguage').value || 'en-US';
     const baseLang = targetLanguage.substring(0, 2);
@@ -3019,7 +3029,7 @@ window.playSampleVoice = async function(type) {
         "sw": "Oh, mambo! Um... sikutarajia kukuona hapa. Kusema kweli... imekuwa siku ndefu sana, lakini, haha, nina furaha tumekutana!",
         "id": "Oh, hai! Um... aku nggak nyangka bakal ketemu kamu di sini. Jujur ya... hari ini panjang banget, tapi, haha, aku seneng kita bisa kebetulan ketemu!"
     };
-const sampleText = previewTexts[baseLang] || previewTexts["en"];
+    const sampleText = previewTexts[baseLang] || previewTexts["en"];
     
     if (type === 'basic') {
         if (typeof window.speakText === 'function') window.speakText(sampleText, targetLanguage);
@@ -3039,11 +3049,20 @@ const sampleText = previewTexts[baseLang] || previewTexts["en"];
             const data = await response.json();
             
             if (data.audioContent) {
-                // 🔥 수정 완료: 제미나이가 준 '진짜 확장자' 자동 적용!
-                const mimeType = data.mimeType || 'audio/wav';
-                const audio = new Audio(`data:${mimeType};base64,` + data.audioContent);
-                await audio.play();
-                audio.onended = () => { if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe"; };
+                // 🔥 Web Audio API: 여기서도 브라우저 호환성을 뚫고 무조건 재생!
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const binaryStr = window.atob(data.audioContent);
+                const bytes = new Uint8Array(binaryStr.length);
+                for (let i = 0; i < binaryStr.length; i++) {
+                    bytes[i] = binaryStr.charCodeAt(i);
+                }
+                const audioBuffer = await audioCtx.decodeAudioData(bytes.buffer);
+                const source = audioCtx.createBufferSource();
+                source.buffer = audioBuffer;
+                source.connect(audioCtx.destination);
+                source.start(0);
+
+                source.onended = () => { if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe"; };
             } else if (data.error) {
                 alert("🚨 제미나이 생성 에러:\n" + data.error);
                 if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe";
@@ -3058,39 +3077,26 @@ const sampleText = previewTexts[baseLang] || previewTexts["en"];
         }
     }
 };
- 
-
-
-
-
 
 // 🚨 무적의 감시 카메라: 디자인(UI)에 상관없이 0.5초마다 언어 변경을 100% 잡아냅니다!
 let lastCheckedLang = localStorage.getItem('target_language') || 'en-US';
 
 setInterval(() => {
-    // 앱 어딘가에서 언어를 바꿔서 로컬 스토리지 값이 변했다면?!
     const currentSavedLang = localStorage.getItem('target_language');
-    
     if (currentSavedLang && currentSavedLang !== lastCheckedLang) {
-        console.log(`[감시 카메라] 언어 변경 감지! ${lastCheckedLang} -> ${currentSavedLang}`);
         lastCheckedLang = currentSavedLang;
-        
-        // 프리미엄 리스트 즉시 새로고침!
         if (typeof window.updatePremiumVoiceList === 'function') {
             window.updatePremiumVoiceList(currentSavedLang);
         }
     }
 }, 500);
 
-// 앱 로딩 시 저장된 프리미엄 목소리 이름 불러오기
 setTimeout(() => {
     const savedPremiumVoice = localStorage.getItem('premium_voice_name');
     if (savedPremiumVoice) {
         document.getElementById('disp-voiceName-premium').innerText = savedPremiumVoice;
     }
 }, 500);
-
-
 
 
 
