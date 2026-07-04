@@ -2830,7 +2830,7 @@ window.audioCache = window.audioCache || {};
 const premiumVoices = [
     { code: "Zephyr", name: "제파 (여성, 세련/차분함 )" },          { code: "Umbriel", name: "움브리엘 (남성, 중후함)" },
     { code: "Sulafat", name: "술라파트 (여성, 밝음/활기참)" },      { code: "Charon", name: "카론 (남성, 차분함)" },
-    { code: "Puck", name: "퍼크 (여성, 톡톡 튀는 일상톤)" },        { code: "Fenrir", name: "펜리르 (남성, 신뢰감/안정감)" },
+    { code: "Fenrir", name: "펜리르 (여성, 신뢰감/안정감)" },       { code: "Puck", name: "퍼크 (남성, 톡톡 튀는 일상톤)" },       
     { code: "Aoede", name: "아오에데 (여성, 산뜻하고 경쾌한)" },     { code: "Enceladus", name: "엔셀라두스 (남성, 감성적인 숨소리)" },
     { code: "Kore", name: "코레 (여성, 일상대화)" },                { code: "Sadachbia", name: "사다크비아 (남성, 생동감 넘치는)" },
     { code: "Leda", name: "레다 (여성, 앳되고 생기있는)" },          { code: "Achird", name: "아키르드 (남성, 친근하고 다정한)" },
@@ -2838,7 +2838,7 @@ const premiumVoices = [
     { code: "Autonoe", name: "아우토노에 (여성, 밝고 화사한)" },      { code: "Algieba", name: "알지에바 (남성, 젠틀하고 매끄러운)" },
     { code: "Callirrhoe", name: "칼리로에 (여성, 느긋하고 편안한)" }, { code: "Alnilam", name: "알닐람 (남성, 단호하고 확고한)" },
     { code: "Despina", name: "데스피나 (여성, 차분하고 부드러운)" },
-       
+        
 ];
 
 // 다시 언어 상관없이 제미나이 리스트로 통일
