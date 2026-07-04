@@ -2894,8 +2894,59 @@ window.selectPremiumVoice = function(voiceCode, voiceName, isUserClick = true) {
 };
 
 // ==========================================
-// 🔊 앱 전체 공통 TTS 재생기 & 미리듣기 (강제 오디오 디코딩 엔진 탑재!)
+// 🔊 앱 전체 공통 TTS 재생기 & 미리듣기 (최종 완결판: 강제 해독 엔진 탑재)
 // ==========================================
+
+// 🚀 무적의 제미나이 오디오 해독기 (이게 핵심입니다!)
+window.playGeminiAudio = async function(base64Data) {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const binaryStr = window.atob(base64Data);
+    const bytes = new Uint8Array(binaryStr.length);
+    for (let i = 0; i < binaryStr.length; i++) {
+        bytes[i] = binaryStr.charCodeAt(i);
+    }
+
+    let finalBuffer = bytes.buffer;
+    
+    // 💡 제미나이가 준 데이터에 오디오 껍데기(RIFF/WAV 헤더)가 없으면 직접 씌워줍니다.
+    const isRiff = String.fromCharCode(bytes[0], bytes[1], bytes[2], bytes[3]) === 'RIFF';
+    
+    if (!isRiff) {
+        const sampleRate = 24000; // 제미나이 표준 샘플링 레이트
+        const wavHeader = new ArrayBuffer(44);
+        const view = new DataView(wavHeader);
+        const writeString = (v, offset, str) => { for (let i = 0; i < str.length; i++) v.setUint8(offset + i, str.charCodeAt(i)); };
+        
+        writeString(view, 0, 'RIFF');
+        view.setUint32(4, 36 + bytes.length, true);
+        writeString(view, 8, 'WAVE');
+        writeString(view, 12, 'fmt ');
+        view.setUint32(16, 16, true);
+        view.setUint16(20, 1, true); // 1채널 (모노)
+        view.setUint16(22, 1, true);
+        view.setUint32(24, sampleRate, true);
+        view.setUint32(28, sampleRate * 2, true);
+        view.setUint16(32, 2, true);
+        view.setUint16(34, 16, true);
+        writeString(view, 36, 'data');
+        view.setUint32(40, bytes.length, true);
+        
+        const wavBytes = new Uint8Array(44 + bytes.length);
+        wavBytes.set(new Uint8Array(wavHeader), 0);
+        wavBytes.set(bytes, 44);
+        finalBuffer = wavBytes.buffer;
+    }
+
+    const audioBuffer = await audioCtx.decodeAudioData(finalBuffer);
+    const source = audioCtx.createBufferSource();
+    source.buffer = audioBuffer;
+    source.connect(audioCtx.destination);
+    source.start(0);
+
+    return new Promise(resolve => {
+        source.onended = resolve;
+    });
+};
 
 // 1. 통합 재생기
 window.playAppAudio = async function(text, type, langCode = 'en-US') {
@@ -2914,22 +2965,8 @@ window.playAppAudio = async function(text, type, langCode = 'en-US') {
             const data = await response.json();
             
             if (data.audioContent) {
-                // 🔥 Web Audio API: 브라우저가 확장자를 거부해도 강제로 해독해서 재생하는 무적 코드!
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const binaryStr = window.atob(data.audioContent);
-                const bytes = new Uint8Array(binaryStr.length);
-                for (let i = 0; i < binaryStr.length; i++) {
-                    bytes[i] = binaryStr.charCodeAt(i);
-                }
-                const audioBuffer = await audioCtx.decodeAudioData(bytes.buffer);
-                const source = audioCtx.createBufferSource();
-                source.buffer = audioBuffer;
-                source.connect(audioCtx.destination);
-                source.start(0);
-                
-                return new Promise(resolve => {
-                    source.onended = resolve;
-                });
+                // 🔥 방금 만든 무적의 재생기 출격!
+                await window.playGeminiAudio(data.audioContent);
             } else if (data.error) {
                 alert("🚨 백엔드 에러 발생:\n" + data.error);
                 throw new Error(data.error);
@@ -3004,20 +3041,9 @@ window.playSampleVoice = async function(type) {
             const data = await response.json();
             
             if (data.audioContent) {
-                // 🔥 Web Audio API: 여기서도 브라우저 호환성을 뚫고 무조건 재생!
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const binaryStr = window.atob(data.audioContent);
-                const bytes = new Uint8Array(binaryStr.length);
-                for (let i = 0; i < binaryStr.length; i++) {
-                    bytes[i] = binaryStr.charCodeAt(i);
-                }
-                const audioBuffer = await audioCtx.decodeAudioData(bytes.buffer);
-                const source = audioCtx.createBufferSource();
-                source.buffer = audioBuffer;
-                source.connect(audioCtx.destination);
-                source.start(0);
-
-                source.onended = () => { if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe"; };
+                // 🔥 방금 만든 무적의 재생기 출격!
+                await window.playGeminiAudio(data.audioContent);
+                if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe";
             } else if (data.error) {
                 alert("🚨 제미나이 생성 에러:\n" + data.error);
                 if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe";
