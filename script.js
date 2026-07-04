@@ -2948,19 +2948,23 @@ window.playAppAudio = async function(text, type, langCode = 'en-US') {
     if (type === 'premium') {
         const selectedVoiceCode = localStorage.getItem('premium_voice_code') || 'Zephyr';
         try {
-            const response = await fetch(`${WORKER_URL}/tts`, {
+            const cleanUrl = WORKER_URL.replace(/\/$/, '') + '/tts'; // URL 슬래시 정리
+            const response = await fetch(cleanUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ text: text, voiceCode: selectedVoiceCode })
             });
             const data = await response.json();
+            
             if (data.audioContent) {
-                // mp3에서 wav로 완벽 수정!
                 const audio = new Audio("data:audio/wav;base64," + data.audioContent);
                 await audio.play();
                 return new Promise(resolve => { audio.onended = resolve; });
+            } else if (data.error) {
+                alert("🚨 백엔드 에러 발생:\n" + data.error);
+                throw new Error(data.error);
             } else {
-                throw new Error("오디오 데이터가 없습니다.");
+                throw new Error("오디오 데이터를 받을 수 없습니다.");
             }
         } catch (error) {
             console.error("프리미엄 재생 실패, 일반 음성으로 대체:", error);
@@ -2971,6 +2975,7 @@ window.playAppAudio = async function(text, type, langCode = 'en-US') {
     }
 };
 
+// (유지) 일반 음성 재생 함수
 function playBasicAudio(text, lang) {
     return new Promise((resolve) => {
         window.speechSynthesis.cancel();
@@ -2981,6 +2986,7 @@ function playBasicAudio(text, lang) {
     });
 }
 
+// 🔊 2. 프리미엄 설정창 미리듣기 (에러 추적 및 슬래시 버그 픽스)
 window.playSampleVoice = async function(type) {
     const targetLanguage = document.getElementById('targetLanguage').value || 'en-US';
     const baseLang = targetLanguage.substring(0, 2);
@@ -3008,22 +3014,19 @@ window.playSampleVoice = async function(type) {
         "sw": "Oh, mambo! Um... sikutarajia kukuona hapa. Kusema kweli... imekuwa siku ndefu sana, lakini, haha, nina furaha tumekutana!",
         "id": "Oh, hai! Um... aku nggak nyangka bakal ketemu kamu di sini. Jujur ya... hari ini panjang banget, tapi, haha, aku seneng kita bisa kebetulan ketemu!"
     };
-// 지원하지 않는 언어는 영어로 폴백
-    const sampleText = previewTexts[baseLang] || previewTexts["en"];
+const sampleText = previewTexts[baseLang] || previewTexts["en"];
     
     if (type === 'basic') {
-        if (typeof window.speakText === 'function') {
-            window.speakText(sampleText, targetLanguage);
-        } else {
-            alert("일반 기기 음성: " + sampleText);
-        }
+        if (typeof window.speakText === 'function') window.speakText(sampleText, targetLanguage);
+        else alert("일반 기기 음성: " + sampleText);
     } else if (type === 'premium') {
         const selectedVoiceCode = localStorage.getItem('premium_voice_code') || 'Zephyr';
         const avatarWrap = document.getElementById('avatarWrap');
         if(avatarWrap) avatarWrap.style.borderColor = "#f59e0b"; 
 
         try {
-            const response = await fetch(`${WORKER_URL}/tts`, {
+            const cleanUrl = WORKER_URL.replace(/\/$/, '') + '/tts'; // URL 슬래시 정리
+            const response = await fetch(cleanUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ text: sampleText, voiceCode: selectedVoiceCode })
@@ -3031,16 +3034,19 @@ window.playSampleVoice = async function(type) {
             const data = await response.json();
             
             if (data.audioContent) {
-                // mp3에서 wav로 완벽 수정!
                 const audio = new Audio("data:audio/wav;base64," + data.audioContent);
                 audio.play();
                 audio.onended = () => { if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe"; };
+            } else if (data.error) {
+                alert("🚨 제미나이 생성 에러:\n" + data.error);
+                if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe";
             } else {
-                alert("음성 생성 실패");
+                alert("알 수 없는 이유로 음성 생성에 실패했습니다.");
                 if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe";
             }
         } catch (error) {
             console.error("네트워크 에러:", error);
+            alert("네트워크 연결 실패: 워커 주소나 인터넷 상태를 확인해주세요.");
             if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe";
         }
     }
