@@ -2939,7 +2939,7 @@ window.selectPremiumVoice = function(voiceCode, voiceName, isUserClick = true) {
 };
 
 // ==========================================
-// 🔊 3. 앱 전체 공통 재생기 & 미리듣기 엔진 (WAV 에러 해결)
+// 🔊 1. 앱 전체 공통 TTS 재생기
 // ==========================================
 window.playAppAudio = async function(text, type, langCode = 'en-US') {
     if (!text) return;
@@ -2948,7 +2948,7 @@ window.playAppAudio = async function(text, type, langCode = 'en-US') {
     if (type === 'premium') {
         const selectedVoiceCode = localStorage.getItem('premium_voice_code') || 'Zephyr';
         try {
-            const cleanUrl = WORKER_URL.replace(/\/$/, '') + '/tts'; // URL 슬래시 정리
+            const cleanUrl = WORKER_URL.replace(/\/$/, '') + '/tts';
             const response = await fetch(cleanUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -2957,7 +2957,8 @@ window.playAppAudio = async function(text, type, langCode = 'en-US') {
             const data = await response.json();
             
             if (data.audioContent) {
-                const audio = new Audio("data:audio/wav;base64," + data.audioContent);
+                const mimeType = data.mimeType || 'audio/wav';
+                const audio = new Audio(`data:${mimeType};base64,` + data.audioContent);
                 await audio.play();
                 return new Promise(resolve => { audio.onended = resolve; });
             } else if (data.error) {
@@ -2968,15 +2969,19 @@ window.playAppAudio = async function(text, type, langCode = 'en-US') {
             }
         } catch (error) {
             console.error("프리미엄 재생 실패, 일반 음성으로 대체:", error);
-            return playBasicAudio(text, currentLang);
+            // 🔥 여기도 window. 을 붙여서 절대 길을 잃지 않게 수정!
+            return window.playBasicAudio(text, currentLang);
         }
     } else {
-        return playBasicAudio(text, currentLang);
+        // 🔥 여기도 window. 을 붙여서 명확하게 호출!
+        return window.playBasicAudio(text, currentLang);
     }
 };
 
-// (유지) 일반 음성 재생 함수
-function playBasicAudio(text, lang) {
+// ==========================================
+// 🔊 2. 일반 음성 재생 전용 함수 (window. 부착 완료!)
+// ==========================================
+window.playBasicAudio = function(text, lang) {
     return new Promise((resolve) => {
         window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(text);
@@ -2984,9 +2989,9 @@ function playBasicAudio(text, lang) {
         utterance.onend = resolve;
         window.speechSynthesis.speak(utterance);
     });
-}
+};
 
-// 🔊 2. 프리미엄 설정창 미리듣기 (에러 추적 및 슬래시 버그 픽스)
+// 🔊 2. 프리미엄 설정창 미리듣기
 window.playSampleVoice = async function(type) {
     const targetLanguage = document.getElementById('targetLanguage').value || 'en-US';
     const baseLang = targetLanguage.substring(0, 2);
@@ -3025,7 +3030,7 @@ const sampleText = previewTexts[baseLang] || previewTexts["en"];
         if(avatarWrap) avatarWrap.style.borderColor = "#f59e0b"; 
 
         try {
-            const cleanUrl = WORKER_URL.replace(/\/$/, '') + '/tts'; // URL 슬래시 정리
+            const cleanUrl = WORKER_URL.replace(/\/$/, '') + '/tts';
             const response = await fetch(cleanUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -3034,8 +3039,10 @@ const sampleText = previewTexts[baseLang] || previewTexts["en"];
             const data = await response.json();
             
             if (data.audioContent) {
-                const audio = new Audio("data:audio/wav;base64," + data.audioContent);
-                audio.play();
+                // 🔥 수정 완료: 제미나이가 준 '진짜 확장자' 자동 적용!
+                const mimeType = data.mimeType || 'audio/wav';
+                const audio = new Audio(`data:${mimeType};base64,` + data.audioContent);
+                await audio.play();
                 audio.onended = () => { if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe"; };
             } else if (data.error) {
                 alert("🚨 제미나이 생성 에러:\n" + data.error);
