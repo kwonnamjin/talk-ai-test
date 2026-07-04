@@ -2913,7 +2913,7 @@ window.playBasicAudio = function(text, lang) {
     });
 };
 
-// 3. 프리미엄 설정창 미리듣기
+// 3. 프리미엄 설정창 미리듣기 (일레븐랩스 전용으로 완전 교체!)
 window.playSampleVoice = async function(type) {
     const targetLanguage = document.getElementById('targetLanguage').value || 'en-US';
     const baseLang = targetLanguage.substring(0, 2);
@@ -2941,13 +2941,15 @@ window.playSampleVoice = async function(type) {
         "sw": "Oh, mambo! Um... sikutarajia kukuona hapa. Kusema kweli... imekuwa siku ndefu sana, lakini, haha, nina furaha tumekutana!",
         "id": "Oh, hai! Um... aku nggak nyangka bakal ketemu kamu di sini. Jujur ya... hari ini panjang banget, tapi, haha, aku seneng kita bisa kebetulan ketemu!"
     };
+    // 지원하지 않는 언어면 기본 영어 텍스트 출력
     const sampleText = previewTexts[baseLang] || previewTexts["en"];
     
     if (type === 'basic') {
         if (typeof window.speakText === 'function') window.speakText(sampleText, targetLanguage);
         else alert("일반 기기 음성: " + sampleText);
     } else if (type === 'premium') {
-        const selectedVoiceCode = localStorage.getItem('premium_voice_code') || 'Zephyr';
+        // 프리미엄 보이스 코드가 없으면 우리가 넣은 1번 목소리로 임시 세팅
+        const selectedVoiceCode = localStorage.getItem('premium_voice_code') || '8jHHF8rMqMlg8if2mOUe';
         const avatarWrap = document.getElementById('avatarWrap');
         if(avatarWrap) avatarWrap.style.borderColor = "#f59e0b"; 
 
@@ -2961,11 +2963,13 @@ window.playSampleVoice = async function(type) {
             const data = await response.json();
             
             if (data.audioContent) {
-                // 🔥 방금 만든 무적의 재생기 출격!
-                const audio = new Audio("data:audio/mpeg;base64," + data.audioContent); audio.play();
+                // ✨ 포장지 벗길 필요 없는 초간단 일레븐랩스 MP3 재생!
+                const audio = new Audio("data:audio/mpeg;base64," + data.audioContent);
+                audio.play();
                 if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe";
             } else if (data.error) {
-                alert("🚨 제미나이 생성 에러:\n" + data.error);
+                // 제미나이 글자 삭제! 진짜 에러 원인 출력
+                alert("🚨 일레븐랩스 에러:\n" + data.error);
                 if(avatarWrap) avatarWrap.style.borderColor = "#bfdbfe";
             } else {
                 alert("알 수 없는 이유로 음성 생성에 실패했습니다.");
