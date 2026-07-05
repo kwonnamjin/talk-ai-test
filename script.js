@@ -3058,25 +3058,40 @@ setTimeout(() => {
 window.isInterpActive = false;
 window.interpRec = null;
 
-// 통역기 창 열기
+// 통역기 창 열기 (에러 방어막 추가)
 window.openInterpreter = function() {
+    console.log("통역기 실행!");
     const modal = document.getElementById('interpreterModal');
-    if(modal) modal.classList.remove('hidden');
+    if(!modal) {
+        alert("통역기 화면을 찾을 수 없습니다. HTML을 확인해 주세요!");
+        return;
+    }
     
-    // UI에 현재 설정된 언어 이름 세팅
-    const tLang = document.getElementById('targetLanguage');
-    const targetName = tLang ? tLang.options[tLang.selectedIndex].dataset.langName : 'English';
-    const sttLang = document.getElementById('sttInputLanguage');
-    const inputName = sttLang ? sttLang.options[sttLang.selectedIndex].dataset.langName : 'Korean';
+    // 1. 화면 즉시 열기
+    modal.classList.remove('hidden');
     
-    document.getElementById('interp-lang-top').innerText = targetName;
-    document.getElementById('interp-lang-bottom').innerText = inputName;
+    // 2. 언어 이름 가져오기 (에러 방어 로직 적용)
+    try {
+        const tLangValue = localStorage.getItem('target_language') || 'en-US';
+        const sLangValue = localStorage.getItem('stt_input_language') || 'ko-KR';
+        
+        // 기존 함수가 있으면 쓰고, 없으면 코드로 표출
+        const targetName = typeof window.getLangName === 'function' ? window.getLangName(tLangValue) : "AI 언어";
+        const inputName = typeof window.getLangName === 'function' ? window.getLangName(sLangValue) : "내 언어";
+        
+        const topLabel = document.getElementById('interp-lang-top');
+        const bottomLabel = document.getElementById('interp-lang-bottom');
+        if (topLabel) topLabel.innerText = targetName;
+        if (bottomLabel) bottomLabel.innerText = inputName;
+    } catch(e) {
+        console.warn("언어 이름 표출 에러 (무시됨):", e);
+    }
     
-    // 마이크 초기화
+    // 3. 마이크 초기화
     if (!window.interpRec) {
         if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
             window.interpRec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-            window.interpRec.continuous = false; // 한 턴씩 듣고 번역 후 다시 켬
+            window.interpRec.continuous = false; // 한 턴씩 듣고 멈춤
             window.interpRec.interimResults = false;
             
             window.interpRec.onresult = (e) => {
@@ -3086,16 +3101,22 @@ window.openInterpreter = function() {
                 }
             };
             
+            // 말을 멈추면 0.5초 뒤에 다시 켜는 무한 루프
             window.interpRec.onend = () => {
-                // 통역 모드가 켜져 있다면, 말하기가 끝나도 1초 뒤에 다시 마이크를 켬 (연속 대화)
                 if(window.isInterpActive) {
                     setTimeout(() => {
                         if(window.isInterpActive) {
-                            try { window.interpRec.start(); } catch(e) {}
+                            try { window.interpRec.start(); } catch(err) {}
                         }
                     }, 500);
                 }
             };
+
+            window.interpRec.onerror = (e) => {
+                console.log("마이크 에러 대기 중...");
+            };
+        } else {
+            alert("이 브라우저에서는 실시간 음성 인식을 지원하지 않습니다.");
         }
     }
 };
@@ -3105,7 +3126,7 @@ window.closeInterpreter = function() {
     const modal = document.getElementById('interpreterModal');
     if(modal) modal.classList.add('hidden');
     
-    // 창 닫을 때 마이크도 무조건 끄기
+    // 창 닫을 때 통역 마이크도 강제 종료
     if (window.isInterpActive) {
         window.toggleInterpMic();
     }
@@ -3113,39 +3134,45 @@ window.closeInterpreter = function() {
 
 // 중앙 마이크 버튼 토글 (ON/OFF)
 window.toggleInterpMic = function() {
-    if(!window.interpRec) return alert("마이크를 지원하지 않는 기기입니다.");
+    if(!window.interpRec) return alert("마이크를 켤 수 없습니다.");
     
     const btn = document.getElementById('interp-mic-btn');
     const icon = document.getElementById('interp-mic-icon');
     const status = document.getElementById('interp-status');
     
     if (window.isInterpActive) {
-        // OFF 하기 (연한 파란색)
+        // OFF 하기
         window.isInterpActive = false;
         try { window.interpRec.stop(); } catch(e) {}
         
-        btn.classList.replace('bg-orange-50', 'bg-blue-50');
-        btn.classList.replace('border-orange-200', 'border-blue-100');
-        btn.classList.replace('text-orange-500', 'text-blue-500');
-        icon.classList.remove('animate-pulse');
-        status.innerHTML = "실시간 통역 모드 (OFF)";
-        status.classList.replace('text-orange-600', 'text-slate-500');
-        status.classList.replace('bg-orange-100', 'bg-slate-100');
+        if(btn) {
+            btn.classList.replace('bg-orange-50', 'bg-blue-50');
+            btn.classList.replace('border-orange-200', 'border-blue-100');
+            btn.classList.replace('text-orange-500', 'text-blue-500');
+        }
+        if(icon) icon.classList.remove('animate-pulse');
+        if(status) {
+            status.innerHTML = "실시간 통역 모드 (OFF)";
+            status.classList.replace('text-orange-600', 'text-slate-500');
+            status.classList.replace('bg-orange-100', 'bg-slate-100');
+        }
     } else {
-        // ON 하기 (연한 주황색)
+        // ON 하기
         window.isInterpActive = true;
-        
-        // 💡 팁: 두 언어를 모두 감지하기 위해 빈 언어코드로 설정하거나 기본 언어로 둠
-        window.interpRec.lang = document.getElementById('sttInputLanguage').value;
+        window.interpRec.lang = localStorage.getItem('stt_input_language') || 'ko-KR';
         try { window.interpRec.start(); } catch(e) {}
         
-        btn.classList.replace('bg-blue-50', 'bg-orange-50');
-        btn.classList.replace('border-blue-100', 'border-orange-200');
-        btn.classList.replace('text-blue-500', 'text-orange-500');
-        icon.classList.add('animate-pulse');
-        status.innerHTML = "실시간 통역 모드 (ON) <i class='fa-solid fa-satellite-dish ml-1'></i>";
-        status.classList.replace('text-slate-500', 'text-orange-600');
-        status.classList.replace('bg-slate-100', 'bg-orange-100');
+        if(btn) {
+            btn.classList.replace('bg-blue-50', 'bg-orange-50');
+            btn.classList.replace('border-blue-100', 'border-orange-200');
+            btn.classList.replace('text-blue-500', 'text-orange-500');
+        }
+        if(icon) icon.classList.add('animate-pulse');
+        if(status) {
+            status.innerHTML = "실시간 통역 모드 (ON) <i class='fa-solid fa-satellite-dish ml-1'></i>";
+            status.classList.replace('text-slate-500', 'text-orange-600');
+            status.classList.replace('bg-slate-100', 'bg-orange-100');
+        }
     }
 };
 
@@ -3153,26 +3180,25 @@ window.toggleInterpMic = function() {
 window.processInterpTranslation = async function(text) {
     if (!text.trim()) return;
     
-    // 💸 번개 차감 로직 (통역 1회당 1차감)
+    // 번개 차감 로직
     if (typeof window.checkAndBlockAPI === 'function' && !window.checkAndBlockAPI()) {
-        window.toggleInterpMic(); // 번개 없으면 마이크 강제 종료
+        window.toggleInterpMic(); 
         return; 
     }
     if (typeof window.incrementLocalUsage === 'function') window.incrementLocalUsage();
 
-    const tLang = document.getElementById('targetLanguage');
-    const targetName = tLang ? tLang.options[tLang.selectedIndex].dataset.langName : 'English';
-    const sttLang = document.getElementById('sttInputLanguage');
-    const inputName = sttLang ? sttLang.options[sttLang.selectedIndex].dataset.langName : 'Korean';
+    const topLabel = document.getElementById('interp-lang-top');
+    const bottomLabel = document.getElementById('interp-lang-bottom');
+    const targetName = topLabel ? topLabel.innerText : 'English';
+    const inputName = bottomLabel ? bottomLabel.innerText : 'Korean';
     
     const status = document.getElementById('interp-status');
-    status.innerHTML = "번역 중... ⏳";
+    if(status) status.innerHTML = "번역 중... ⏳";
 
-    // AI에게 양방향 통역을 지시하는 강력한 프롬프트
     const sysPrompt = `You are a real-time bilateral interpreter between ${inputName} and ${targetName}.
     Read the user's input. Detect which language it is closer to.
     - If the input is ${inputName}, translate it to ${targetName}.
-    - If the input is ${targetName} (or broken ${targetName} typed in phonetics), translate it to ${inputName}.
+    - If the input is ${targetName} (or typed in phonetics), translate it to ${inputName}.
     Respond ONLY in JSON format EXACTLY like this:
     {
        "detected_source": "Either '${inputName}' or '${targetName}'",
@@ -3180,9 +3206,9 @@ window.processInterpTranslation = async function(text) {
     }`;
 
     try {
-        let res = await fetchAPI(WORKER_URL, {
+        let res = await fetch(WORKER_URL, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-Device-ID': window.apiSessionId || myDeviceId },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 model: "deepseek-chat",
                 messages: [{ role: "system", content: sysPrompt }, { role: "user", content: text }],
@@ -3196,33 +3222,28 @@ window.processInterpTranslation = async function(text) {
         const topText = document.getElementById('interp-text-top');
         const bottomText = document.getElementById('interp-text-bottom');
         
-        // 🌟 한국어(inputName)로 말했다면 -> 위쪽(영어)에 표시
         if (parsed.detected_source.includes(inputName)) {
-            topText.innerText = parsed.translated_text;
-            topText.classList.remove('opacity-40');
-            bottomText.classList.add('opacity-40');
+            if(topText) { topText.innerText = parsed.translated_text; topText.classList.remove('opacity-40'); }
+            if(bottomText) { bottomText.classList.add('opacity-40'); bottomText.innerText = text; } // 내가 한 말 표시
             
-            // 번역된 텍스트 음성으로 읽어주기 (선택사항, 지워도 됨)
             if (typeof window.speakText === 'function') {
-                window.speakText(parsed.translated_text, document.getElementById('targetLanguage').value);
+                window.speakText(parsed.translated_text, localStorage.getItem('target_language') || 'en-US');
             }
         } 
-        // 🌟 영어(targetName)로 말했다면 -> 아래쪽(한국어)에 표시
         else {
-            bottomText.innerText = parsed.translated_text;
-            bottomText.classList.remove('opacity-40');
-            topText.classList.add('opacity-40');
+            if(bottomText) { bottomText.innerText = parsed.translated_text; bottomText.classList.remove('opacity-40'); }
+            if(topText) { topText.classList.add('opacity-40'); topText.innerText = text; } // 상대방이 한 말 표시
             
             if (typeof window.speakText === 'function') {
-                window.speakText(parsed.translated_text, document.getElementById('sttInputLanguage').value);
+                window.speakText(parsed.translated_text, localStorage.getItem('stt_input_language') || 'ko-KR');
             }
         }
 
     } catch(e) {
         console.error(e);
-        status.innerHTML = "통역 에러 ⚠️";
+        if(status) status.innerHTML = "통역 에러 ⚠️";
     } finally {
-        if(window.isInterpActive) {
+        if(window.isInterpActive && status) {
             status.innerHTML = "실시간 통역 모드 (ON) <i class='fa-solid fa-satellite-dish ml-1'></i>";
         }
     }
