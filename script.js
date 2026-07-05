@@ -1958,13 +1958,16 @@ window.renderArchiveList = function() {
         return;
     }
 
-    // 데이터 카드 렌더링 (대표님 원본 그대로 유지)
+    // 데이터 카드 렌더링
     displayItems.forEach((item) => {
         const title = window.currentArchiveTab === 'vocab' ? item.word : (item.original || "대화내용");
         const sub1 = window.currentArchiveTab === 'vocab' ? item.meaning : '';
         const sub2 = window.currentArchiveTab === 'vocab' ? item.example : item.translation;
         const sub3 = window.currentArchiveTab === 'vocab' ? item.exampleMeaning : '';
         
+        // 🌟 [핵심] 이미 음성 파일이 기기나 웹에 소장(저장)되어 있는지 확인하는 변수
+        const hasAudio = item.isPremium && (item.localAudioPath || item.audioData);
+
         container.innerHTML += `
             <div class="bg-white p-4 rounded-2xl border ${item.isPremium ? 'border-amber-400 shadow-md' : 'border-slate-200 shadow-sm'} mb-3 relative overflow-hidden transition-all hover:-translate-y-0.5">
                 ${item.isPremium ? `<div class="absolute -right-4 -bottom-4 text-6xl text-amber-500 opacity-5 pointer-events-none"><i class="fa-solid fa-moon"></i></div>` : ''}
@@ -1973,7 +1976,12 @@ window.renderArchiveList = function() {
                     <span class="text-[9px] font-black px-2 py-0.5 rounded border ${item.isPremium ? 'text-amber-700 bg-amber-50 border-amber-300' : 'text-blue-600 bg-blue-50 border-blue-200'}">
                         <i class="fa-solid fa-${item.isPremium ? 'moon' : 'bookmark'} mr-0.5"></i> ${item.isPremium ? '프리미엄 소장' : '일반 보관'}
                     </span>
-                    <button onclick="window.deleteArchiveItem('${item.id}')" class="text-slate-300 hover:text-red-500 transition-colors px-1 py-0.5"><i class="fa-solid fa-trash-can text-sm"></i></button>
+                    
+                    <!-- 🌟 휴지통 & 황금별 영역 -->
+                    <div class="flex items-center gap-2">
+                        ${hasAudio ? `<i class="fa-solid fa-star text-amber-400 text-sm drop-shadow-sm" title="음성 소장 완료"></i>` : ''}
+                        <button onclick="window.deleteArchiveItem('${item.id}')" class="text-slate-300 hover:text-red-500 transition-colors px-1 py-0.5"><i class="fa-solid fa-trash-can text-sm"></i></button>
+                    </div>
                 </div>
                 
                 <div class="relative z-10 pl-1 mb-3">
@@ -1987,12 +1995,11 @@ window.renderArchiveList = function() {
                 </div>
                 
                 <button onclick="window.playArchiveAudio('${item.id}', ${item.isPremium})" class="w-full py-2.5 ${item.isPremium ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-sm' : 'bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200'} text-[11px] font-black rounded-xl transition-all flex items-center justify-center gap-1.5 relative z-10">
-                    <i class="fa-solid fa-${item.isPremium ? 'play' : 'volume-high'}"></i> ${item.isPremium ? '최고급 원어민 다시듣기' : '일반 음성 듣기'}
+                    <i class="fa-solid fa-${item.isPremium ? 'play' : 'volume-high'}"></i> ${item.isPremium ? (hasAudio ? '최고급 원어민 다시듣기' : '초승달 1개로 음성 생성') : '일반 음성 듣기'}
                 </button>
             </div>
         `;
     });
-};
 
 // ----------------------------------------------------
 // 🚨 주의: 이 아래에 있는 // 4. 통합 저장 엔진 (window.saveToArchive) 과 
