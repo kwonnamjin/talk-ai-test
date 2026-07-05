@@ -2114,8 +2114,13 @@ window.playArchiveAudio = async function(id, isPremium) {
         }
 
     } else {
+        // 프리미엄이 아닌 일반 보관함 재생
         if (typeof window.updateStatus === 'function') window.updateStatus("🔊 일반 기기 음성 재생 중...");
-        await window.playBasicAudio(cleanText, targetLang);
+        
+        // playBasicAudio 대신 기존 앱에 내장된 완벽한 함수(speakText)를 재활용합니다!
+        if (typeof window.speakText === 'function') {
+            window.speakText(cleanText, targetLang);
+        }
     }
 };
 
