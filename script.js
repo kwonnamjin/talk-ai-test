@@ -1956,39 +1956,48 @@ window.renderArchiveList = function() {
 
 // 4. 통합 저장 엔진 (에러 완전 차단 및 로그 추가)
 window.saveToArchive = function(type, itemData, isPremium) {
-    // 데이터베이스 초기화 방어 로직
     if (!window.archiveData) window.archiveData = { script: [], vocab: [], freetalk: [] };
     if (!window.archiveData[type]) window.archiveData[type] = [];
 
+    // 🔥 초승달 결제 로직 삭제! 저장 자체는 무료입니다.
     if (isPremium) {
-        const isConfirmed = confirm("🌙 초승달 1개를 사용하여 최고급 원어민 음성으로 영구 소장하시겠습니까?");
-        if (!isConfirmed) return;
-        alert("✨ 초승달이 사용되었습니다! 프리미엄 보관함에 저장 완료.");
+        alert("✨ 프리미엄 보관함에 담겼습니다! (최초 듣기 시 초승달 1개 소모)");
     } else {
         alert("💾 일반 보관함에 저장되었습니다.");
     }
 
+    // 저장하는 순간의 설정값 박제
+    const currentLang = localStorage.getItem('target_language') || 'en-US';
+    const currentVoiceCode = localStorage.getItem('premium_voice_code') || '';
+
     const newItem = {
         id: 'archive_' + Date.now(),
         isPremium: isPremium,
-        audioPath: '',
+        savedLangCode: currentLang,
+        savedVoiceCode: currentVoiceCode,
+        audioData: null, // 👈 [핵심] 여기에 나중에 구글에서 받아온 진짜 음성을 저장할 겁니다!
         ...itemData
     };
 
-    window.archiveData[type].unshift(newItem); // 데이터 추가
-    window.saveArchiveData(); // 로컬스토리지에 즉시 저장
-    
-    console.log(`[저장 성공] 카테고리: ${type}, 데이터:`, newItem); 
+    window.archiveData[type].unshift(newItem); 
+    window.saveArchiveData(); 
     
     if (window.currentArchiveTab === type) {
         window.renderArchiveList();
     }
 };
-
 // 5. 삭제 및 오디오 재생 (더미)
 window.deleteArchiveItem = function(id) {
-    if(confirm("이 항목을 삭제하시겠습니까?")) {
-        window.archiveData[window.currentArchiveTab] = window.archiveData[window.currentArchiveTab].filter(item => item.id !== id);
+    if(confirm("이 항목을 삭제하시겠습니까? (소장된 프리미엄 음성 파일도 기기에서 완전히 삭제됩니다)")) {
+        const currentTab = window.currentArchiveTab;
+        const item = window.archiveData[currentTab].find(i => i.id === id);
+
+        // 🔥 [핵심] 플러터 앱에게 "이 경로에 있는 파일 지워!" 라고 명령
+        if (item && item.localAudioPath && window.flutter_inappwebview) {
+            window.flutter_inappwebview.callHandler('deleteLocalFile', item.localAudioPath);
+        }
+
+        window.archiveData[currentTab] = window.archiveData[currentTab].filter(i => i.id !== id);
         window.saveArchiveData();
         window.renderArchiveList();
     }
@@ -1996,47 +2005,76 @@ window.deleteArchiveItem = function(id) {
 
 // 5. 보관함 오디오 재생 (일반/프리미엄 완벽 연동)
 window.playArchiveAudio = async function(id, isPremium) {
-    // 1. 현재 보고 있는 보관함 탭(script/vocab/freetalk)에서 클릭한 아이템 데이터 찾기
     const currentTab = window.currentArchiveTab;
     const item = window.archiveData[currentTab].find(i => i.id === id);
-    
-    if (!item) {
-        alert("데이터를 찾을 수 없습니다.");
-        return;
-    }
+    if (!item) return alert("데이터를 찾을 수 없습니다.");
 
-    // 2. 탭 종류에 따라 읽어줄 텍스트 영리하게 추출하기
-    let textToRead = "";
-    if (currentTab === 'vocab') {
-        // 단어장은 단어를 먼저 읽고, 뒤에 예문을 이어서 읽음
-        textToRead = item.word;
-        if (item.example && item.example.trim() !== "null" && item.example.trim() !== "") {
-            textToRead += ". " + item.example; 
-        }
-    } else {
-        // 대본(script)과 프리토킹(freetalk)은 저장된 원문(original) 그대로 재생
-        textToRead = item.original; 
-    }
-
+    let textToRead = currentTab === 'vocab' ? item.word + (item.example && item.example.trim() !== "null" ? ". " + item.example : "") : item.original;
     if (!textToRead) return;
-
-    // 기계음 발음이 꼬이지 않도록 특수문자 및 이모지 깔끔하게 필터링
-    const cleanText = textToRead.replace(/[\*\#\`\~\"\'\(\)\[\]]/g, ' ').replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '').trim();
-
-    // 3. 프리미엄 여부에 맞춰 통합 오디오 재생기 출격!
-    const audioType = isPremium ? 'premium' : 'basic';
-    const targetLang = localStorage.getItem('target_language') || 'en-US';
     
-    if (typeof window.updateStatus === 'function') {
-        window.updateStatus(isPremium ? "💎 최고급 원어민 음성 불러오는 중..." : "🔊 일반 기기 음성 재생 중...");
-    }
+    const cleanText = textToRead.replace(/[\*\#\`\~\"\'\(\)\[\]]/g, ' ').replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '').trim();
+    const targetLang = item.savedLangCode || localStorage.getItem('target_language') || 'en-US';
 
-    try {
-        await window.playAppAudio(cleanText, audioType, targetLang);
-        if (typeof window.updateStatus === 'function') window.updateStatus("재생 완료!");
-    } catch (error) {
-        console.error("보관함 오디오 재생 실패:", error);
-        if (typeof window.updateStatus === 'function') window.updateStatus("재생 실패");
+    if (isPremium) {
+        // 🚀 [1단계] 기기에 저장된 파일 경로(localAudioPath)가 있는지 확인!
+        if (item.localAudioPath) {
+            if (typeof window.updateStatus === 'function') window.updateStatus("💎 기기에 소장된 음성 재생 중...");
+            // 플러터 앱에게 기기에 있는 파일 재생을 명령합니다.
+            if (window.flutter_inappwebview) {
+                window.flutter_inappwebview.callHandler('playLocalFile', item.localAudioPath);
+            }
+            return;
+        }
+
+        // 🚀 [2단계] 처음 듣는 거라면 초승달 결제
+        let currentMoons = parseInt(localStorage.getItem('moon_coins')) || 0;
+        if (currentMoons <= 0) return alert("❌ 초승달이 부족합니다.");
+
+        if (!confirm("🌙 초승달 1개를 사용하여 원어민 음성을 기기에 평생 소장하시겠습니까?")) return;
+
+        localStorage.setItem('moon_coins', currentMoons - 1);
+        if (typeof window.updateBadgeUI === 'function') window.updateBadgeUI();
+        if (typeof window.updateStatus === 'function') window.updateStatus("✨ 초승달 사용! 기기에 다운로드 중...");
+
+        // 🚀 [3단계] 구글 API 호출
+        const selectedVoiceCode = item.savedVoiceCode || localStorage.getItem('premium_voice_code') || 'Zephyr';
+        try {
+            const response = await fetch(WORKER_URL + 'tts', {
+                method: 'POST',
+                body: JSON.stringify({ text: cleanText, voiceCode: selectedVoiceCode })
+            });
+            const data = await response.json();
+
+            if (data.audioContent) {
+                // 🔥 [핵심] 플러터 앱에게 Base64 데이터를 주면서 "기기 폴더에 mp3로 저장해!" 라고 명령
+                if (window.flutter_inappwebview) {
+                    const savedFilePath = await window.flutter_inappwebview.callHandler('saveAudioToDevice', {
+                        fileName: `talkai_premium_${id}.mp3`,
+                        base64Data: data.audioContent
+                    });
+                    
+                    if (savedFilePath) {
+                        // 저장 성공 시, 파일 '경로'만 가볍게 기록
+                        item.localAudioPath = savedFilePath;
+                        window.saveArchiveData();
+                        
+                        // 최초 재생은 웹에서 직접 재생 (Base64가 이미 있으니까)
+                        await window.playGeminiAudio(data.audioContent);
+                        if (typeof window.updateStatus === 'function') window.updateStatus("기기 폴더에 소장 완료!");
+                    }
+                }
+            } else {
+                throw new Error("음성 생성 에러");
+            }
+        } catch (error) {
+            localStorage.setItem('moon_coins', parseInt(localStorage.getItem('moon_coins')) + 1);
+            if (typeof window.updateBadgeUI === 'function') window.updateBadgeUI();
+            alert("서버 오류로 생성에 실패했습니다. 초승달이 반환되었습니다.");
+        }
+
+    } else {
+        if (typeof window.updateStatus === 'function') window.updateStatus("🔊 일반 기기 음성 재생 중...");
+        await window.playBasicAudio(cleanText, targetLang);
     }
 };
 
@@ -2898,18 +2936,25 @@ window.selectPremiumVoice = function(voiceCode, voiceName) {
 
 
 // 1. 통합 재생기
-window.playAppAudio = async function(text, type, langCode = 'en-US') {
+// 💡 파라미터에 specificVoiceCode 를 추가합니다.
+window.playAppAudio = async function(text, type, langCode = 'en-US', specificVoiceCode = null) {
     if (type === 'premium') {
-        const selectedVoiceCode = localStorage.getItem('premium_voice_code') || '21m00Tcm4TlvDq8ikWAM'; // 일레븐랩스 목소리 ID
+        // 💡 [핵심] 파라미터로 넘어온 박제된 목소리가 있으면 무조건 1순위로 사용! (없으면 현재 앱 설정 사용)
+        const selectedVoiceCode = specificVoiceCode || localStorage.getItem('premium_voice_code') || 'Zephyr'; 
+        
         const response = await fetch(WORKER_URL + 'tts', {
             method: 'POST',
             body: JSON.stringify({ text: text, voiceCode: selectedVoiceCode })
         });
         const data = await response.json();
         
-        // 브라우저 기본 오디오 객체로 바로 재생!
-        const audio = new Audio("data:audio/mpeg;base64," + data.audioContent);
-        audio.play();
+        // (💡 참고: 제미나이 오디오 디코딩 로직이 있다면 이렇게 연결합니다)
+        if (data.audioContent && typeof window.playGeminiAudio === 'function') {
+            await window.playGeminiAudio(data.audioContent);
+        } else {
+            const audio = new Audio("data:audio/mpeg;base64," + data.audioContent);
+            audio.play();
+        }
     } else {
         return window.playBasicAudio(text, langCode);
     }
