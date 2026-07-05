@@ -1873,23 +1873,21 @@ window.renderSpecialPersona = function() {
 // 📂 내 보관함 통합 엔진 (박스 요약 + 리스트형 완벽 호환)
 // ==========================================
 
-// 💡 [추가] 현재 선택된 필터 상태 저장용 변수
-window.archiveFilter = 'all';
+window.archiveData = { script: [], vocab: [], freetalk: [] };
+window.currentArchiveTab = 'script';
 
-// 💡 [추가] 필터 버튼을 눌렀을 때 작동하는 함수
-window.setArchiveFilter = function(type) {
-    if (window.archiveFilter === type) {
-        window.archiveFilter = 'all'; // 이미 선택된 걸 누르면 전체보기로 복구
-    } else {
-        window.archiveFilter = type;  // 선택한 필터 적용
-    }
-    window.renderArchiveList(); // 화면 다시 그리기
+// 1. 데이터 불러오기 / 저장하기
+window.loadArchiveData = function() {
+    const saved = localStorage.getItem('talkai_archive_db');
+    if (saved) window.archiveData = JSON.parse(saved);
+};
+window.saveArchiveData = function() {
+    localStorage.setItem('talkai_archive_db', JSON.stringify(window.archiveData));
 };
 
 // 2. 탭 전환 (버튼 색상 변경 + 리스트 갱신)
 window.switchArchiveTab = function(tabName) {
     window.currentArchiveTab = tabName;
-    window.archiveFilter = 'all'; // 💡 탭을 바꾸면 무조건 전체보기로 초기화
     
     const tabs = ['script', 'vocab', 'freetalk'];
     tabs.forEach(t => {
@@ -1909,55 +1907,23 @@ window.renderArchiveList = function() {
     const container = document.getElementById('archiveListContainer');
     const countGen = document.getElementById('count-general');
     const countPrem = document.getElementById('count-premium');
-    
-    // 💡 HTML에 추가한 박스 요소 가져오기
-    const boxGen = document.getElementById('box-general');
-    const boxPrem = document.getElementById('box-premium');
-    
     if (!container) return;
 
-    // 전체 데이터 (필터링 전)
-    const allItems = window.archiveData[window.currentArchiveTab] || [];
+    // 데이터가 없으면 빈 배열[]로 초기화 방어
+    const items = window.archiveData[window.currentArchiveTab] || [];
     
-    // 상단 박스 숫자 업데이트 (항상 전체 개수 표시)
-    if(countGen) countGen.innerText = allItems.filter(i => !i.isPremium).length;
-    if(countPrem) countPrem.innerText = allItems.filter(i => i.isPremium).length;
-
-    // 💡 [추가] 박스 테두리 애니메이션 (선택 시 강조, 비선택 시 흐리게)
-    if (boxGen && boxPrem) {
-        if (window.archiveFilter === 'general') {
-            boxGen.classList.add('ring-4', 'ring-blue-300', 'scale-105');
-            boxGen.classList.remove('opacity-50');
-            boxPrem.classList.remove('ring-4', 'ring-amber-300', 'scale-105');
-            boxPrem.classList.add('opacity-50');
-        } else if (window.archiveFilter === 'premium') {
-            boxPrem.classList.add('ring-4', 'ring-amber-300', 'scale-105');
-            boxPrem.classList.remove('opacity-50');
-            boxGen.classList.remove('ring-4', 'ring-blue-300', 'scale-105');
-            boxGen.classList.add('opacity-50');
-        } else {
-            // 'all' 상태일 때는 둘 다 원래 상태로
-            boxGen.classList.remove('ring-4', 'ring-blue-300', 'scale-105', 'opacity-50');
-            boxPrem.classList.remove('ring-4', 'ring-amber-300', 'scale-105', 'opacity-50');
-        }
-    }
-
-    // 💡 [추가] 필터 조건에 따라 화면에 그릴 데이터만 골라내기
-    let itemsToRender = allItems;
-    if (window.archiveFilter === 'general') {
-        itemsToRender = allItems.filter(i => !i.isPremium);
-    } else if (window.archiveFilter === 'premium') {
-        itemsToRender = allItems.filter(i => i.isPremium);
-    }
+    // 상단 박스 숫자 업데이트
+    if(countGen) countGen.innerText = items.filter(i => !i.isPremium).length;
+    if(countPrem) countPrem.innerText = items.filter(i => i.isPremium).length;
 
     container.innerHTML = ''; 
-    if (itemsToRender.length === 0) {
-        container.innerHTML = `<div class="flex flex-col items-center justify-center h-48 opacity-60 mt-5"><div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-slate-300 text-2xl mb-3"><i class="fa-solid fa-folder-open"></i></div><p class="text-xs font-bold text-slate-400">해당하는 보관 내용이 없습니다.</p></div>`;
+    if (items.length === 0) {
+        container.innerHTML = `<div class="flex flex-col items-center justify-center h-48 opacity-60 mt-5"><div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-slate-300 text-2xl mb-3"><i class="fa-solid fa-folder-open"></i></div><p class="text-xs font-bold text-slate-400">아직 보관된 내용이 없습니다.</p></div>`;
         return;
     }
 
-    // 데이터 카드 렌더링 (기존 코드 완벽하게 유지)
-    itemsToRender.forEach((item) => {
+    // 데이터 카드 렌더링
+    items.forEach((item) => {
         const title = window.currentArchiveTab === 'vocab' ? item.word : (item.original || "대화내용");
         const sub1 = window.currentArchiveTab === 'vocab' ? item.meaning : '';
         const sub2 = window.currentArchiveTab === 'vocab' ? item.example : item.translation;
