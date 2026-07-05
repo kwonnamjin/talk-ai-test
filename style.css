@@ -41,18 +41,12 @@ button#modeTutorBtn, button#modeTranslateBtn {
     min-height: 0 !important;
 }
 
-/* 실시간 통역기 전용 레이아웃 강제 */
 #interpreterModal {
-    position: fixed !important;
+    position: fixed !important; /* 부모 태그 상관없이 무조건 화면 기준 */
+    z-index: 99999 !important;
     top: 0 !important;
     left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    margin: 0 !important;
-    border-radius: 0 !important; /* 모달은 꽉 채우게 */
-    display: flex !important;
-    flex-direction: column !important;
-    background-color: #f8fafc !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    display: none; /* JS에서 block/flex로 전환 */
 }
