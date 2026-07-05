@@ -3209,8 +3209,8 @@ window.processInterpTranslation = async function(text) {
     }`;
 
     try {
-        // 🌟 [수정2] 단순 fetch 대신 대표님의 무적 통신망인 fetchAPI 사용 + X-Device-ID 필수 장착!
-        let res = await fetchAPI(WORKER_URL, {
+        // 🌟 [수정할 부분] WORKER_URL 뒤에 'translate-interp' 를 붙여줍니다!
+        let res = await fetchAPI(WORKER_URL + 'translate-interp', {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
