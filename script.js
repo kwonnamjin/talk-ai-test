@@ -2000,6 +2000,7 @@ window.renderArchiveList = function() {
             </div>
         `;
     });
+};
 
 // ----------------------------------------------------
 // 🚨 주의: 이 아래에 있는 // 4. 통합 저장 엔진 (window.saveToArchive) 과 
