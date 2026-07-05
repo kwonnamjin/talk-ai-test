@@ -3160,7 +3160,80 @@ setTimeout(() => {
 
 
 
+// ==========================================
+// 🚨 실수로 날아간 필수 함수들 긴급 복구 영역
+// ==========================================
 
+// 1. 보관함 데이터베이스 초기화 및 저장 함수 복구
+if (!window.archiveData) {
+    window.archiveData = JSON.parse(localStorage.getItem('talkai_archive_v2')) || { script: [], vocab: [], freetalk: [] };
+}
+window.saveArchiveData = function() {
+    localStorage.setItem('talkai_archive_v2', JSON.stringify(window.archiveData));
+};
+
+// 2. 화면 패널 닫기 함수 복구 (탭 이동 시 필요)
+window.closeAllPanels = function() {
+    const panels = ['panel-home', 'panel-pages', 'panel-report', 'panel-mind', 'panel-character', 'panel-setting', 'screen-archive'];
+    panels.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('hidden');
+    });
+};
+
+// 3. 퀘스트 번개 보상 지급 함수 복구 (오늘 맨 처음 만들었던 것)
+window.addStudyMission = function(type) {
+    if (!type) return;
+    const todayStr = new Date().toLocaleDateString();
+    let streakData = JSON.parse(localStorage.getItem('study_streak_v3')) || { lastDate: todayStr, streak: 0, scriptCount: 0, vocabCount: 0, freeTalkCount: 0, completedToday: false };
+    
+    if (streakData.lastDate !== todayStr) { window.updateStreakUI(); streakData = JSON.parse(localStorage.getItem('study_streak_v3')); }
+    if (streakData.completedToday) return; 
+
+    let changed = false;
+    if (type === 'script' && streakData.scriptCount < 5) { streakData.scriptCount += 1; changed = true; } 
+    else if (type === 'vocab' && streakData.vocabCount < 10) { streakData.vocabCount += 1; changed = true; }
+    else if (type === 'freeTalk' && streakData.freeTalkCount < 10) { streakData.freeTalkCount += 1; changed = true; }
+
+    if (changed) {
+        if (streakData.vocabCount >= 10 && (streakData.scriptCount >= 5 || streakData.freeTalkCount >= 10)) {
+            streakData.completedToday = true;
+            streakData.streak += 1;
+            if (typeof INTIMACY_SYSTEM !== 'undefined' && INTIMACY_SYSTEM.addExp) INTIMACY_SYSTEM.addExp('quest');
+            
+            let rwLightning = 3; 
+            if (streakData.streak === 5) rwLightning = 3;
+            else if (streakData.streak === 10) rwLightning = 5;
+            else if (streakData.streak === 20) rwLightning = 10;
+            else if (streakData.streak === 30) rwLightning = 15; 
+            else if (streakData.streak > 30 && streakData.streak % 10 === 0) rwLightning = 30; 
+
+            setTimeout(() => { 
+                if(typeof window.openStreakModal === 'function') window.openStreakModal(); 
+                let currentLightning = parseInt(localStorage.getItem('lightning_coins') || '0');
+                localStorage.setItem('lightning_coins', currentLightning + rwLightning); 
+                
+                alert(`🎉 퀘스트 완벽 달성! 오늘의 보상 번개 +${rwLightning}개가 지급되었습니다! ⚡`);
+                if(typeof window.updateBadgeUI === 'function') window.updateBadgeUI(); 
+            }, 800);
+        }
+        localStorage.setItem('study_streak_v3', JSON.stringify(streakData));
+        if(typeof window.updateStreakUI === 'function') window.updateStreakUI();
+    }
+};
+
+// 4. renderArchiveList 방어막 추가 (에러 방지용 덮어쓰기)
+const originalRenderArchiveList = window.renderArchiveList;
+window.renderArchiveList = function() {
+    // 혹시 데이터가 또 날아갔으면 강제로 살려냄
+    if (!window.archiveData) {
+        window.archiveData = JSON.parse(localStorage.getItem('talkai_archive_v2')) || { script: [], vocab: [], freetalk: [] };
+    }
+    // 원래 함수 실행
+    if (typeof originalRenderArchiveList === 'function') {
+        originalRenderArchiveList();
+    }
+};
 
 
 
