@@ -1876,18 +1876,23 @@ window.renderSpecialPersona = function() {
 window.archiveData = { script: [], vocab: [], freetalk: [] };
 window.currentArchiveTab = 'script';
 
-// 1. 데이터 불러오기 / 저장하기
-window.loadArchiveData = function() {
-    const saved = localStorage.getItem('talkai_archive_db');
-    if (saved) window.archiveData = JSON.parse(saved);
-};
-window.saveArchiveData = function() {
-    localStorage.setItem('talkai_archive_db', JSON.stringify(window.archiveData));
+// 🌟 [안전 추가 1] 필터 상태 저장 변수와 필터링 실행 함수
+window.archiveFilter = 'all'; 
+
+window.setArchiveFilter = function(type) {
+    // 이미 누른 필터를 또 누르면 '전체보기'로 해제, 아니면 해당 필터 적용
+    if (window.archiveFilter === type) {
+        window.archiveFilter = 'all';
+    } else {
+        window.archiveFilter = type;
+    }
+    window.renderArchiveList(); // 화면 다시 그리기
 };
 
 // 2. 탭 전환 (버튼 색상 변경 + 리스트 갱신)
 window.switchArchiveTab = function(tabName) {
     window.currentArchiveTab = tabName;
+    window.archiveFilter = 'all'; // 🌟 [안전 추가 2] 탭 바꿀 때 필터 전체보기로 리셋!
     
     const tabs = ['script', 'vocab', 'freetalk'];
     tabs.forEach(t => {
@@ -1912,18 +1917,42 @@ window.renderArchiveList = function() {
     // 데이터가 없으면 빈 배열[]로 초기화 방어
     const items = window.archiveData[window.currentArchiveTab] || [];
     
-    // 상단 박스 숫자 업데이트
+    // 상단 박스 숫자 업데이트 (필터와 상관없이 탭 전체 개수 유지)
     if(countGen) countGen.innerText = items.filter(i => !i.isPremium).length;
     if(countPrem) countPrem.innerText = items.filter(i => i.isPremium).length;
 
+    // 🌟 [안전 추가 3-1] 박스 눌렀을 때 시각적 효과 (선택된 박스 테두리 강조)
+    const boxGen = document.getElementById('box-general');
+    const boxPrem = document.getElementById('box-premium');
+    if (boxGen && boxPrem) {
+        boxGen.classList.remove('ring-4', 'ring-blue-300', 'opacity-40');
+        boxPrem.classList.remove('ring-4', 'ring-amber-300', 'opacity-40');
+
+        if (window.archiveFilter === 'general') {
+            boxGen.classList.add('ring-4', 'ring-blue-300');
+            boxPrem.classList.add('opacity-40');
+        } else if (window.archiveFilter === 'premium') {
+            boxPrem.classList.add('ring-4', 'ring-amber-300');
+            boxGen.classList.add('opacity-40');
+        }
+    }
+
+    // 🌟 [안전 추가 3-2] 필터링 조건에 맞는 아이템만 골라내기
+    let displayItems = items;
+    if (window.archiveFilter === 'general') {
+        displayItems = items.filter(i => !i.isPremium);
+    } else if (window.archiveFilter === 'premium') {
+        displayItems = items.filter(i => i.isPremium);
+    }
+
     container.innerHTML = ''; 
-    if (items.length === 0) {
-        container.innerHTML = `<div class="flex flex-col items-center justify-center h-48 opacity-60 mt-5"><div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-slate-300 text-2xl mb-3"><i class="fa-solid fa-folder-open"></i></div><p class="text-xs font-bold text-slate-400">아직 보관된 내용이 없습니다.</p></div>`;
+    if (displayItems.length === 0) {
+        container.innerHTML = `<div class="flex flex-col items-center justify-center h-48 opacity-60 mt-5"><div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-slate-300 text-2xl mb-3"><i class="fa-solid fa-folder-open"></i></div><p class="text-xs font-bold text-slate-400">해당하는 보관 내용이 없습니다.</p></div>`;
         return;
     }
 
-    // 데이터 카드 렌더링
-    items.forEach((item) => {
+    // 데이터 카드 렌더링 (🌟 대표님의 원본 템플릿 100% 그대로 유지!)
+    displayItems.forEach((item) => {
         const title = window.currentArchiveTab === 'vocab' ? item.word : (item.original || "대화내용");
         const sub1 = window.currentArchiveTab === 'vocab' ? item.meaning : '';
         const sub2 = window.currentArchiveTab === 'vocab' ? item.example : item.translation;
