@@ -3180,6 +3180,7 @@ window.toggleInterpMic = function() {
 };
 
 // 딥시크로 텍스트 보내서 번역 및 뿌려주기
+// 딥시크로 텍스트 보내서 번역 및 뿌려주기
 window.processInterpTranslation = async function(text) {
     if (!text.trim()) return;
     
@@ -3190,34 +3191,38 @@ window.processInterpTranslation = async function(text) {
     }
     if (typeof window.incrementLocalUsage === 'function') window.incrementLocalUsage();
 
-    const topLabel = document.getElementById('interp-lang-top');
-    const bottomLabel = document.getElementById('interp-lang-bottom');
-    const targetName = topLabel ? topLabel.innerText : 'English';
-    const inputName = bottomLabel ? bottomLabel.innerText : 'Korean';
-    
     const status = document.getElementById('interp-status');
     if(status) status.innerHTML = "번역 중... ⏳";
 
-    const sysPrompt = `You are a real-time bilateral interpreter between ${inputName} and ${targetName}.
-    Read the user's input. Detect which language it is closer to.
-    - If the input is ${inputName}, translate it to ${targetName}.
-    - If the input is ${targetName} (or typed in phonetics), translate it to ${inputName}.
+    // 🌟 [수정1] 한국어/영어 글자 대신 정확한 코드(ko-KR, en-US)를 써서 AI가 헷갈리지 않게 고정!
+    const tLangCode = localStorage.getItem('target_language') || 'en-US';
+    const sLangCode = localStorage.getItem('stt_input_language') || 'ko-KR';
+
+    const sysPrompt = `You are a real-time bilateral interpreter.
+    Detect if the user's input is closer to ${sLangCode} or ${tLangCode}.
+    - If it's ${sLangCode}, translate to ${tLangCode}.
+    - If it's ${tLangCode}, translate to ${sLangCode}.
     Respond ONLY in JSON format EXACTLY like this:
     {
-       "detected_source": "Either '${inputName}' or '${targetName}'",
+       "detected_lang_code": "either '${sLangCode}' or '${tLangCode}'",
        "translated_text": "the translated result"
     }`;
 
     try {
-        let res = await fetch(WORKER_URL, {
+        // 🌟 [수정2] 단순 fetch 대신 대표님의 무적 통신망인 fetchAPI 사용 + X-Device-ID 필수 장착!
+        let res = await fetchAPI(WORKER_URL, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-Device-ID': typeof myDeviceId !== 'undefined' ? myDeviceId : "unknown" 
+            },
             body: JSON.stringify({
                 model: "deepseek-chat",
                 messages: [{ role: "system", content: sysPrompt }, { role: "user", content: text }],
                 response_format: { type: "json_object" }
             })
         });
+        
         let data = await res.json();
         let rawContent = data.choices[0].message.content.replace(/```json/g, "").replace(/```/g, "").trim();
         let parsed = JSON.parse(rawContent.match(/\{[\s\S]*\}/)[0]);
@@ -3225,30 +3230,32 @@ window.processInterpTranslation = async function(text) {
         const topText = document.getElementById('interp-text-top');
         const bottomText = document.getElementById('interp-text-bottom');
         
-        if (parsed.detected_source.includes(inputName)) {
+        // 🌟 내 언어로 말했다면 -> 위쪽(상대방)에 번역 결과 표시
+        if (parsed.detected_lang_code === sLangCode || parsed.detected_lang_code.includes(sLangCode.split('-')[0])) {
             if(topText) { topText.innerText = parsed.translated_text; topText.classList.remove('opacity-40'); }
             if(bottomText) { bottomText.classList.add('opacity-40'); bottomText.innerText = text; }
             
-            // 💡 여기서 에뮬레이터 에러 방지 (Speak 대신 플러터로 전달)
+            // 플러터 앱으로 음성 읽어달라고 신호 보내기
             if (window.flutter_inappwebview) {
-                window.flutter_inappwebview.callHandler('speak', parsed.translated_text, localStorage.getItem('target_language') || 'en-US', "");
+                window.flutter_inappwebview.callHandler('speak', parsed.translated_text, tLangCode, "");
             } else if (typeof window.speakText === 'function') {
-                window.speakText(parsed.translated_text, localStorage.getItem('target_language') || 'en-US');
+                window.speakText(parsed.translated_text, tLangCode);
             }
         } 
+        // 🌟 상대방 언어로 말했다면 -> 아래쪽(내 쪽)에 번역 결과 표시
         else {
             if(bottomText) { bottomText.innerText = parsed.translated_text; bottomText.classList.remove('opacity-40'); }
             if(topText) { topText.classList.add('opacity-40'); topText.innerText = text; }
             
             if (window.flutter_inappwebview) {
-                window.flutter_inappwebview.callHandler('speak', parsed.translated_text, localStorage.getItem('stt_input_language') || 'ko-KR', "");
+                window.flutter_inappwebview.callHandler('speak', parsed.translated_text, sLangCode, "");
             } else if (typeof window.speakText === 'function') {
-                window.speakText(parsed.translated_text, localStorage.getItem('stt_input_language') || 'ko-KR');
+                window.speakText(parsed.translated_text, sLangCode);
             }
         }
 
     } catch(e) {
-        console.error(e);
+        console.error("통역 에러 발생:", e);
         if(status) status.innerHTML = "통역 에러 ⚠️";
     } finally {
         if(window.isInterpActive && status) {
@@ -3256,7 +3263,6 @@ window.processInterpTranslation = async function(text) {
         }
     }
 };
-// ==========================================
 
 
 
