@@ -295,7 +295,7 @@ window.populateDropdowns = function() {
                 if (setup.target === 'targetLanguage') {
                     localStorage.setItem('target_language', lang.code);
                     
-                    // 🌟 [여기가 추가된 핵심!] 언어가 바뀌면 기존 목소리 기억을 싹 지워버립니다.
+                    // 🌟 언어가 바뀌면 기존 목소리 기억을 싹 지워버립니다.
                     window.selectedTtsVoiceName = "";
                     localStorage.removeItem('saved_voice_name');
                     localStorage.removeItem('selected_voice_name');
@@ -307,6 +307,11 @@ window.populateDropdowns = function() {
                     
                     // 🌟 리스트 새로고침
                     window.requestVoicesFromApp(); 
+
+                    // 🌟 [복구된 핵심 코드] 타겟 언어가 바뀌면 기초발음 페이지도 즉시 새로고침!
+                    if (typeof window.autoLoadAlphabet === 'function') {
+                        window.autoLoadAlphabet();
+                    }
                 }
                 if (setup.target === 'sttInputLanguage') {
                     localStorage.setItem('stt_input_language', lang.code);
