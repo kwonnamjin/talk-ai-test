@@ -3061,7 +3061,7 @@ window.interpRec = null;
 
 window.isInterpSpeaking = false; // 🌟 메아리 방지용 '귀막기' 플래그 추가
 
-// 통역기 창 열기
+// 통역기 창 열기 (마이크 무한 유지 모드)
 window.openInterpreter = function() {
     console.log("통역기 실행!");
     if(typeof window.closeAllPanels === 'function') window.closeAllPanels();
@@ -3084,18 +3084,11 @@ window.openInterpreter = function() {
         if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
             window.interpRec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
             
-            // 🌟 수정됨: 마이크를 끄지 않고 계속 열어둡니다!
+            // 🌟 마이크 계속 켜두기!
             window.interpRec.continuous = true; 
             window.interpRec.interimResults = false;
             
             window.interpRec.onresult = (e) => {
-                // 🌟 핵심 방어막: AI가 말하고 있을 때는 마이크가 들어도 무시합니다! (메아리 방지)
-                if (window.isInterpSpeaking) {
-                    console.log("🤫 AI가 말하는 중이라 무시됨");
-                    return; 
-                }
-
-                // continuous 모드에서는 배열의 맨 마지막 결과가 최신 음성입니다.
                 const lastIdx = e.results.length - 1;
                 const transcript = e.results[lastIdx][0].transcript;
                 if(transcript.trim()) {
@@ -3104,7 +3097,7 @@ window.openInterpreter = function() {
             };
             
             window.interpRec.onend = () => {
-                // 시스템에 의해 마이크가 강제로 끊기면 다시 켭니다 (무한 유지)
+                // 끊어지더라도 모드가 켜져있으면 0.5초 뒤에 즉시 재가동
                 if(window.isInterpActive) {
                     setTimeout(() => {
                         if(window.isInterpActive) {
@@ -3177,17 +3170,12 @@ window.toggleInterpMic = function() {
     }
 };
 
-// 딥시크로 텍스트 보내서 번역 및 뿌려주기
+// 딥시크로 텍스트 보내서 번역 및 뿌려주기 (음성 재생 완전 삭제)
 window.processInterpTranslation = async function(text) {
-    // 🌟 1차 방어: 공백이거나 AI가 이미 말하는 중이면 중단
-    if (!text.trim() || window.isInterpSpeaking) return;
-    
-    // 🌟 2차 방어: 번역 시작과 동시에 마이크 귀를 막습니다!
-    window.isInterpSpeaking = true; 
+    if (!text.trim()) return;
     
     if (typeof window.checkAndBlockAPI === 'function' && !window.checkAndBlockAPI()) {
         window.toggleInterpMic(); 
-        window.isInterpSpeaking = false;
         return; 
     }
     if (typeof window.incrementLocalUsage === 'function') window.incrementLocalUsage();
@@ -3226,25 +3214,15 @@ window.processInterpTranslation = async function(text) {
         const topText = document.getElementById('interp-text-top');
         const bottomText = document.getElementById('interp-text-bottom');
         
-        // 🌟 수정됨: 음성 재생이 끝날 때까지 기다리도록 강제하는 함수
-        const playVoiceWait = async (txt, lang) => {
-            if (window.flutter_inappwebview) {
-                // 플러터 앱이 재생을 완료할 때까지 대기
-                await window.flutter_inappwebview.callHandler('speak', txt, lang, "");
-            } else if (typeof window.speakText === 'function') {
-                window.speakText(txt, lang);
-                await new Promise(r => setTimeout(r, txt.length * 100 + 1000));
-            }
-        };
-
+        // 🌟 내 언어(한국어)로 말했다면 -> 상대방 화면(위)에 번역 결과 띄우기
         if (parsed.detected_lang_code === sLangCode || parsed.detected_lang_code.includes(sLangCode.split('-')[0])) {
             if(topText) { topText.innerText = parsed.translated_text; topText.classList.remove('opacity-40'); }
             if(bottomText) { bottomText.classList.add('opacity-40'); bottomText.innerText = text; }
-            await playVoiceWait(parsed.translated_text, tLangCode);
-        } else {
+        } 
+        // 🌟 상대방 언어(영어)로 말했다면 -> 내 화면(아래)에 번역 결과 띄우기
+        else {
             if(bottomText) { bottomText.innerText = parsed.translated_text; bottomText.classList.remove('opacity-40'); }
             if(topText) { topText.classList.add('opacity-40'); topText.innerText = text; }
-            await playVoiceWait(parsed.translated_text, sLangCode);
         }
 
     } catch(e) {
@@ -3254,11 +3232,6 @@ window.processInterpTranslation = async function(text) {
         if(window.isInterpActive && status) {
             status.innerHTML = "실시간 통역 모드 (ON) <i class='fa-solid fa-satellite-dish ml-1'></i>";
         }
-        
-        // 🌟 핵심 3: AI 목소리가 끝나고 스피커 잔음이 사라질 시간(0.5초)을 벌어준 뒤 마이크 귀를 다시 엽니다!
-        setTimeout(() => {
-            window.isInterpSpeaking = false;
-        }, 500);
     }
 };
 
