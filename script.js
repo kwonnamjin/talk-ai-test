@@ -1873,21 +1873,23 @@ window.renderSpecialPersona = function() {
 // 📂 내 보관함 통합 엔진 (박스 요약 + 리스트형 완벽 호환)
 // ==========================================
 
-window.archiveData = { script: [], vocab: [], freetalk: [] };
-window.currentArchiveTab = 'script';
+// 전역 변수: 현재 선택된 필터 상태 ('all', 'general', 'premium')
+window.archiveFilter = 'all';
 
-// 1. 데이터 불러오기 / 저장하기
-window.loadArchiveData = function() {
-    const saved = localStorage.getItem('talkai_archive_db');
-    if (saved) window.archiveData = JSON.parse(saved);
-};
-window.saveArchiveData = function() {
-    localStorage.setItem('talkai_archive_db', JSON.stringify(window.archiveData));
+// 💡 새로 추가하는 필터링 제어 함수
+window.setArchiveFilter = function(type) {
+    if (window.archiveFilter === type) {
+        window.archiveFilter = 'all'; // 이미 선택된 걸 다시 누르면 '전체 보기'로 해제
+    } else {
+        window.archiveFilter = type;  // 선택한 필터 적용
+    }
+    window.renderArchiveList();
 };
 
-// 2. 탭 전환 (버튼 색상 변경 + 리스트 갱신)
+// 💡 탭 전환 함수 수정 (탭을 바꿀 때 필터를 초기화해 줌)
 window.switchArchiveTab = function(tabName) {
     window.currentArchiveTab = tabName;
+    window.archiveFilter = 'all'; // 탭 이동 시 전체보기로 리셋
     
     const tabs = ['script', 'vocab', 'freetalk'];
     tabs.forEach(t => {
@@ -1898,32 +1900,61 @@ window.switchArchiveTab = function(tabName) {
                 : "flex-1 bg-white border border-slate-200 text-slate-500 text-xs font-bold py-2 rounded-xl hover:bg-slate-50 transition-all";
         }
     });
-    
     window.renderArchiveList(); 
 };
 
-// 3. 리스트 및 상단 요약 박스 렌더링
+// 💡 리스트 렌더링 함수 완벽 수정 (필터 적용 + 박스 애니메이션)
 window.renderArchiveList = function() {
     const container = document.getElementById('archiveListContainer');
     const countGen = document.getElementById('count-general');
     const countPrem = document.getElementById('count-premium');
+    const boxGen = document.getElementById('box-general');
+    const boxPrem = document.getElementById('box-premium');
+
     if (!container) return;
 
-    // 데이터가 없으면 빈 배열[]로 초기화 방어
-    const items = window.archiveData[window.currentArchiveTab] || [];
+    // 전체 데이터 가져오기
+    const allItems = window.archiveData[window.currentArchiveTab] || [];
     
-    // 상단 박스 숫자 업데이트
-    if(countGen) countGen.innerText = items.filter(i => !i.isPremium).length;
-    if(countPrem) countPrem.innerText = items.filter(i => i.isPremium).length;
+    // 1. 상단 박스 숫자 업데이트 (필터와 무관하게 탭의 '전체 개수'를 표시)
+    if(countGen) countGen.innerText = allItems.filter(i => !i.isPremium).length;
+    if(countPrem) countPrem.innerText = allItems.filter(i => i.isPremium).length;
+
+    // 2. UI 스타일 업데이트 (선택된 박스 강조 & 선택 안 된 박스 흐리게)
+    if (boxGen && boxPrem) {
+        if (window.archiveFilter === 'general') {
+            boxGen.classList.add('ring-4', 'ring-blue-300', 'scale-105');
+            boxPrem.classList.remove('ring-4', 'ring-amber-300', 'scale-105');
+            boxPrem.classList.add('opacity-50');
+            boxGen.classList.remove('opacity-50');
+        } else if (window.archiveFilter === 'premium') {
+            boxPrem.classList.add('ring-4', 'ring-amber-300', 'scale-105');
+            boxGen.classList.remove('ring-4', 'ring-blue-300', 'scale-105');
+            boxGen.classList.add('opacity-50');
+            boxPrem.classList.remove('opacity-50');
+        } else {
+            // 'all' 상태일 때는 둘 다 원래대로
+            boxGen.classList.remove('ring-4', 'ring-blue-300', 'scale-105', 'opacity-50');
+            boxPrem.classList.remove('ring-4', 'ring-amber-300', 'scale-105', 'opacity-50');
+        }
+    }
+
+    // 3. 렌더링할 데이터 필터링
+    let itemsToRender = allItems;
+    if (window.archiveFilter === 'general') {
+        itemsToRender = allItems.filter(i => !i.isPremium);
+    } else if (window.archiveFilter === 'premium') {
+        itemsToRender = allItems.filter(i => i.isPremium);
+    }
 
     container.innerHTML = ''; 
-    if (items.length === 0) {
-        container.innerHTML = `<div class="flex flex-col items-center justify-center h-48 opacity-60 mt-5"><div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-slate-300 text-2xl mb-3"><i class="fa-solid fa-folder-open"></i></div><p class="text-xs font-bold text-slate-400">아직 보관된 내용이 없습니다.</p></div>`;
+    if (itemsToRender.length === 0) {
+        container.innerHTML = `<div class="flex flex-col items-center justify-center h-48 opacity-60 mt-5"><div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-slate-300 text-2xl mb-3"><i class="fa-solid fa-folder-open"></i></div><p class="text-xs font-bold text-slate-400">해당하는 보관 내용이 없습니다.</p></div>`;
         return;
     }
 
-    // 데이터 카드 렌더링
-    items.forEach((item) => {
+    // 4. 데이터 카드 렌더링
+    itemsToRender.forEach((item) => {
         const title = window.currentArchiveTab === 'vocab' ? item.word : (item.original || "대화내용");
         const sub1 = window.currentArchiveTab === 'vocab' ? item.meaning : '';
         const sub2 = window.currentArchiveTab === 'vocab' ? item.example : item.translation;
@@ -1931,11 +1962,11 @@ window.renderArchiveList = function() {
         
         container.innerHTML += `
             <div class="bg-white p-4 rounded-2xl border ${item.isPremium ? 'border-amber-400 shadow-md' : 'border-slate-200 shadow-sm'} mb-3 relative overflow-hidden transition-all hover:-translate-y-0.5">
-                ${item.isPremium ? `<div class="absolute -right-4 -bottom-4 text-6xl text-amber-500 opacity-5 pointer-events-none"><i class="fa-solid fa-moon"></i></div>` : ''}
+                ${item.isPremium ? `<div class="absolute -right-4 -bottom-4 text-6xl text-amber-500 opacity-5 pointer-events-none"><i class="fa-solid fa-crown"></i></div>` : ''}
                 
                 <div class="flex items-center justify-between mb-2 relative z-10">
                     <span class="text-[9px] font-black px-2 py-0.5 rounded border ${item.isPremium ? 'text-amber-700 bg-amber-50 border-amber-300' : 'text-blue-600 bg-blue-50 border-blue-200'}">
-                        <i class="fa-solid fa-${item.isPremium ? 'moon' : 'bookmark'} mr-0.5"></i> ${item.isPremium ? '프리미엄 소장' : '일반 보관'}
+                        <i class="fa-solid fa-${item.isPremium ? 'crown' : 'bookmark'} mr-0.5"></i> ${item.isPremium ? '프리미엄 소장' : '일반 보관'}
                     </span>
                     <button onclick="window.deleteArchiveItem('${item.id}')" class="text-slate-300 hover:text-red-500 transition-colors px-1 py-0.5"><i class="fa-solid fa-trash-can text-sm"></i></button>
                 </div>
