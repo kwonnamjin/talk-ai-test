@@ -1873,21 +1873,31 @@ window.renderSpecialPersona = function() {
 // 📂 내 보관함 통합 엔진 (박스 요약 + 리스트형 완벽 호환)
 // ==========================================
 
+// ==========================================
+// 🚨 앱 필수 뼈대 함수 (삭제 금지)
+// ==========================================
 window.archiveData = { script: [], vocab: [], freetalk: [] };
-window.currentArchiveTab = 'script';
 
-// 🌟 [안전 추가 1] 필터 상태 저장 변수와 필터링 실행 함수
-window.archiveFilter = 'all'; 
-
-window.setArchiveFilter = function(type) {
-    // 이미 누른 필터를 또 누르면 '전체보기'로 해제, 아니면 해당 필터 적용
-    if (window.archiveFilter === type) {
-        window.archiveFilter = 'all';
-    } else {
-        window.archiveFilter = type;
-    }
-    window.renderArchiveList(); // 화면 다시 그리기
+window.loadArchiveData = function() {
+    const saved = localStorage.getItem('talkai_archive_db');
+    if (saved) window.archiveData = JSON.parse(saved);
 };
+
+// 화면 로드 시 자동으로 데이터 불러오기 실행
+window.loadArchiveData();
+
+window.saveArchiveData = function() {
+    localStorage.setItem('talkai_archive_db', JSON.stringify(window.archiveData));
+};
+
+window.closeAllPanels = function() {
+    const panels = ['panel-home', 'panel-pages', 'panel-report', 'panel-mind', 'panel-character', 'panel-setting', 'screen-archive'];
+    panels.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('hidden');
+    });
+};
+// ==========================================
 
 // 2. 탭 전환 (버튼 색상 변경 + 리스트 갱신)
 window.switchArchiveTab = function(tabName) {
@@ -2112,8 +2122,15 @@ window.playArchiveAudio = async function(id, isPremium) {
         }
 
     } else {
+        // 프리미엄이 아닌 일반 보관함 재생
         if (typeof window.updateStatus === 'function') window.updateStatus("🔊 일반 기기 음성 재생 중...");
-        await window.playBasicAudio(cleanText, targetLang);
+        
+        // 💡 삭제된 playBasicAudio 대신 기존 앱의 만능 재생 함수(speakText)로 대체!
+        if (typeof window.speakText === 'function') {
+            window.speakText(cleanText, targetLang);
+        } else {
+            console.error("speakText 함수도 찾을 수 없습니다!");
+        }
     }
 };
 
