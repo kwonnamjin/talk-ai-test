@@ -41,3 +41,18 @@ button#modeTutorBtn, button#modeTranslateBtn {
     min-height: 0 !important;
 }
 
+/* 실시간 통역기 전용 레이아웃 강제 */
+#interpreterModal {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    border-radius: 0 !important; /* 모달은 꽉 채우게 */
+    display: flex !important;
+    flex-direction: column !important;
+    background-color: #f8fafc !important;
+}
