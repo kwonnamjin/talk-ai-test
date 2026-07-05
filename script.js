@@ -3236,7 +3236,21 @@ window.processInterpTranslation = async function(text) {
 };
 // ==========================================
 
+// 1. 번역 모드 선택 팝업 토글
+window.toggleTranslateMenu = function() {
+    const menu = document.getElementById('translateModeMenu');
+    menu.classList.toggle('hidden');
+};
 
+// 2. 기존 스마트 번역 모드 활성화 (기존 번역기 로직 부활)
+window.activateSmartTranslate = function() {
+    // 기존에 버튼 스타일 변경하던 로직을 재사용하여 '번역 모드'로 스위칭
+    window.changeAppMode('translate');
+    
+    // 원래 쓰시던 번역기 화면(screen-main 등)으로 이동하거나 기능 활성화
+    window.navigate('screen-main');
+    window.updateStatus("스마트 번역 모드로 전환되었습니다.");
+};
 
 
 

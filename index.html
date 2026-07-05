@@ -333,7 +333,7 @@
              <button id="modeTutorBtn" onclick="changeAppMode('tutor')" class="flex-1 py-1.5 text-[11px] font-black rounded-lg border border-blue-600 bg-blue-600 text-white shadow-md transition-all">
                  <span data-i18n="ui_tab_chat">💬 대화</span>
              </button>
-             <button id="modeTranslateBtn" onclick="window.openInterpreter()" class="flex-1 py-1.5 text-[11px] font-black rounded-lg border border-transparent bg-transparent text-slate-500 hover:bg-slate-200 transition-all">
+             <button id="modeTranslateBtn" onclick="window.toggleTranslateMenu()" class="flex-1 py-1.5 text-[11px] font-black rounded-lg border border-transparent bg-transparent text-slate-500 hover:bg-slate-200 transition-all">
     <span data-i18n="ui_tab_translate">🌐 번역</span>
 </button>
         </div>
@@ -344,6 +344,10 @@
                </span> 
             </button>
         </div>
+        <div id="translateModeMenu" class="hidden absolute bottom-20 left-4 right-4 bg-white rounded-2xl shadow-2xl border border-slate-200 p-2 z-[9999]">
+    <button onclick="window.openInterpreter(); window.toggleTranslateMenu()" class="w-full text-left p-3 text-xs font-black text-blue-600 hover:bg-blue-50 rounded-lg">🎙️ 실시간 대면 통역</button>
+    <button onclick="window.activateSmartTranslate(); window.toggleTranslateMenu()" class="w-full text-left p-3 text-xs font-black text-indigo-600 hover:bg-indigo-50 rounded-lg">🧠스마트 번역</button>
+</div>
     </div>
     
     <!-- 2. 텍스트 입력창 -->
