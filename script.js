@@ -3061,14 +3061,22 @@ window.interpRec = null;
 // 통역기 창 열기 (에러 방어막 추가)
 window.openInterpreter = function() {
     console.log("통역기 실행!");
+    
+    // 1. 다른 모든 패널 강제 종료 (간섭 방지)
+    if(typeof window.closeAllPanels === 'function') window.closeAllPanels();
+    
     const modal = document.getElementById('interpreterModal');
     if(!modal) {
-        alert("통역기 화면을 찾을 수 없습니다. HTML을 확인해 주세요!");
+        alert("통역기 화면을 찾을 수 없습니다.");
         return;
     }
     
-    // 1. 화면 즉시 열기
+    // 2. 모달 표출
     modal.classList.remove('hidden');
+    modal.style.display = 'flex'; 
+    
+    // ... (이하 언어 설정 및 마이크 로직 동일)
+};
     
     // 2. 언어 이름 가져오기 (에러 방어 로직 적용)
     try {
