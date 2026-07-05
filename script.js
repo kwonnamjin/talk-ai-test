@@ -793,15 +793,11 @@ window.addMessageToChat = function(sender, text, translation = null, targetLangC
             ${translation ? `<p class="text-slate-500 mt-2 border-t pt-2 border-slate-100 font-medium" style="font-size: calc(var(--chat-font-size) - 3px);">${translation}</p>` : ''}
             
             <!-- 📥 프리토킹 보관함 버튼 -->
-            
-<div class="flex gap-2 mt-3 pt-2.5 border-t border-slate-100/80">
-    <button onclick="window.saveToArchive('freetalk', { original: decodeURIComponent('${safeText}'), translation: decodeURIComponent('${safeTrans}'), langCode: '${targetLangCode}' }, false)" class="flex-1 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-500 text-[10px] font-bold shadow-sm hover:bg-slate-100 flex items-center justify-center gap-1.5 transition-all">
-        <i class="fa-solid fa-bookmark text-slate-400"></i> 일반 보관
-    </button>
-    <button onclick="window.saveToArchive('freetalk', { original: decodeURIComponent('${safeText}'), translation: decodeURIComponent('${safeTrans}'), langCode: '${targetLangCode}' }, true)" class="flex-1 py-1.5 rounded-lg border border-amber-300 bg-amber-50 text-amber-700 text-[10px] font-black shadow-sm hover:bg-amber-100 flex items-center justify-center gap-1.5 transition-all relative overflow-hidden">
-        <i class="fa-solid fa-crown text-amber-500"></i> 프리미엄 소장
-    </button>
-</div>
+            <div class="mt-3 pt-2.5 border-t border-slate-100/80">
+                <button onclick="window.saveToArchive('freetalk', { original: decodeURIComponent('${safeText}'), translation: decodeURIComponent('${safeTrans}'), langCode: '${targetLangCode}' })" class="w-full py-2 rounded-lg border border-slate-200 bg-slate-50 text-slate-500 text-[11px] font-bold shadow-sm hover:bg-slate-100 flex items-center justify-center gap-1.5 transition-all">
+                    <i class="fa-solid fa-bookmark text-slate-400"></i> 내 보관함에 저장하기
+                </button>
+            </div>
         </div>`;
     }
     chatContainer.appendChild(msgDiv); setTimeout(() => chatContainer.scrollTop = chatContainer.scrollHeight, 50);
@@ -1240,16 +1236,12 @@ window.renderScripts = function() {
                         </button>
                     </div>
                     
-                    <!-- 📥 롤플레잉 보관함 버튼 추가 -->
-                   
-<div class="flex gap-2 mt-2.5 pt-2.5 border-t border-slate-100/80">
-    <button onclick="window.saveToArchive('script', { original: '${safeText}', translation: '${line.ko.replace(/'/g, "\\'")}', langCode: '${scriptItem.langCode}' }, false)" class="flex-1 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-500 text-[10px] font-bold shadow-sm hover:bg-slate-100 flex items-center justify-center gap-1.5 transition-all">
-        <i class="fa-solid fa-bookmark text-slate-400"></i> 일반 보관
-    </button>
-    <button onclick="window.saveToArchive('script', { original: '${safeText}', translation: '${line.ko.replace(/'/g, "\\'")}', langCode: '${scriptItem.langCode}' }, true)" class="flex-1 py-1.5 rounded-lg border border-amber-300 bg-amber-50 text-amber-700 text-[10px] font-black shadow-sm hover:bg-amber-100 flex items-center justify-center gap-1.5 transition-all relative overflow-hidden">
-        <i class="fa-solid fa-crown text-amber-500"></i> 프리미엄 소장
-    </button>
-</div>
+                   <!-- 📥 롤플레잉 보관함 버튼 -->
+                    <div class="mt-2.5 pt-2.5 border-t border-slate-100/80">
+                        <button onclick="window.saveToArchive('script', { original: '${safeText}', translation: '${line.ko.replace(/'/g, "\\'")}', langCode: '${scriptItem.langCode}' })" class="w-full py-2 rounded-lg border border-slate-200 bg-slate-50 text-slate-500 text-[11px] font-bold shadow-sm hover:bg-slate-100 flex items-center justify-center gap-1.5 transition-all">
+                            <i class="fa-solid fa-bookmark text-slate-400"></i> 내 보관함에 저장하기
+                        </button>
+                    </div>
 
                     <div id="feedback-${i}-line-${lineIdx}" class="mt-2 text-[11px] font-bold empty:hidden transition-all"></div>
                 </div>
@@ -1616,15 +1608,12 @@ window.showFlashcard = function(setIdx, wordIdx) {
     const safeExKo = v.example_ko.replace(/'/g, "\\'");
     const currentLangCode = savedVocabs[setIdx].langCode;
 
-    // [수정 후]
-saveBtnContainer.innerHTML = `
-    <button onclick="window.saveToArchive('vocab', { word: '${safeWord}', meaning: '${safeMeaning}', example: '${safeExEn}', exampleMeaning: '${safeExKo}', langCode: '${currentLangCode}' }, false)" class="flex-1 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-500 text-[11px] font-bold shadow-sm hover:bg-slate-100 flex items-center justify-center gap-1.5 transition-all">
-        <i class="fa-solid fa-bookmark text-slate-400"></i> 일반 보관
-    </button>
-    <button onclick="window.saveToArchive('vocab', { word: '${safeWord}', meaning: '${safeMeaning}', example: '${safeExEn}', exampleMeaning: '${safeExKo}', langCode: '${currentLangCode}' }, true)" class="flex-1 py-2.5 rounded-xl border border-amber-300 bg-amber-50 text-amber-700 text-[11px] font-black shadow-sm hover:bg-amber-100 flex items-center justify-center gap-1.5 transition-all relative overflow-hidden">
-        <i class="fa-solid fa-crown text-amber-500"></i> 프리미엄 소장
-    </button>
-`;
+    // [수정 후: 단어장 저장 버튼 하나로 통합]
+    saveBtnContainer.innerHTML = `
+        <button onclick="window.saveToArchive('vocab', { word: '${safeWord}', meaning: '${safeMeaning}', example: '${safeExEn}', exampleMeaning: '${safeExKo}', langCode: '${currentLangCode}' })" class="w-full py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-500 text-[11px] font-bold shadow-sm hover:bg-slate-100 flex items-center justify-center gap-1.5 transition-all">
+            <i class="fa-solid fa-bookmark text-slate-400"></i> 단어장에 저장하기
+        </button>
+    `;
 
     window.renderVocabs(); 
 };
@@ -1919,121 +1908,65 @@ window.switchArchiveTab = function(tabName) {
     window.renderArchiveList(); 
 };
 
-// 3. 리스트 및 상단 요약 박스 렌더링
+// 3. 리스트 렌더링 (필터 & 프리미엄 UI 싹 다 제거)
 window.renderArchiveList = function() {
     const container = document.getElementById('archiveListContainer');
-    const countGen = document.getElementById('count-general');
-    const countPrem = document.getElementById('count-premium');
     if (!container) return;
 
-    // 데이터가 없으면 빈 배열[]로 초기화 방어
     const items = window.archiveData[window.currentArchiveTab] || [];
-    
-    // 상단 박스 숫자 업데이트 (필터와 무관하게 무조건 탭의 전체 개수 표시)
-    if(countGen) countGen.innerText = items.filter(i => !i.isPremium).length;
-    if(countPrem) countPrem.innerText = items.filter(i => i.isPremium).length;
-
-    // 🌟 추가: 박스를 클릭했을 때 선택된 박스만 시각적으로 강조 (테두리 및 투명도 조절)
-    const boxGen = document.getElementById('box-general');
-    const boxPrem = document.getElementById('box-premium');
-    if (boxGen && boxPrem) {
-        boxGen.classList.remove('ring-4', 'ring-blue-300', 'opacity-40');
-        boxPrem.classList.remove('ring-4', 'ring-amber-300', 'opacity-40');
-        
-        if (window.archiveFilter === 'general') {
-            boxGen.classList.add('ring-4', 'ring-blue-300');
-            boxPrem.classList.add('opacity-40');
-        } else if (window.archiveFilter === 'premium') {
-            boxPrem.classList.add('ring-4', 'ring-amber-300');
-            boxGen.classList.add('opacity-40');
-        }
-    }
-
-    // 🌟 추가: 필터링 조건에 맞춰서 화면에 그릴 데이터만 따로 걸러냄
-    let displayItems = items;
-    if (window.archiveFilter === 'general') {
-        displayItems = items.filter(i => !i.isPremium);
-    } else if (window.archiveFilter === 'premium') {
-        displayItems = items.filter(i => i.isPremium);
-    }
 
     container.innerHTML = ''; 
-    if (displayItems.length === 0) {
-        container.innerHTML = `<div class="flex flex-col items-center justify-center h-48 opacity-60 mt-5"><div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-slate-300 text-2xl mb-3"><i class="fa-solid fa-folder-open"></i></div><p class="text-xs font-bold text-slate-400">해당하는 보관 내용이 없습니다.</p></div>`;
+    if (items.length === 0) {
+        container.innerHTML = `<div class="flex flex-col items-center justify-center h-48 opacity-60 mt-5"><div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-slate-300 text-2xl mb-3"><i class="fa-solid fa-folder-open"></i></div><p class="text-xs font-bold text-slate-400">아직 보관된 내용이 없습니다.</p></div>`;
         return;
     }
 
-    // 데이터 카드 렌더링
-    displayItems.forEach((item) => {
+    // 데이터 카드 렌더링 (순정 UI)
+    items.forEach((item) => {
         const title = window.currentArchiveTab === 'vocab' ? item.word : (item.original || "대화내용");
         const sub1 = window.currentArchiveTab === 'vocab' ? item.meaning : '';
         const sub2 = window.currentArchiveTab === 'vocab' ? item.example : item.translation;
         const sub3 = window.currentArchiveTab === 'vocab' ? item.exampleMeaning : '';
         
-        // 🌟 [핵심] 이미 음성 파일이 기기나 웹에 소장(저장)되어 있는지 확인하는 변수
-        const hasAudio = item.isPremium && (item.localAudioPath || item.audioData);
-
         container.innerHTML += `
-            <div class="bg-white p-4 rounded-2xl border ${item.isPremium ? 'border-amber-400 shadow-md' : 'border-slate-200 shadow-sm'} mb-3 relative overflow-hidden transition-all hover:-translate-y-0.5">
-                ${item.isPremium ? `<div class="absolute -right-4 -bottom-4 text-6xl text-amber-500 opacity-5 pointer-events-none"><i class="fa-solid fa-moon"></i></div>` : ''}
-                
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm mb-3 relative overflow-hidden transition-all hover:-translate-y-0.5">
                 <div class="flex items-center justify-between mb-2 relative z-10">
-                    <span class="text-[9px] font-black px-2 py-0.5 rounded border ${item.isPremium ? 'text-amber-700 bg-amber-50 border-amber-300' : 'text-blue-600 bg-blue-50 border-blue-200'}">
-                        <i class="fa-solid fa-${item.isPremium ? 'moon' : 'bookmark'} mr-0.5"></i> ${item.isPremium ? '프리미엄 소장' : '일반 보관'}
+                    <span class="text-[9px] font-black px-2 py-0.5 rounded border text-blue-600 bg-blue-50 border-blue-200">
+                        <i class="fa-solid fa-bookmark mr-0.5"></i> 일반 보관
                     </span>
-                    
-                    <!-- 🌟 휴지통 & 황금별 영역 -->
-                    <div class="flex items-center gap-2">
-                        ${hasAudio ? `<i class="fa-solid fa-star text-amber-400 text-sm drop-shadow-sm" title="음성 소장 완료"></i>` : ''}
-                        <button onclick="window.deleteArchiveItem('${item.id}')" class="text-slate-300 hover:text-red-500 transition-colors px-1 py-0.5"><i class="fa-solid fa-trash-can text-sm"></i></button>
-                    </div>
+                    <button onclick="window.deleteArchiveItem('${item.id}')" class="text-slate-300 hover:text-red-500 transition-colors px-1 py-0.5"><i class="fa-solid fa-trash-can text-sm"></i></button>
                 </div>
                 
                 <div class="relative z-10 pl-1 mb-3">
-                    <p class="text-xs font-black ${item.isPremium ? 'text-slate-900' : 'text-slate-800'} mb-0.5 leading-snug">${title}</p>
+                    <p class="text-xs font-black text-slate-800 mb-0.5 leading-snug">${title}</p>
                     ${sub1 ? `<p class="text-[12px] font-bold text-slate-500 mb-2">${sub1}</p>` : ''}
                     ${sub2 ? `
-                    <div class="pl-2 border-l-2 ${item.isPremium ? 'border-amber-200' : 'border-slate-200'} mt-2">
+                    <div class="pl-2 border-l-2 border-slate-200 mt-2">
                         <p class="text-[12px] font-black text-slate-600 leading-snug">${sub2}</p>
                         ${sub3 ? `<p class="text-[11px] text-slate-600 font-medium leading-snug mt-0.5">${sub3}</p>` : ''}
                     </div>` : ''}
                 </div>
                 
-                <button onclick="window.playArchiveAudio('${item.id}', ${item.isPremium})" class="w-full py-2.5 ${item.isPremium ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-sm' : 'bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200'} text-[11px] font-black rounded-xl transition-all flex items-center justify-center gap-1.5 relative z-10">
-                    <i class="fa-solid fa-${item.isPremium ? 'play' : 'volume-high'}"></i> ${item.isPremium ? (hasAudio ? '최고급 원어민 다시듣기' : '초승달 1개로 음성 생성') : '일반 음성 듣기'}
+                <button onclick="window.playArchiveAudio('${item.id}')" class="w-full py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 text-[11px] font-black rounded-xl transition-all flex items-center justify-center gap-1.5 relative z-10">
+                    <i class="fa-solid fa-volume-high"></i> 음성 듣기
                 </button>
             </div>
         `;
     });
 };
 
-// ----------------------------------------------------
-// 🚨 주의: 이 아래에 있는 // 4. 통합 저장 엔진 (window.saveToArchive) 과 
-// // 5. 삭제 및 오디오 재생 함수는 절대 건드리지 마세요! 원본 그대로 두시면 됩니다.
-// ----------------------------------------------------
-
-// 4. 통합 저장 엔진 (에러 완전 차단 및 로그 추가)
-window.saveToArchive = function(type, itemData, isPremium) {
+// 4. 통합 저장 엔진 (isPremium 파라미터 삭제, 언어만 박제)
+window.saveToArchive = function(type, itemData) {
     if (!window.archiveData) window.archiveData = { script: [], vocab: [], freetalk: [] };
     if (!window.archiveData[type]) window.archiveData[type] = [];
 
-    if (isPremium) {
-        alert("✨ 프리미엄 보관함에 담겼습니다! (최초 듣기 시 초승달 1개 소모)");
-    } else {
-        alert("💾 일반 보관함에 저장되었습니다.");
-    }
+    alert("💾 보관함에 저장되었습니다.");
 
-    // 💡 [핵심 해결] 넘어온 데이터에 고유 언어(langCode)가 있으면 그걸 쓰고, 없으면 현재 설정을 씁니다.
     const inherentLang = itemData.langCode || localStorage.getItem('target_language') || 'en-US';
-    const currentVoiceCode = localStorage.getItem('premium_voice_code') || '';
 
     const newItem = {
         id: 'archive_' + Date.now(),
-        isPremium: isPremium,
-        savedLangCode: inherentLang,       // 👈 원래 만들어진 언어 영구 박제!
-        savedVoiceCode: currentVoiceCode,  // 👈 저장 시점의 고급 음성 셋팅 박제!
-        audioData: null,                   // (웹 테스트용 빈 그릇)
-        localAudioPath: null,              // (플러터 연동용 빈 그릇)
+        savedLangCode: inherentLang, // 만들어진 당시의 언어만 기억
         ...itemData
     };
 
@@ -2044,25 +1977,19 @@ window.saveToArchive = function(type, itemData, isPremium) {
         window.renderArchiveList();
     }
 };
-// 5. 삭제 및 오디오 재생 (더미)
+
+// 5. 삭제 (플러터 연동 기기 파일 삭제 로직 제거)
 window.deleteArchiveItem = function(id) {
-    if(confirm("이 항목을 삭제하시겠습니까? (소장된 프리미엄 음성 파일도 기기에서 완전히 삭제됩니다)")) {
+    if(confirm("이 항목을 삭제하시겠습니까?")) {
         const currentTab = window.currentArchiveTab;
-        const item = window.archiveData[currentTab].find(i => i.id === id);
-
-        // 🔥 [핵심] 플러터 앱에게 "이 경로에 있는 파일 지워!" 라고 명령
-        if (item && item.localAudioPath && window.flutter_inappwebview) {
-            window.flutter_inappwebview.callHandler('deleteLocalFile', item.localAudioPath);
-        }
-
         window.archiveData[currentTab] = window.archiveData[currentTab].filter(i => i.id !== id);
         window.saveArchiveData();
         window.renderArchiveList();
     }
 };
 
-// 5. 보관함 오디오 재생 (일반/프리미엄 완벽 연동)
-window.playArchiveAudio = async function(id, isPremium) {
+// 6. 보관함 오디오 재생 (구글 통신 완전 삭제, 순수 기기 재생)
+window.playArchiveAudio = async function(id) {
     const currentTab = window.currentArchiveTab;
     const item = window.archiveData[currentTab].find(i => i.id === id);
     if (!item) return alert("데이터를 찾을 수 없습니다.");
@@ -2073,72 +2000,16 @@ window.playArchiveAudio = async function(id, isPremium) {
     const cleanText = textToRead.replace(/[\*\#\`\~\"\'\(\)\[\]]/g, ' ').replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '').trim();
     const targetLang = item.savedLangCode || localStorage.getItem('target_language') || 'en-US';
 
-    if (isPremium) {
-        // 🚀 [1단계] 기기에 저장된 파일(localAudioPath)이나 웹 임시 저장본(audioData)이 있는지 양쪽 다 확인!
-        if (item.localAudioPath) {
-            if (typeof window.updateStatus === 'function') window.updateStatus("💎 기기에 소장된 음성 재생 중...");
-            if (window.flutter_inappwebview) window.flutter_inappwebview.callHandler('playLocalFile', item.localAudioPath);
-            return;
-        } else if (item.audioData) {
-            if (typeof window.updateStatus === 'function') window.updateStatus("💎 웹에 소장된 음성 재생 중...");
-            await window.playGeminiAudio(item.audioData);
-            return;
-        }
-
-        // 🚀 [2단계] 진짜 처음 듣는 거라면 초승달 결제
-        let currentMoons = parseInt(localStorage.getItem('moon_coins')) || 0;
-        if (currentMoons <= 0) return alert("❌ 초승달이 부족합니다.");
-
-        if (!confirm("🌙 초승달 1개를 사용하여 원어민 음성을 평생 소장하시겠습니까?")) return;
-
-        localStorage.setItem('moon_coins', currentMoons - 1);
-        if (typeof window.updateBadgeUI === 'function') window.updateBadgeUI();
-        if (typeof window.updateStatus === 'function') window.updateStatus("✨ 초승달 사용! 최고급 음성 생성 중...");
-
-        // 🚀 [3단계] 구글 API 호출 (돈 나가는 곳 💸)
-        const selectedVoiceCode = item.savedVoiceCode || localStorage.getItem('premium_voice_code') || 'Zephyr';
-        try {
-            const response = await fetch(WORKER_URL + 'tts', {
-                method: 'POST',
-                body: JSON.stringify({ text: cleanText, voiceCode: selectedVoiceCode })
-            });
-            const data = await response.json();
-
-            if (data.audioContent) {
-                // 🔥 [핵심 방어막] 플러터가 있으면 기기에 저장하고, 없으면 웹(audioData)에 저장!
-                if (window.flutter_inappwebview) {
-                    try {
-                        const savedFilePath = await window.flutter_inappwebview.callHandler('saveAudioToDevice', {
-                            fileName: `talkai_premium_${id}.mp3`,
-                            base64Data: data.audioContent
-                        });
-                        if (savedFilePath) item.localAudioPath = savedFilePath;
-                    } catch (e) {
-                        console.error("플러터 저장 실패", e);
-                        item.audioData = data.audioContent; // 실패 시 웹에라도 저장
-                    }
-                } else {
-                    // 플러터가 없는 브라우저 환경이면 무조건 웹 스토리지에 임시 박제!
-                    item.audioData = data.audioContent;
-                }
-
-                // 💡 생성 성공했으니 무조건 세이브! (다음 클릭 시 1단계에서 걸러짐)
-                window.saveArchiveData();
-                
-                await window.playGeminiAudio(data.audioContent);
-                if (typeof window.updateStatus === 'function') window.updateStatus("소장 및 재생 완료!");
-            } else {
-                throw new Error("음성 생성 에러");
-            }
-        } catch (error) {
-            localStorage.setItem('moon_coins', parseInt(localStorage.getItem('moon_coins')) + 1);
-            if (typeof window.updateBadgeUI === 'function') window.updateBadgeUI();
-            alert("서버 오류로 생성에 실패했습니다. 초승달이 반환되었습니다.");
-        }
-
+    if (typeof window.updateStatus === 'function') window.updateStatus("🔊 음성 재생 중...");
+    
+    // 만능 기기 재생 함수로 바로 쏴줌!
+    if (typeof window.speakText === 'function') {
+        window.speakText(cleanText, targetLang);
     } else {
-        if (typeof window.updateStatus === 'function') window.updateStatus("🔊 일반 기기 음성 재생 중...");
-        await window.playBasicAudio(cleanText, targetLang);
+        window.speechSynthesis.cancel();
+        const utt = new SpeechSynthesisUtterance(cleanText);
+        utt.lang = targetLang;
+        window.speechSynthesis.speak(utt);
     }
 };
 
