@@ -3183,15 +3183,30 @@ window.toggleInterpMic = function() {
 window.processInterpTranslation = async function(text) {
     if (!text.trim()) return;
     
-    // 번개 차감
+    // 번개 차감 로직
     if (typeof window.checkAndBlockAPI === 'function' && !window.checkAndBlockAPI()) {
         window.toggleInterpMic(); 
         return; 
     }
-    window.incrementLocalUsage();
+    if (typeof window.incrementLocalUsage === 'function') window.incrementLocalUsage();
 
+    const topLabel = document.getElementById('interp-lang-top');
+    const bottomLabel = document.getElementById('interp-lang-bottom');
+    const targetName = topLabel ? topLabel.innerText : 'English';
+    const inputName = bottomLabel ? bottomLabel.innerText : 'Korean';
+    
     const status = document.getElementById('interp-status');
     if(status) status.innerHTML = "번역 중... ⏳";
+
+    const sysPrompt = `You are a real-time bilateral interpreter between ${inputName} and ${targetName}.
+    Read the user's input. Detect which language it is closer to.
+    - If the input is ${inputName}, translate it to ${targetName}.
+    - If the input is ${targetName} (or typed in phonetics), translate it to ${inputName}.
+    Respond ONLY in JSON format EXACTLY like this:
+    {
+       "detected_source": "Either '${inputName}' or '${targetName}'",
+       "translated_text": "the translated result"
+    }`;
 
     try {
         let res = await fetch(WORKER_URL, {
@@ -3199,44 +3214,49 @@ window.processInterpTranslation = async function(text) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 model: "deepseek-chat",
-                messages: [
-                    { role: "system", content: "Respond ONLY in JSON: {\"detected_source\": \"한국어\", \"translated_text\": \"...\"}" }, 
-                    { role: "user", content: text }
-                ],
+                messages: [{ role: "system", content: sysPrompt }, { role: "user", content: text }],
                 response_format: { type: "json_object" }
             })
         });
-        
         let data = await res.json();
         let rawContent = data.choices[0].message.content.replace(/```json/g, "").replace(/```/g, "").trim();
         let parsed = JSON.parse(rawContent.match(/\{[\s\S]*\}/)[0]);
         
-        // 🌟 [핵심] UI 업데이트 강제화
         const topText = document.getElementById('interp-text-top');
         const bottomText = document.getElementById('interp-text-bottom');
         
-        console.log("번역 결과:", parsed); // 💡 F12 콘솔에서 결과 확인용
-
-        if (parsed.translated_text) {
-            // 어느 언어인지 판단하기 어려우면 일단 하단에 먼저 뿌려봅니다
-            if (bottomText) {
-                bottomText.innerText = parsed.translated_text;
-                bottomText.style.opacity = "1"; // 투명도 강제 해제
-            }
-            if (typeof window.speakText === 'function') {
+        if (parsed.detected_source.includes(inputName)) {
+            if(topText) { topText.innerText = parsed.translated_text; topText.classList.remove('opacity-40'); }
+            if(bottomText) { bottomText.classList.add('opacity-40'); bottomText.innerText = text; }
+            
+            // 💡 여기서 에뮬레이터 에러 방지 (Speak 대신 플러터로 전달)
+            if (window.flutter_inappwebview) {
+                window.flutter_inappwebview.callHandler('speak', parsed.translated_text, localStorage.getItem('target_language') || 'en-US', "");
+            } else if (typeof window.speakText === 'function') {
                 window.speakText(parsed.translated_text, localStorage.getItem('target_language') || 'en-US');
+            }
+        } 
+        else {
+            if(bottomText) { bottomText.innerText = parsed.translated_text; bottomText.classList.remove('opacity-40'); }
+            if(topText) { topText.classList.add('opacity-40'); topText.innerText = text; }
+            
+            if (window.flutter_inappwebview) {
+                window.flutter_inappwebview.callHandler('speak', parsed.translated_text, localStorage.getItem('stt_input_language') || 'ko-KR', "");
+            } else if (typeof window.speakText === 'function') {
+                window.speakText(parsed.translated_text, localStorage.getItem('stt_input_language') || 'ko-KR');
             }
         }
 
     } catch(e) {
-        console.error("번역 에러:", e);
+        console.error(e);
         if(status) status.innerHTML = "통역 에러 ⚠️";
     } finally {
         if(window.isInterpActive && status) {
-            status.innerHTML = "실시간 통역 모드 (ON)";
+            status.innerHTML = "실시간 통역 모드 (ON) <i class='fa-solid fa-satellite-dish ml-1'></i>";
         }
     }
 };
+// ==========================================
 
 
 
