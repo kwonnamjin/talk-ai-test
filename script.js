@@ -3058,7 +3058,7 @@ setTimeout(() => {
 window.isInterpActive = false;
 window.interpRec = null;
 
-// 통역기 창 열기 (에러 방어막 추가)
+// 통역기 창 열기 (강제 강제 표출 버전)
 window.openInterpreter = function() {
     console.log("통역기 실행!");
     
@@ -3073,29 +3073,20 @@ window.openInterpreter = function() {
     
     // 2. 모달 표출
     modal.classList.remove('hidden');
-    modal.style.display = 'flex'; 
+    modal.style.display = 'flex';
     
-    // ... (이하 언어 설정 및 마이크 로직 동일)
-};
-    
-    // 2. 언어 이름 가져오기 (에러 방어 로직 적용)
+    // 언어 이름 세팅 (기존 로직)
     try {
         const tLangValue = localStorage.getItem('target_language') || 'en-US';
         const sLangValue = localStorage.getItem('stt_input_language') || 'ko-KR';
-        
-        // 기존 함수가 있으면 쓰고, 없으면 코드로 표출
         const targetName = typeof window.getLangName === 'function' ? window.getLangName(tLangValue) : "AI 언어";
         const inputName = typeof window.getLangName === 'function' ? window.getLangName(sLangValue) : "내 언어";
         
-        const topLabel = document.getElementById('interp-lang-top');
-        const bottomLabel = document.getElementById('interp-lang-bottom');
-        if (topLabel) topLabel.innerText = targetName;
-        if (bottomLabel) bottomLabel.innerText = inputName;
-    } catch(e) {
-        console.warn("언어 이름 표출 에러 (무시됨):", e);
-    }
+        document.getElementById('interp-lang-top').innerText = targetName;
+        document.getElementById('interp-lang-bottom').innerText = inputName;
+    } catch(e) {}
     
-    // 3. 마이크 초기화
+    // 마이크 초기화 (기존 로직 유지)
     if (!window.interpRec) {
         if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
             window.interpRec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
@@ -3132,9 +3123,11 @@ window.openInterpreter = function() {
 // 통역기 창 닫기
 window.closeInterpreter = function() {
     const modal = document.getElementById('interpreterModal');
-    if(modal) modal.classList.add('hidden');
+    if(modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none'; // 강제 숨김
+    }
     
-    // 창 닫을 때 통역 마이크도 강제 종료
     if (window.isInterpActive) {
         window.toggleInterpMic();
     }
@@ -3257,7 +3250,6 @@ window.processInterpTranslation = async function(text) {
     }
 };
 // ==========================================
-
 
 
 
