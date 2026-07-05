@@ -3051,6 +3051,189 @@ setTimeout(() => {
 
 
 
+// ==========================================
+// 🌐 실시간 대면 통역기 (Real-time Interpreter) 엔진
+// ==========================================
+
+window.isInterpActive = false;
+window.interpRec = null;
+
+// 통역기 창 열기
+window.openInterpreter = function() {
+    const modal = document.getElementById('interpreterModal');
+    if(modal) modal.classList.remove('hidden');
+    
+    // UI에 현재 설정된 언어 이름 세팅
+    const tLang = document.getElementById('targetLanguage');
+    const targetName = tLang ? tLang.options[tLang.selectedIndex].dataset.langName : 'English';
+    const sttLang = document.getElementById('sttInputLanguage');
+    const inputName = sttLang ? sttLang.options[sttLang.selectedIndex].dataset.langName : 'Korean';
+    
+    document.getElementById('interp-lang-top').innerText = targetName;
+    document.getElementById('interp-lang-bottom').innerText = inputName;
+    
+    // 마이크 초기화
+    if (!window.interpRec) {
+        if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+            window.interpRec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            window.interpRec.continuous = false; // 한 턴씩 듣고 번역 후 다시 켬
+            window.interpRec.interimResults = false;
+            
+            window.interpRec.onresult = (e) => {
+                const transcript = e.results[0][0].transcript;
+                if(transcript.trim()) {
+                    window.processInterpTranslation(transcript);
+                }
+            };
+            
+            window.interpRec.onend = () => {
+                // 통역 모드가 켜져 있다면, 말하기가 끝나도 1초 뒤에 다시 마이크를 켬 (연속 대화)
+                if(window.isInterpActive) {
+                    setTimeout(() => {
+                        if(window.isInterpActive) {
+                            try { window.interpRec.start(); } catch(e) {}
+                        }
+                    }, 500);
+                }
+            };
+        }
+    }
+};
+
+// 통역기 창 닫기
+window.closeInterpreter = function() {
+    const modal = document.getElementById('interpreterModal');
+    if(modal) modal.classList.add('hidden');
+    
+    // 창 닫을 때 마이크도 무조건 끄기
+    if (window.isInterpActive) {
+        window.toggleInterpMic();
+    }
+};
+
+// 중앙 마이크 버튼 토글 (ON/OFF)
+window.toggleInterpMic = function() {
+    if(!window.interpRec) return alert("마이크를 지원하지 않는 기기입니다.");
+    
+    const btn = document.getElementById('interp-mic-btn');
+    const icon = document.getElementById('interp-mic-icon');
+    const status = document.getElementById('interp-status');
+    
+    if (window.isInterpActive) {
+        // OFF 하기 (연한 파란색)
+        window.isInterpActive = false;
+        try { window.interpRec.stop(); } catch(e) {}
+        
+        btn.classList.replace('bg-orange-50', 'bg-blue-50');
+        btn.classList.replace('border-orange-200', 'border-blue-100');
+        btn.classList.replace('text-orange-500', 'text-blue-500');
+        icon.classList.remove('animate-pulse');
+        status.innerHTML = "실시간 통역 모드 (OFF)";
+        status.classList.replace('text-orange-600', 'text-slate-500');
+        status.classList.replace('bg-orange-100', 'bg-slate-100');
+    } else {
+        // ON 하기 (연한 주황색)
+        window.isInterpActive = true;
+        
+        // 💡 팁: 두 언어를 모두 감지하기 위해 빈 언어코드로 설정하거나 기본 언어로 둠
+        window.interpRec.lang = document.getElementById('sttInputLanguage').value;
+        try { window.interpRec.start(); } catch(e) {}
+        
+        btn.classList.replace('bg-blue-50', 'bg-orange-50');
+        btn.classList.replace('border-blue-100', 'border-orange-200');
+        btn.classList.replace('text-blue-500', 'text-orange-500');
+        icon.classList.add('animate-pulse');
+        status.innerHTML = "실시간 통역 모드 (ON) <i class='fa-solid fa-satellite-dish ml-1'></i>";
+        status.classList.replace('text-slate-500', 'text-orange-600');
+        status.classList.replace('bg-slate-100', 'bg-orange-100');
+    }
+};
+
+// 딥시크로 텍스트 보내서 번역 및 뿌려주기
+window.processInterpTranslation = async function(text) {
+    if (!text.trim()) return;
+    
+    // 💸 번개 차감 로직 (통역 1회당 1차감)
+    if (typeof window.checkAndBlockAPI === 'function' && !window.checkAndBlockAPI()) {
+        window.toggleInterpMic(); // 번개 없으면 마이크 강제 종료
+        return; 
+    }
+    if (typeof window.incrementLocalUsage === 'function') window.incrementLocalUsage();
+
+    const tLang = document.getElementById('targetLanguage');
+    const targetName = tLang ? tLang.options[tLang.selectedIndex].dataset.langName : 'English';
+    const sttLang = document.getElementById('sttInputLanguage');
+    const inputName = sttLang ? sttLang.options[sttLang.selectedIndex].dataset.langName : 'Korean';
+    
+    const status = document.getElementById('interp-status');
+    status.innerHTML = "번역 중... ⏳";
+
+    // AI에게 양방향 통역을 지시하는 강력한 프롬프트
+    const sysPrompt = `You are a real-time bilateral interpreter between ${inputName} and ${targetName}.
+    Read the user's input. Detect which language it is closer to.
+    - If the input is ${inputName}, translate it to ${targetName}.
+    - If the input is ${targetName} (or broken ${targetName} typed in phonetics), translate it to ${inputName}.
+    Respond ONLY in JSON format EXACTLY like this:
+    {
+       "detected_source": "Either '${inputName}' or '${targetName}'",
+       "translated_text": "the translated result"
+    }`;
+
+    try {
+        let res = await fetchAPI(WORKER_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Device-ID': window.apiSessionId || myDeviceId },
+            body: JSON.stringify({
+                model: "deepseek-chat",
+                messages: [{ role: "system", content: sysPrompt }, { role: "user", content: text }],
+                response_format: { type: "json_object" }
+            })
+        });
+        let data = await res.json();
+        let rawContent = data.choices[0].message.content.replace(/```json/g, "").replace(/```/g, "").trim();
+        let parsed = JSON.parse(rawContent.match(/\{[\s\S]*\}/)[0]);
+        
+        const topText = document.getElementById('interp-text-top');
+        const bottomText = document.getElementById('interp-text-bottom');
+        
+        // 🌟 한국어(inputName)로 말했다면 -> 위쪽(영어)에 표시
+        if (parsed.detected_source.includes(inputName)) {
+            topText.innerText = parsed.translated_text;
+            topText.classList.remove('opacity-40');
+            bottomText.classList.add('opacity-40');
+            
+            // 번역된 텍스트 음성으로 읽어주기 (선택사항, 지워도 됨)
+            if (typeof window.speakText === 'function') {
+                window.speakText(parsed.translated_text, document.getElementById('targetLanguage').value);
+            }
+        } 
+        // 🌟 영어(targetName)로 말했다면 -> 아래쪽(한국어)에 표시
+        else {
+            bottomText.innerText = parsed.translated_text;
+            bottomText.classList.remove('opacity-40');
+            topText.classList.add('opacity-40');
+            
+            if (typeof window.speakText === 'function') {
+                window.speakText(parsed.translated_text, document.getElementById('sttInputLanguage').value);
+            }
+        }
+
+    } catch(e) {
+        console.error(e);
+        status.innerHTML = "통역 에러 ⚠️";
+    } finally {
+        if(window.isInterpActive) {
+            status.innerHTML = "실시간 통역 모드 (ON) <i class='fa-solid fa-satellite-dish ml-1'></i>";
+        }
+    }
+};
+// ==========================================
+
+
+
+
+
+
 
 
 // 테스트 투명버튼
