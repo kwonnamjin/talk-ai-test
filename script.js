@@ -3059,51 +3059,52 @@ setTimeout(() => {
 window.isInterpActive = false;
 window.interpRec = null;
 
-// 통역기 창 열기 (에러 방어막 추가)
+window.isInterpSpeaking = false; // 🌟 메아리 방지용 '귀막기' 플래그 추가
+
+// 통역기 창 열기
 window.openInterpreter = function() {
     console.log("통역기 실행!");
-    
-    // 1. 다른 모든 패널 강제 종료 (간섭 방지)
     if(typeof window.closeAllPanels === 'function') window.closeAllPanels();
     
     const modal = document.getElementById('interpreterModal');
-    if(!modal) {
-        alert("통역기 화면을 찾을 수 없습니다.");
-        return;
-    }
+    if(!modal) return alert("통역기 화면을 찾을 수 없습니다.");
     
-    // 2. 모달 표출
     modal.classList.remove('hidden');
     modal.style.display = 'flex';
-    modal.style.zIndex = '99999'; // 화면 최상단으로 강제 이동
+    modal.style.zIndex = '99999'; 
     
-    // 언어 이름 세팅 (기존 로직)
     try {
         const tLangValue = localStorage.getItem('target_language') || 'en-US';
         const sLangValue = localStorage.getItem('stt_input_language') || 'ko-KR';
-        const targetName = typeof window.getLangName === 'function' ? window.getLangName(tLangValue) : "AI 언어";
-        const inputName = typeof window.getLangName === 'function' ? window.getLangName(sLangValue) : "내 언어";
-        
-        document.getElementById('interp-lang-top').innerText = targetName;
-        document.getElementById('interp-lang-bottom').innerText = inputName;
+        document.getElementById('interp-lang-top').innerText = typeof window.getLangName === 'function' ? window.getLangName(tLangValue) : "AI 언어";
+        document.getElementById('interp-lang-bottom').innerText = typeof window.getLangName === 'function' ? window.getLangName(sLangValue) : "내 언어";
     } catch(e) {}
     
-    // 마이크 초기화 (기존 로직 유지)
     if (!window.interpRec) {
         if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
             window.interpRec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-            window.interpRec.continuous = false; // 한 턴씩 듣고 멈춤
+            
+            // 🌟 수정됨: 마이크를 끄지 않고 계속 열어둡니다!
+            window.interpRec.continuous = true; 
             window.interpRec.interimResults = false;
             
             window.interpRec.onresult = (e) => {
-                const transcript = e.results[0][0].transcript;
+                // 🌟 핵심 방어막: AI가 말하고 있을 때는 마이크가 들어도 무시합니다! (메아리 방지)
+                if (window.isInterpSpeaking) {
+                    console.log("🤫 AI가 말하는 중이라 무시됨");
+                    return; 
+                }
+
+                // continuous 모드에서는 배열의 맨 마지막 결과가 최신 음성입니다.
+                const lastIdx = e.results.length - 1;
+                const transcript = e.results[lastIdx][0].transcript;
                 if(transcript.trim()) {
                     window.processInterpTranslation(transcript);
                 }
             };
             
-            // 말을 멈추면 0.5초 뒤에 다시 켜는 무한 루프
             window.interpRec.onend = () => {
+                // 시스템에 의해 마이크가 강제로 끊기면 다시 켭니다 (무한 유지)
                 if(window.isInterpActive) {
                     setTimeout(() => {
                         if(window.isInterpActive) {
@@ -3112,12 +3113,9 @@ window.openInterpreter = function() {
                     }, 500);
                 }
             };
-
-            window.interpRec.onerror = (e) => {
-                console.log("마이크 에러 대기 중...");
-            };
+            window.interpRec.onerror = (e) => { console.log("마이크 대기..."); };
         } else {
-            alert("이 브라우저에서는 실시간 음성 인식을 지원하지 않습니다.");
+            alert("이 기기에서는 음성 인식을 지원하지 않습니다.");
         }
     }
 };
@@ -3180,13 +3178,16 @@ window.toggleInterpMic = function() {
 };
 
 // 딥시크로 텍스트 보내서 번역 및 뿌려주기
-// 딥시크로 텍스트 보내서 번역 및 뿌려주기
 window.processInterpTranslation = async function(text) {
-    if (!text.trim()) return;
+    // 🌟 1차 방어: 공백이거나 AI가 이미 말하는 중이면 중단
+    if (!text.trim() || window.isInterpSpeaking) return;
     
-    // 번개 차감 로직
+    // 🌟 2차 방어: 번역 시작과 동시에 마이크 귀를 막습니다!
+    window.isInterpSpeaking = true; 
+    
     if (typeof window.checkAndBlockAPI === 'function' && !window.checkAndBlockAPI()) {
         window.toggleInterpMic(); 
+        window.isInterpSpeaking = false;
         return; 
     }
     if (typeof window.incrementLocalUsage === 'function') window.incrementLocalUsage();
@@ -3194,7 +3195,6 @@ window.processInterpTranslation = async function(text) {
     const status = document.getElementById('interp-status');
     if(status) status.innerHTML = "번역 중... ⏳";
 
-    // 🌟 [수정1] 한국어/영어 글자 대신 정확한 코드(ko-KR, en-US)를 써서 AI가 헷갈리지 않게 고정!
     const tLangCode = localStorage.getItem('target_language') || 'en-US';
     const sLangCode = localStorage.getItem('stt_input_language') || 'ko-KR';
 
@@ -3209,13 +3209,9 @@ window.processInterpTranslation = async function(text) {
     }`;
 
     try {
-        // 🌟 [수정할 부분] WORKER_URL 뒤에 'translate-interp' 를 붙여줍니다!
         let res = await fetchAPI(WORKER_URL + 'translate-interp', {
             method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'X-Device-ID': typeof myDeviceId !== 'undefined' ? myDeviceId : "unknown" 
-            },
+            headers: { 'Content-Type': 'application/json', 'X-Device-ID': typeof myDeviceId !== 'undefined' ? myDeviceId : "unknown" },
             body: JSON.stringify({
                 model: "deepseek-chat",
                 messages: [{ role: "system", content: sysPrompt }, { role: "user", content: text }],
@@ -3230,28 +3226,25 @@ window.processInterpTranslation = async function(text) {
         const topText = document.getElementById('interp-text-top');
         const bottomText = document.getElementById('interp-text-bottom');
         
-        // 🌟 내 언어로 말했다면 -> 위쪽(상대방)에 번역 결과 표시
+        // 🌟 수정됨: 음성 재생이 끝날 때까지 기다리도록 강제하는 함수
+        const playVoiceWait = async (txt, lang) => {
+            if (window.flutter_inappwebview) {
+                // 플러터 앱이 재생을 완료할 때까지 대기
+                await window.flutter_inappwebview.callHandler('speak', txt, lang, "");
+            } else if (typeof window.speakText === 'function') {
+                window.speakText(txt, lang);
+                await new Promise(r => setTimeout(r, txt.length * 100 + 1000));
+            }
+        };
+
         if (parsed.detected_lang_code === sLangCode || parsed.detected_lang_code.includes(sLangCode.split('-')[0])) {
             if(topText) { topText.innerText = parsed.translated_text; topText.classList.remove('opacity-40'); }
             if(bottomText) { bottomText.classList.add('opacity-40'); bottomText.innerText = text; }
-            
-            // 플러터 앱으로 음성 읽어달라고 신호 보내기
-            if (window.flutter_inappwebview) {
-                window.flutter_inappwebview.callHandler('speak', parsed.translated_text, tLangCode, "");
-            } else if (typeof window.speakText === 'function') {
-                window.speakText(parsed.translated_text, tLangCode);
-            }
-        } 
-        // 🌟 상대방 언어로 말했다면 -> 아래쪽(내 쪽)에 번역 결과 표시
-        else {
+            await playVoiceWait(parsed.translated_text, tLangCode);
+        } else {
             if(bottomText) { bottomText.innerText = parsed.translated_text; bottomText.classList.remove('opacity-40'); }
             if(topText) { topText.classList.add('opacity-40'); topText.innerText = text; }
-            
-            if (window.flutter_inappwebview) {
-                window.flutter_inappwebview.callHandler('speak', parsed.translated_text, sLangCode, "");
-            } else if (typeof window.speakText === 'function') {
-                window.speakText(parsed.translated_text, sLangCode);
-            }
+            await playVoiceWait(parsed.translated_text, sLangCode);
         }
 
     } catch(e) {
@@ -3261,6 +3254,11 @@ window.processInterpTranslation = async function(text) {
         if(window.isInterpActive && status) {
             status.innerHTML = "실시간 통역 모드 (ON) <i class='fa-solid fa-satellite-dish ml-1'></i>";
         }
+        
+        // 🌟 핵심 3: AI 목소리가 끝나고 스피커 잔음이 사라질 시간(0.5초)을 벌어준 뒤 마이크 귀를 다시 엽니다!
+        setTimeout(() => {
+            window.isInterpSpeaking = false;
+        }, 500);
     }
 };
 
