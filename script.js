@@ -1876,17 +1876,13 @@ window.renderSpecialPersona = function() {
 window.archiveData = { script: [], vocab: [], freetalk: [] };
 window.currentArchiveTab = 'script';
 
-// 🌟 [안전 추가 1] 필터 상태 저장 변수와 필터링 실행 함수
-window.archiveFilter = 'all'; 
-
-window.setArchiveFilter = function(type) {
-    // 이미 누른 필터를 또 누르면 '전체보기'로 해제, 아니면 해당 필터 적용
-    if (window.archiveFilter === type) {
-        window.archiveFilter = 'all';
-    } else {
-        window.archiveFilter = type;
-    }
-    window.renderArchiveList(); // 화면 다시 그리기
+// 1. 데이터 불러오기 / 저장하기
+window.loadArchiveData = function() {
+    const saved = localStorage.getItem('talkai_archive_db');
+    if (saved) window.archiveData = JSON.parse(saved);
+};
+window.saveArchiveData = function() {
+    localStorage.setItem('talkai_archive_db', JSON.stringify(window.archiveData));
 };
 
 // 2. 탭 전환 (버튼 색상 변경 + 리스트 갱신)
