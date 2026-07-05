@@ -788,14 +788,15 @@ window.addMessageToChat = function(sender, text, translation = null, targetLangC
             ${translation ? `<p class="text-slate-500 mt-2 border-t pt-2 border-slate-100 font-medium" style="font-size: calc(var(--chat-font-size) - 3px);">${translation}</p>` : ''}
             
             <!-- 📥 프리토킹 보관함 버튼 -->
-            <div class="flex gap-2 mt-3 pt-3 border-t border-slate-100/50">
-                <button onclick="window.saveToArchive('freetalk', { original: decodeURIComponent('${safeText}'), translation: decodeURIComponent('${safeTrans}'), langCode: '${targetLangCode}' }, false)" class="...">
-    <i class="fa-solid fa-bookmark text-slate-400 mr-1"></i> 일반 보관
-</button>
-<button onclick="window.saveToArchive('freetalk', { original: decodeURIComponent('${safeText}'), translation: decodeURIComponent('${safeTrans}'), langCode: '${targetLangCode}' }, true)" class="...">
-    <i class="fa-solid fa-moon text-amber-500 mr-1"></i> 프리미엄 소장
-</button>
-            </div>
+            
+<div class="flex gap-2 mt-3 pt-2.5 border-t border-slate-100/80">
+    <button onclick="window.saveToArchive('freetalk', { original: decodeURIComponent('${safeText}'), translation: decodeURIComponent('${safeTrans}'), langCode: '${targetLangCode}' }, false)" class="flex-1 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-500 text-[10px] font-bold shadow-sm hover:bg-slate-100 flex items-center justify-center gap-1.5 transition-all">
+        <i class="fa-solid fa-bookmark text-slate-400"></i> 일반 보관
+    </button>
+    <button onclick="window.saveToArchive('freetalk', { original: decodeURIComponent('${safeText}'), translation: decodeURIComponent('${safeTrans}'), langCode: '${targetLangCode}' }, true)" class="flex-1 py-1.5 rounded-lg border border-amber-300 bg-amber-50 text-amber-700 text-[10px] font-black shadow-sm hover:bg-amber-100 flex items-center justify-center gap-1.5 transition-all relative overflow-hidden">
+        <i class="fa-solid fa-crown text-amber-500"></i> 프리미엄 소장
+    </button>
+</div>
         </div>`;
     }
     chatContainer.appendChild(msgDiv); setTimeout(() => chatContainer.scrollTop = chatContainer.scrollHeight, 50);
@@ -1235,14 +1236,15 @@ window.renderScripts = function() {
                     </div>
                     
                     <!-- 📥 롤플레잉 보관함 버튼 추가 -->
-                    <div class="flex gap-2 mt-2">
-                        <button onclick="window.saveToArchive('script', { original: '${safeText}', translation: '${line.ko.replace(/'/g, "\\'")}', langCode: '${scriptItem.langCode}' }, false)" class="...">
-    <i class="fa-solid fa-bookmark text-slate-400 mr-1"></i> 일반 보관
-</button>
-<button onclick="window.saveToArchive('script', { original: '${safeText}', translation: '${line.ko.replace(/'/g, "\\'")}', langCode: '${scriptItem.langCode}' }, true)" class="...">
-    <i class="fa-solid fa-moon text-amber-500 mr-1"></i> 프리미엄
-</button>
-                    </div>
+                   
+<div class="flex gap-2 mt-2.5 pt-2.5 border-t border-slate-100/80">
+    <button onclick="window.saveToArchive('script', { original: '${safeText}', translation: '${line.ko.replace(/'/g, "\\'")}', langCode: '${scriptItem.langCode}' }, false)" class="flex-1 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-500 text-[10px] font-bold shadow-sm hover:bg-slate-100 flex items-center justify-center gap-1.5 transition-all">
+        <i class="fa-solid fa-bookmark text-slate-400"></i> 일반 보관
+    </button>
+    <button onclick="window.saveToArchive('script', { original: '${safeText}', translation: '${line.ko.replace(/'/g, "\\'")}', langCode: '${scriptItem.langCode}' }, true)" class="flex-1 py-1.5 rounded-lg border border-amber-300 bg-amber-50 text-amber-700 text-[10px] font-black shadow-sm hover:bg-amber-100 flex items-center justify-center gap-1.5 transition-all relative overflow-hidden">
+        <i class="fa-solid fa-crown text-amber-500"></i> 프리미엄 소장
+    </button>
+</div>
 
                     <div id="feedback-${i}-line-${lineIdx}" class="mt-2 text-[11px] font-bold empty:hidden transition-all"></div>
                 </div>
@@ -1609,12 +1611,13 @@ window.showFlashcard = function(setIdx, wordIdx) {
     const safeExKo = v.example_ko.replace(/'/g, "\\'");
     const currentLangCode = savedVocabs[setIdx].langCode;
 
-    saveBtnContainer.innerHTML = `
-    <button onclick="window.saveToArchive('vocab', { word: '${safeWord}', meaning: '${safeMeaning}', example: '${safeExEn}', exampleMeaning: '${safeExKo}', langCode: '${currentLangCode}' }, false)" class="flex-1 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-500 text-[11px] font-bold shadow-sm hover:bg-slate-50">
-        <i class="fa-solid fa-bookmark"></i> 단어 일반 보관
+    // [수정 후]
+saveBtnContainer.innerHTML = `
+    <button onclick="window.saveToArchive('vocab', { word: '${safeWord}', meaning: '${safeMeaning}', example: '${safeExEn}', exampleMeaning: '${safeExKo}', langCode: '${currentLangCode}' }, false)" class="flex-1 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-500 text-[11px] font-bold shadow-sm hover:bg-slate-100 flex items-center justify-center gap-1.5 transition-all">
+        <i class="fa-solid fa-bookmark text-slate-400"></i> 일반 보관
     </button>
-    <button onclick="window.saveToArchive('vocab', { word: '${safeWord}', meaning: '${safeMeaning}', example: '${safeExEn}', exampleMeaning: '${safeExKo}', langCode: '${currentLangCode}' }, true)" class="flex-1 py-2.5 rounded-xl border border-amber-400 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[11px] font-black shadow-md hover:from-amber-600 hover:to-orange-600">
-        <i class="fa-solid fa-moon"></i> 단어 프리미엄
+    <button onclick="window.saveToArchive('vocab', { word: '${safeWord}', meaning: '${safeMeaning}', example: '${safeExEn}', exampleMeaning: '${safeExKo}', langCode: '${currentLangCode}' }, true)" class="flex-1 py-2.5 rounded-xl border border-amber-300 bg-amber-50 text-amber-700 text-[11px] font-black shadow-sm hover:bg-amber-100 flex items-center justify-center gap-1.5 transition-all relative overflow-hidden">
+        <i class="fa-solid fa-crown text-amber-500"></i> 프리미엄 소장
     </button>
 `;
 
