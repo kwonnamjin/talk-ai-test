@@ -1873,23 +1873,23 @@ window.renderSpecialPersona = function() {
 // 📂 내 보관함 통합 엔진 (박스 요약 + 리스트형 완벽 호환)
 // ==========================================
 
-// 전역 변수: 현재 선택된 필터 상태 ('all', 'general', 'premium')
+// 💡 [추가] 현재 선택된 필터 상태 저장용 변수
 window.archiveFilter = 'all';
 
-// 💡 새로 추가하는 필터링 제어 함수
+// 💡 [추가] 필터 버튼을 눌렀을 때 작동하는 함수
 window.setArchiveFilter = function(type) {
     if (window.archiveFilter === type) {
-        window.archiveFilter = 'all'; // 이미 선택된 걸 다시 누르면 '전체 보기'로 해제
+        window.archiveFilter = 'all'; // 이미 선택된 걸 누르면 전체보기로 복구
     } else {
         window.archiveFilter = type;  // 선택한 필터 적용
     }
-    window.renderArchiveList();
+    window.renderArchiveList(); // 화면 다시 그리기
 };
 
-// 💡 탭 전환 함수 수정 (탭을 바꿀 때 필터를 초기화해 줌)
+// 2. 탭 전환 (버튼 색상 변경 + 리스트 갱신)
 window.switchArchiveTab = function(tabName) {
     window.currentArchiveTab = tabName;
-    window.archiveFilter = 'all'; // 탭 이동 시 전체보기로 리셋
+    window.archiveFilter = 'all'; // 💡 탭을 바꾸면 무조건 전체보기로 초기화
     
     const tabs = ['script', 'vocab', 'freetalk'];
     tabs.forEach(t => {
@@ -1900,46 +1900,49 @@ window.switchArchiveTab = function(tabName) {
                 : "flex-1 bg-white border border-slate-200 text-slate-500 text-xs font-bold py-2 rounded-xl hover:bg-slate-50 transition-all";
         }
     });
+    
     window.renderArchiveList(); 
 };
 
-// 💡 리스트 렌더링 함수 완벽 수정 (필터 적용 + 박스 애니메이션)
+// 3. 리스트 및 상단 요약 박스 렌더링
 window.renderArchiveList = function() {
     const container = document.getElementById('archiveListContainer');
     const countGen = document.getElementById('count-general');
     const countPrem = document.getElementById('count-premium');
+    
+    // 💡 HTML에 추가한 박스 요소 가져오기
     const boxGen = document.getElementById('box-general');
     const boxPrem = document.getElementById('box-premium');
-
+    
     if (!container) return;
 
-    // 전체 데이터 가져오기
+    // 전체 데이터 (필터링 전)
     const allItems = window.archiveData[window.currentArchiveTab] || [];
     
-    // 1. 상단 박스 숫자 업데이트 (필터와 무관하게 탭의 '전체 개수'를 표시)
+    // 상단 박스 숫자 업데이트 (항상 전체 개수 표시)
     if(countGen) countGen.innerText = allItems.filter(i => !i.isPremium).length;
     if(countPrem) countPrem.innerText = allItems.filter(i => i.isPremium).length;
 
-    // 2. UI 스타일 업데이트 (선택된 박스 강조 & 선택 안 된 박스 흐리게)
+    // 💡 [추가] 박스 테두리 애니메이션 (선택 시 강조, 비선택 시 흐리게)
     if (boxGen && boxPrem) {
         if (window.archiveFilter === 'general') {
             boxGen.classList.add('ring-4', 'ring-blue-300', 'scale-105');
+            boxGen.classList.remove('opacity-50');
             boxPrem.classList.remove('ring-4', 'ring-amber-300', 'scale-105');
             boxPrem.classList.add('opacity-50');
-            boxGen.classList.remove('opacity-50');
         } else if (window.archiveFilter === 'premium') {
             boxPrem.classList.add('ring-4', 'ring-amber-300', 'scale-105');
+            boxPrem.classList.remove('opacity-50');
             boxGen.classList.remove('ring-4', 'ring-blue-300', 'scale-105');
             boxGen.classList.add('opacity-50');
-            boxPrem.classList.remove('opacity-50');
         } else {
-            // 'all' 상태일 때는 둘 다 원래대로
+            // 'all' 상태일 때는 둘 다 원래 상태로
             boxGen.classList.remove('ring-4', 'ring-blue-300', 'scale-105', 'opacity-50');
             boxPrem.classList.remove('ring-4', 'ring-amber-300', 'scale-105', 'opacity-50');
         }
     }
 
-    // 3. 렌더링할 데이터 필터링
+    // 💡 [추가] 필터 조건에 따라 화면에 그릴 데이터만 골라내기
     let itemsToRender = allItems;
     if (window.archiveFilter === 'general') {
         itemsToRender = allItems.filter(i => !i.isPremium);
@@ -1953,7 +1956,7 @@ window.renderArchiveList = function() {
         return;
     }
 
-    // 4. 데이터 카드 렌더링
+    // 데이터 카드 렌더링 (기존 코드 완벽하게 유지)
     itemsToRender.forEach((item) => {
         const title = window.currentArchiveTab === 'vocab' ? item.word : (item.original || "대화내용");
         const sub1 = window.currentArchiveTab === 'vocab' ? item.meaning : '';
@@ -1962,11 +1965,11 @@ window.renderArchiveList = function() {
         
         container.innerHTML += `
             <div class="bg-white p-4 rounded-2xl border ${item.isPremium ? 'border-amber-400 shadow-md' : 'border-slate-200 shadow-sm'} mb-3 relative overflow-hidden transition-all hover:-translate-y-0.5">
-                ${item.isPremium ? `<div class="absolute -right-4 -bottom-4 text-6xl text-amber-500 opacity-5 pointer-events-none"><i class="fa-solid fa-crown"></i></div>` : ''}
+                ${item.isPremium ? `<div class="absolute -right-4 -bottom-4 text-6xl text-amber-500 opacity-5 pointer-events-none"><i class="fa-solid fa-moon"></i></div>` : ''}
                 
                 <div class="flex items-center justify-between mb-2 relative z-10">
                     <span class="text-[9px] font-black px-2 py-0.5 rounded border ${item.isPremium ? 'text-amber-700 bg-amber-50 border-amber-300' : 'text-blue-600 bg-blue-50 border-blue-200'}">
-                        <i class="fa-solid fa-${item.isPremium ? 'crown' : 'bookmark'} mr-0.5"></i> ${item.isPremium ? '프리미엄 소장' : '일반 보관'}
+                        <i class="fa-solid fa-${item.isPremium ? 'moon' : 'bookmark'} mr-0.5"></i> ${item.isPremium ? '프리미엄 소장' : '일반 보관'}
                     </span>
                     <button onclick="window.deleteArchiveItem('${item.id}')" class="text-slate-300 hover:text-red-500 transition-colors px-1 py-0.5"><i class="fa-solid fa-trash-can text-sm"></i></button>
                 </div>
@@ -2114,13 +2117,8 @@ window.playArchiveAudio = async function(id, isPremium) {
         }
 
     } else {
-        // 프리미엄이 아닌 일반 보관함 재생
         if (typeof window.updateStatus === 'function') window.updateStatus("🔊 일반 기기 음성 재생 중...");
-        
-        // playBasicAudio 대신 기존 앱에 내장된 완벽한 함수(speakText)를 재활용합니다!
-        if (typeof window.speakText === 'function') {
-            window.speakText(cleanText, targetLang);
-        }
+        await window.playBasicAudio(cleanText, targetLang);
     }
 };
 
@@ -3160,80 +3158,7 @@ setTimeout(() => {
 
 
 
-// ==========================================
-// 🚨 실수로 날아간 필수 함수들 긴급 복구 영역
-// ==========================================
 
-// 1. 보관함 데이터베이스 초기화 및 저장 함수 복구
-if (!window.archiveData) {
-    window.archiveData = JSON.parse(localStorage.getItem('talkai_archive_v2')) || { script: [], vocab: [], freetalk: [] };
-}
-window.saveArchiveData = function() {
-    localStorage.setItem('talkai_archive_v2', JSON.stringify(window.archiveData));
-};
-
-// 2. 화면 패널 닫기 함수 복구 (탭 이동 시 필요)
-window.closeAllPanels = function() {
-    const panels = ['panel-home', 'panel-pages', 'panel-report', 'panel-mind', 'panel-character', 'panel-setting', 'screen-archive'];
-    panels.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.classList.add('hidden');
-    });
-};
-
-// 3. 퀘스트 번개 보상 지급 함수 복구 (오늘 맨 처음 만들었던 것)
-window.addStudyMission = function(type) {
-    if (!type) return;
-    const todayStr = new Date().toLocaleDateString();
-    let streakData = JSON.parse(localStorage.getItem('study_streak_v3')) || { lastDate: todayStr, streak: 0, scriptCount: 0, vocabCount: 0, freeTalkCount: 0, completedToday: false };
-    
-    if (streakData.lastDate !== todayStr) { window.updateStreakUI(); streakData = JSON.parse(localStorage.getItem('study_streak_v3')); }
-    if (streakData.completedToday) return; 
-
-    let changed = false;
-    if (type === 'script' && streakData.scriptCount < 5) { streakData.scriptCount += 1; changed = true; } 
-    else if (type === 'vocab' && streakData.vocabCount < 10) { streakData.vocabCount += 1; changed = true; }
-    else if (type === 'freeTalk' && streakData.freeTalkCount < 10) { streakData.freeTalkCount += 1; changed = true; }
-
-    if (changed) {
-        if (streakData.vocabCount >= 10 && (streakData.scriptCount >= 5 || streakData.freeTalkCount >= 10)) {
-            streakData.completedToday = true;
-            streakData.streak += 1;
-            if (typeof INTIMACY_SYSTEM !== 'undefined' && INTIMACY_SYSTEM.addExp) INTIMACY_SYSTEM.addExp('quest');
-            
-            let rwLightning = 3; 
-            if (streakData.streak === 5) rwLightning = 3;
-            else if (streakData.streak === 10) rwLightning = 5;
-            else if (streakData.streak === 20) rwLightning = 10;
-            else if (streakData.streak === 30) rwLightning = 15; 
-            else if (streakData.streak > 30 && streakData.streak % 10 === 0) rwLightning = 30; 
-
-            setTimeout(() => { 
-                if(typeof window.openStreakModal === 'function') window.openStreakModal(); 
-                let currentLightning = parseInt(localStorage.getItem('lightning_coins') || '0');
-                localStorage.setItem('lightning_coins', currentLightning + rwLightning); 
-                
-                alert(`🎉 퀘스트 완벽 달성! 오늘의 보상 번개 +${rwLightning}개가 지급되었습니다! ⚡`);
-                if(typeof window.updateBadgeUI === 'function') window.updateBadgeUI(); 
-            }, 800);
-        }
-        localStorage.setItem('study_streak_v3', JSON.stringify(streakData));
-        if(typeof window.updateStreakUI === 'function') window.updateStreakUI();
-    }
-};
-
-// 4. renderArchiveList 방어막 추가 (에러 방지용 덮어쓰기)
-const originalRenderArchiveList = window.renderArchiveList;
-window.renderArchiveList = function() {
-    // 혹시 데이터가 또 날아갔으면 강제로 살려냄
-    if (!window.archiveData) {
-        window.archiveData = JSON.parse(localStorage.getItem('talkai_archive_v2')) || { script: [], vocab: [], freetalk: [] };
-    }
-    // 원래 함수 실행
-    if (typeof originalRenderArchiveList === 'function') {
-        originalRenderArchiveList();
-    }
-};
 
 
 
