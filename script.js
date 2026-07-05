@@ -2017,27 +2017,28 @@ window.playArchiveAudio = async function(id, isPremium) {
     const targetLang = item.savedLangCode || localStorage.getItem('target_language') || 'en-US';
 
     if (isPremium) {
-        // 🚀 [1단계] 기기에 저장된 파일 경로(localAudioPath)가 있는지 확인!
+        // 🚀 [1단계] 기기에 저장된 파일(localAudioPath)이나 웹 임시 저장본(audioData)이 있는지 양쪽 다 확인!
         if (item.localAudioPath) {
             if (typeof window.updateStatus === 'function') window.updateStatus("💎 기기에 소장된 음성 재생 중...");
-            // 플러터 앱에게 기기에 있는 파일 재생을 명령합니다.
-            if (window.flutter_inappwebview) {
-                window.flutter_inappwebview.callHandler('playLocalFile', item.localAudioPath);
-            }
+            if (window.flutter_inappwebview) window.flutter_inappwebview.callHandler('playLocalFile', item.localAudioPath);
+            return;
+        } else if (item.audioData) {
+            if (typeof window.updateStatus === 'function') window.updateStatus("💎 웹에 소장된 음성 재생 중...");
+            await window.playGeminiAudio(item.audioData);
             return;
         }
 
-        // 🚀 [2단계] 처음 듣는 거라면 초승달 결제
+        // 🚀 [2단계] 진짜 처음 듣는 거라면 초승달 결제
         let currentMoons = parseInt(localStorage.getItem('moon_coins')) || 0;
         if (currentMoons <= 0) return alert("❌ 초승달이 부족합니다.");
 
-        if (!confirm("🌙 초승달 1개를 사용하여 원어민 음성을 기기에 평생 소장하시겠습니까?")) return;
+        if (!confirm("🌙 초승달 1개를 사용하여 원어민 음성을 평생 소장하시겠습니까?")) return;
 
         localStorage.setItem('moon_coins', currentMoons - 1);
         if (typeof window.updateBadgeUI === 'function') window.updateBadgeUI();
-        if (typeof window.updateStatus === 'function') window.updateStatus("✨ 초승달 사용! 기기에 다운로드 중...");
+        if (typeof window.updateStatus === 'function') window.updateStatus("✨ 초승달 사용! 최고급 음성 생성 중...");
 
-        // 🚀 [3단계] 구글 API 호출
+        // 🚀 [3단계] 구글 API 호출 (돈 나가는 곳 💸)
         const selectedVoiceCode = item.savedVoiceCode || localStorage.getItem('premium_voice_code') || 'Zephyr';
         try {
             const response = await fetch(WORKER_URL + 'tts', {
@@ -2047,23 +2048,28 @@ window.playArchiveAudio = async function(id, isPremium) {
             const data = await response.json();
 
             if (data.audioContent) {
-                // 🔥 [핵심] 플러터 앱에게 Base64 데이터를 주면서 "기기 폴더에 mp3로 저장해!" 라고 명령
+                // 🔥 [핵심 방어막] 플러터가 있으면 기기에 저장하고, 없으면 웹(audioData)에 저장!
                 if (window.flutter_inappwebview) {
-                    const savedFilePath = await window.flutter_inappwebview.callHandler('saveAudioToDevice', {
-                        fileName: `talkai_premium_${id}.mp3`,
-                        base64Data: data.audioContent
-                    });
-                    
-                    if (savedFilePath) {
-                        // 저장 성공 시, 파일 '경로'만 가볍게 기록
-                        item.localAudioPath = savedFilePath;
-                        window.saveArchiveData();
-                        
-                        // 최초 재생은 웹에서 직접 재생 (Base64가 이미 있으니까)
-                        await window.playGeminiAudio(data.audioContent);
-                        if (typeof window.updateStatus === 'function') window.updateStatus("기기 폴더에 소장 완료!");
+                    try {
+                        const savedFilePath = await window.flutter_inappwebview.callHandler('saveAudioToDevice', {
+                            fileName: `talkai_premium_${id}.mp3`,
+                            base64Data: data.audioContent
+                        });
+                        if (savedFilePath) item.localAudioPath = savedFilePath;
+                    } catch (e) {
+                        console.error("플러터 저장 실패", e);
+                        item.audioData = data.audioContent; // 실패 시 웹에라도 저장
                     }
+                } else {
+                    // 플러터가 없는 브라우저 환경이면 무조건 웹 스토리지에 임시 박제!
+                    item.audioData = data.audioContent;
                 }
+
+                // 💡 생성 성공했으니 무조건 세이브! (다음 클릭 시 1단계에서 걸러짐)
+                window.saveArchiveData();
+                
+                await window.playGeminiAudio(data.audioContent);
+                if (typeof window.updateStatus === 'function') window.updateStatus("소장 및 재생 완료!");
             } else {
                 throw new Error("음성 생성 에러");
             }
