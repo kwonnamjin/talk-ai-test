@@ -789,12 +789,12 @@ window.addMessageToChat = function(sender, text, translation = null, targetLangC
             
             <!-- 📥 프리토킹 보관함 버튼 -->
             <div class="flex gap-2 mt-3 pt-3 border-t border-slate-100/50">
-                <button onclick="window.saveToArchive('freetalk', { original: decodeURIComponent('${safeText}'), translation: decodeURIComponent('${safeTrans}') }, false)" class="flex-1 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-500 text-[10px] font-bold shadow-sm hover:bg-slate-50 transition-colors">
-                    <i class="fa-solid fa-bookmark text-slate-400 mr-1"></i> 일반 보관
-                </button>
-                <button onclick="window.saveToArchive('freetalk', { original: decodeURIComponent('${safeText}'), translation: decodeURIComponent('${safeTrans}') }, true)" class="flex-1 py-1.5 rounded-lg border border-amber-300 bg-amber-50 text-amber-700 text-[10px] font-black shadow-sm hover:bg-amber-100 transition-colors">
-                    <i class="fa-solid fa-moon text-amber-500 mr-1"></i> 프리미엄 소장
-                </button>
+                <button onclick="window.saveToArchive('freetalk', { original: decodeURIComponent('${safeText}'), translation: decodeURIComponent('${safeTrans}'), langCode: '${targetLangCode}' }, false)" class="...">
+    <i class="fa-solid fa-bookmark text-slate-400 mr-1"></i> 일반 보관
+</button>
+<button onclick="window.saveToArchive('freetalk', { original: decodeURIComponent('${safeText}'), translation: decodeURIComponent('${safeTrans}'), langCode: '${targetLangCode}' }, true)" class="...">
+    <i class="fa-solid fa-moon text-amber-500 mr-1"></i> 프리미엄 소장
+</button>
             </div>
         </div>`;
     }
@@ -1236,12 +1236,12 @@ window.renderScripts = function() {
                     
                     <!-- 📥 롤플레잉 보관함 버튼 추가 -->
                     <div class="flex gap-2 mt-2">
-                        <button onclick="window.saveToArchive('script', { original: '${safeText}', translation: '${line.ko.replace(/'/g, "\\'")}' }, false)" class="flex-1 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-500 text-[10px] font-bold shadow-sm hover:bg-slate-50 transition-colors">
-                            <i class="fa-solid fa-bookmark text-slate-400 mr-1"></i> 일반 보관
-                        </button>
-                        <button onclick="window.saveToArchive('script', { original: '${safeText}', translation: '${line.ko.replace(/'/g, "\\'")}' }, true)" class="flex-1 py-1.5 rounded-lg border border-amber-300 bg-amber-50 text-amber-700 text-[10px] font-black shadow-sm hover:bg-amber-100 transition-colors">
-                            <i class="fa-solid fa-moon text-amber-500 mr-1"></i> 프리미엄
-                        </button>
+                        <button onclick="window.saveToArchive('script', { original: '${safeText}', translation: '${line.ko.replace(/'/g, "\\'")}', langCode: '${scriptItem.langCode}' }, false)" class="...">
+    <i class="fa-solid fa-bookmark text-slate-400 mr-1"></i> 일반 보관
+</button>
+<button onclick="window.saveToArchive('script', { original: '${safeText}', translation: '${line.ko.replace(/'/g, "\\'")}', langCode: '${scriptItem.langCode}' }, true)" class="...">
+    <i class="fa-solid fa-moon text-amber-500 mr-1"></i> 프리미엄
+</button>
                     </div>
 
                     <div id="feedback-${i}-line-${lineIdx}" class="mt-2 text-[11px] font-bold empty:hidden transition-all"></div>
@@ -1607,15 +1607,16 @@ window.showFlashcard = function(setIdx, wordIdx) {
     const safeMeaning = v.meaning.replace(/'/g, "\\'");
     const safeExEn = v.example_en.replace(/'/g, "\\'");
     const safeExKo = v.example_ko.replace(/'/g, "\\'");
+    const currentLangCode = savedVocabs[setIdx].langCode;
 
     saveBtnContainer.innerHTML = `
-        <button onclick="window.saveToArchive('vocab', { word: '${safeWord}', meaning: '${safeMeaning}', example: '${safeExEn}', exampleMeaning: '${safeExKo}' }, false)" class="flex-1 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-500 text-[11px] font-bold shadow-sm hover:bg-slate-50">
-            <i class="fa-solid fa-bookmark"></i> 단어 일반 보관
-        </button>
-        <button onclick="window.saveToArchive('vocab', { word: '${safeWord}', meaning: '${safeMeaning}', example: '${safeExEn}', exampleMeaning: '${safeExKo}' }, true)" class="flex-1 py-2.5 rounded-xl border border-amber-400 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[11px] font-black shadow-md hover:from-amber-600 hover:to-orange-600">
-            <i class="fa-solid fa-moon"></i> 단어 프리미엄
-        </button>
-    `;
+    <button onclick="window.saveToArchive('vocab', { word: '${safeWord}', meaning: '${safeMeaning}', example: '${safeExEn}', exampleMeaning: '${safeExKo}', langCode: '${currentLangCode}' }, false)" class="flex-1 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-500 text-[11px] font-bold shadow-sm hover:bg-slate-50">
+        <i class="fa-solid fa-bookmark"></i> 단어 일반 보관
+    </button>
+    <button onclick="window.saveToArchive('vocab', { word: '${safeWord}', meaning: '${safeMeaning}', example: '${safeExEn}', exampleMeaning: '${safeExKo}', langCode: '${currentLangCode}' }, true)" class="flex-1 py-2.5 rounded-xl border border-amber-400 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[11px] font-black shadow-md hover:from-amber-600 hover:to-orange-600">
+        <i class="fa-solid fa-moon"></i> 단어 프리미엄
+    </button>
+`;
 
     window.renderVocabs(); 
 };
@@ -1959,23 +1960,23 @@ window.saveToArchive = function(type, itemData, isPremium) {
     if (!window.archiveData) window.archiveData = { script: [], vocab: [], freetalk: [] };
     if (!window.archiveData[type]) window.archiveData[type] = [];
 
-    // 🔥 초승달 결제 로직 삭제! 저장 자체는 무료입니다.
     if (isPremium) {
         alert("✨ 프리미엄 보관함에 담겼습니다! (최초 듣기 시 초승달 1개 소모)");
     } else {
         alert("💾 일반 보관함에 저장되었습니다.");
     }
 
-    // 저장하는 순간의 설정값 박제
-    const currentLang = localStorage.getItem('target_language') || 'en-US';
+    // 💡 [핵심 해결] 넘어온 데이터에 고유 언어(langCode)가 있으면 그걸 쓰고, 없으면 현재 설정을 씁니다.
+    const inherentLang = itemData.langCode || localStorage.getItem('target_language') || 'en-US';
     const currentVoiceCode = localStorage.getItem('premium_voice_code') || '';
 
     const newItem = {
         id: 'archive_' + Date.now(),
         isPremium: isPremium,
-        savedLangCode: currentLang,
-        savedVoiceCode: currentVoiceCode,
-        audioData: null, // 👈 [핵심] 여기에 나중에 구글에서 받아온 진짜 음성을 저장할 겁니다!
+        savedLangCode: inherentLang,       // 👈 원래 만들어진 언어 영구 박제!
+        savedVoiceCode: currentVoiceCode,  // 👈 저장 시점의 고급 음성 셋팅 박제!
+        audioData: null,                   // (웹 테스트용 빈 그릇)
+        localAudioPath: null,              // (플러터 연동용 빈 그릇)
         ...itemData
     };
 
