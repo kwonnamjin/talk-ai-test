@@ -636,40 +636,33 @@
 <!-- 🎙️ 실시간 대면 통역기 스크린 -->
     <div id="interpreterModal" class="hidden absolute inset-0 z-[9999] bg-slate-50 flex flex-col sm:rounded-3xl overflow-hidden transition-all duration-300">
         
-        <!-- 상단 화면 (상대방) - 스크롤 지원 -->
+        <!-- 상단 화면 (상대방) - 스크롤 오류 해결 -->
         <div class="flex-1 relative bg-slate-100 border-b border-slate-200 flex flex-col overflow-hidden">
             <div class="absolute top-4 left-4 bg-white px-3 py-1.5 rounded-full shadow-sm border border-slate-200 flex items-center gap-2 z-10">
                 <span id="interp-lang-top" class="text-xs font-extrabold text-slate-700">🇺🇸 English</span>
             </div>
-            <!-- 실제 글씨가 쌓이는 스크롤 영역 -->
-            <div id="interp-text-top" class="flex-1 overflow-y-auto no-scrollbar p-5 pt-16 flex flex-col justify-end gap-3 scroll-smooth">
-                <div class="mt-auto w-full"><span class="opacity-40 text-2xl font-black text-slate-800">대화를 시작해주세요.</span></div>
+            <!-- 순수 스크롤 박스로 변경 -->
+            <div id="interp-text-top" class="flex-1 overflow-y-auto no-scrollbar p-5 pt-16 pb-4 scroll-smooth block">
+                <div class="opacity-40 text-2xl font-black text-slate-800 text-left mt-4">대화를 시작해주세요.</div>
             </div>
         </div>
         
-        <!-- 중앙 경계선 (마이크) - 엄청 슬림하게 다이어트! -->
+        <!-- 중앙 경계선 (마이크) -->
         <div class="flex-none bg-white shadow-[0_0_15px_rgba(0,0,0,0.08)] z-20 py-2.5 px-4 flex items-center justify-between relative border-y-2 border-slate-200">
-            <!-- 좌측: 상태 표시 -->
-            <span id="interp-status" class="text-[10px] font-black text-slate-500 bg-slate-100 border border-slate-200 px-2 py-1 rounded-md shadow-sm w-24 text-center truncate">
-                통역 OFF
-            </span>
-            
-            <!-- 중앙: 얇고 길어진 마이크 버튼 (h-20 -> h-12 로 슬림화) -->
+            <span id="interp-status" class="text-[10px] font-black text-slate-500 bg-slate-100 border border-slate-200 px-2 py-1 rounded-md shadow-sm w-24 text-center truncate">통역 OFF</span>
             <button id="interp-mic-btn" onclick="window.toggleInterpMic()" class="flex-1 max-w-[160px] h-11 mx-3 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center gap-2 text-xl font-black transition-all shadow-sm border-2 border-blue-100 hover:scale-[1.02] outline-none">
                 <i id="interp-mic-icon" class="fa-solid fa-microphone"></i>
             </button>
-
-            <!-- 우측: 닫기 버튼 -->
             <button onclick="window.closeInterpreter()" class="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 text-slate-500 flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-all shadow-sm w-24 outline-none">
                 <i class="fa-solid fa-xmark text-sm"></i>
             </button>
         </div>
         
-        <!-- 하단 화면 (사용자) - 스크롤 지원 -->
+        <!-- 하단 화면 (사용자) - 스크롤 오류 해결 -->
         <div class="flex-1 relative bg-slate-50 flex flex-col overflow-hidden">
-            <!-- 실제 글씨가 쌓이는 스크롤 영역 -->
-            <div id="interp-text-bottom" class="flex-1 overflow-y-auto no-scrollbar p-5 pb-16 flex flex-col justify-start gap-3 scroll-smooth">
-                <div class="mb-auto w-full text-right"><span class="opacity-40 text-2xl font-black text-slate-800">대화를 시작해주세요.</span></div>
+            <!-- 순수 스크롤 박스로 변경 -->
+            <div id="interp-text-bottom" class="flex-1 overflow-y-auto no-scrollbar p-5 pb-16 pt-4 scroll-smooth block">
+                <div class="opacity-40 text-2xl font-black text-slate-800 text-right mb-4">대화를 시작해주세요.</div>
             </div>
             <div class="absolute bottom-4 right-4 bg-white px-3 py-1.5 rounded-full shadow-sm border border-slate-200 flex items-center gap-2 z-10">
                 <span id="interp-lang-bottom" class="text-xs font-extrabold text-slate-700">🇰🇷 한국어</span>

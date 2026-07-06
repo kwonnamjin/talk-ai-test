@@ -3170,25 +3170,39 @@ window.renderInterpTop = function() {
     setTimeout(() => { container.scrollTop = container.scrollHeight; }, 50);
 };
 
-// 🌟 아래쪽 화면 렌더링 (최신 글이 위에 쌓이며 스크롤 가능)
+// 🌟 위쪽 화면 렌더링 (최신 글이 아래에 쌓이며 스크롤 쫙쫙 됨)
+window.renderInterpTop = function() {
+    const container = document.getElementById('interp-text-top');
+    if(!container) return;
+    
+    container.innerHTML = window.interpHistoryTop.map((msg, i) => `
+        <div class="mb-5 ${i === window.interpHistoryTop.length - 1 ? 'opacity-100' : 'opacity-40'} transition-opacity duration-300 flex flex-col items-start w-full">
+            <span class="text-2xl sm:text-3xl font-black text-slate-800 break-keep">${msg.translated}</span>
+            <span class="text-xs font-bold text-blue-600 mt-1 border-l-[3px] border-blue-400 pl-2 bg-blue-50/50 pr-3 py-0.5 rounded-r-lg">${msg.original}</span>
+        </div>
+    `).join('');
+    
+    // 내용이 추가되면 무조건 최하단으로 스크롤을 끌어내림
+    setTimeout(() => { container.scrollTop = container.scrollHeight; }, 50);
+};
+
+// 🌟 아래쪽 화면 렌더링 (최신 글이 위에 쌓이며 스크롤 쫙쫙 됨)
 window.renderInterpBottom = function() {
     const container = document.getElementById('interp-text-bottom');
     if(!container) return;
     
-    let html = window.interpHistoryBottom.map((msg, i) => `
-        <div class="mb-2 ${i === 0 ? 'opacity-100' : 'opacity-40'} transition-opacity duration-300 flex flex-col items-end w-full shrink-0">
+    container.innerHTML = window.interpHistoryBottom.map((msg, i) => `
+        <div class="mb-5 ${i === 0 ? 'opacity-100' : 'opacity-40'} transition-opacity duration-300 flex flex-col items-end w-full">
             <span class="text-2xl sm:text-3xl font-black text-slate-800 break-keep text-right">${msg.translated}</span>
             <span class="text-xs font-bold text-orange-600 mt-1 border-r-[3px] border-orange-400 pr-2 bg-orange-50/50 pl-3 py-0.5 rounded-l-lg text-right">${msg.original}</span>
         </div>
     `).join('');
     
-    // 내용물이 천장에 붙어서 아래로 밀려나도록 mb-auto 컨테이너로 감싸줌
-    container.innerHTML = `<div class="mb-auto w-full flex flex-col gap-2">` + html + `</div>`;
-    // 새로 추가될 때마다 최상단으로 스크롤 이동
+    // 내용이 추가되면 무조건 최상단으로 스크롤을 끌어올림
     setTimeout(() => { container.scrollTop = 0; }, 50);
 };
 
-// 딥시크 텍스트 통신
+// 딥시크 텍스트 통신 (분류 오류 완벽 차단)
 window.processInterpTranslation = async function(text) {
     if (!text.trim()) return;
     if (typeof window.checkAndBlockAPI === 'function' && !window.checkAndBlockAPI()) { window.toggleInterpMic(); return; }
@@ -3200,13 +3214,18 @@ window.processInterpTranslation = async function(text) {
     const tLangCode = localStorage.getItem('target_language') || 'en-US';
     const sLangCode = localStorage.getItem('stt_input_language') || 'ko-KR';
 
+    // 🌟 프롬프트 초강화: 발화자 구분(ME vs OTHER)을 강제!
     const sysPrompt = `You are a real-time bilateral interpreter.
-    Detect if the user's input is closer to ${sLangCode} or ${tLangCode}.
-    - If it's ${sLangCode}, translate to ${tLangCode}.
-    - If it's ${tLangCode}, translate to ${sLangCode}.
+    The user's native language is ${sLangCode} (e.g. Korean).
+    The other person's language is ${tLangCode} (e.g. English).
+
+    Identify which language the input text belongs to:
+    - If the input is in ${sLangCode}, translate it to ${tLangCode}, and set "speaker" to "ME".
+    - If the input is in ${tLangCode}, translate it to ${sLangCode}, and set "speaker" to "OTHER".
+    
     Respond ONLY in JSON format EXACTLY like this:
     {
-       "detected_lang_code": "either '${sLangCode}' or '${tLangCode}'",
+       "speaker": "ME or OTHER",
        "translated_text": "the translated result"
     }`;
 
@@ -3221,13 +3240,14 @@ window.processInterpTranslation = async function(text) {
         let rawContent = data.choices[0].message.content.replace(/```json/g, "").replace(/```/g, "").trim();
         let parsed = JSON.parse(rawContent.match(/\{[\s\S]*\}/)[0]);
         
-        if (parsed.detected_lang_code === sLangCode || parsed.detected_lang_code.includes(sLangCode.split('-')[0])) {
-            // 내가 한 말(한국어) -> 상대방 화면(위)에 쌓기 (최대 20개)
+        // 🌟 판단 기준: speaker 값으로 100% 명확하게 분류!
+        if (parsed.speaker === "ME") {
+            // 내가 한 말(한국어) -> 상대방 화면(위)에 쌓기
             window.interpHistoryTop.push({ translated: parsed.translated_text, original: text });
             if(window.interpHistoryTop.length > 20) window.interpHistoryTop.shift();
             window.renderInterpTop();
         } else {
-            // 상대방이 한 말(영어) -> 내 화면(아래)에 쌓기 (최대 20개)
+            // 상대방이 한 말(영어) -> 내 화면(아래)에 쌓기
             window.interpHistoryBottom.unshift({ translated: parsed.translated_text, original: text });
             if(window.interpHistoryBottom.length > 20) window.interpHistoryBottom.pop();
             window.renderInterpBottom();
