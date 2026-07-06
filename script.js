@@ -3075,19 +3075,13 @@ window.openInterpreter = function() {
     modal.style.display = 'flex';
     modal.style.zIndex = '99999'; 
     
-    // 🌟 UI 초기화 (기존의 단일 텍스트 태그를 스크롤 가능한 컨테이너로 강제 변환)
-    const topText = document.getElementById('interp-text-top');
-    const bottomText = document.getElementById('interp-text-bottom');
-    if(topText) {
-        topText.className = "w-full flex flex-col justify-end gap-2 overflow-y-auto no-scrollbar h-[35vh] pb-4";
-        topText.innerHTML = '<span class="opacity-40 text-2xl font-black text-slate-800">대화를 시작해주세요.</span>';
-    }
-    if(bottomText) {
-        bottomText.className = "w-full flex flex-col justify-start gap-2 overflow-y-auto no-scrollbar h-[35vh] mt-8 pt-4";
-        bottomText.innerHTML = '<span class="opacity-40 text-2xl font-black text-slate-800 text-right">대화를 시작해주세요.</span>';
-    }
+    // 🌟 배열과 화면 초기화
     window.interpHistoryTop = [];
     window.interpHistoryBottom = [];
+    const topText = document.getElementById('interp-text-top');
+    const bottomText = document.getElementById('interp-text-bottom');
+    if(topText) topText.innerHTML = '<div class="mt-auto w-full"><span class="opacity-40 text-2xl sm:text-3xl font-black text-slate-800 break-keep">대화를 시작해주세요.</span></div>';
+    if(bottomText) bottomText.innerHTML = '<div class="mb-auto w-full text-right"><span class="opacity-40 text-2xl sm:text-3xl font-black text-slate-800 break-keep">대화를 시작해주세요.</span></div>';
     
     try {
         const tLangValue = localStorage.getItem('target_language') || 'en-US';
@@ -3099,7 +3093,7 @@ window.openInterpreter = function() {
     if (!window.interpRec) {
         if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
             window.interpRec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-            window.interpRec.continuous = true; // 무한 마이크 유지 (띵동 소리 최소화)
+            window.interpRec.continuous = true; 
             window.interpRec.interimResults = false;
             
             window.interpRec.onresult = (e) => {
@@ -3158,29 +3152,40 @@ window.toggleInterpMic = function() {
 };
 
 // 🌟 위쪽 화면 렌더링 (최신 글이 아래에 쌓이며 과거 텍스트는 위로 밀림)
+// 🌟 위쪽 화면 렌더링 (최신 글이 아래에 쌓이며 스크롤 가능)
 window.renderInterpTop = function() {
     const container = document.getElementById('interp-text-top');
     if(!container) return;
-    container.innerHTML = window.interpHistoryTop.map((msg, i) => `
-        <div class="mb-4 ${i === window.interpHistoryTop.length - 1 ? 'opacity-100 scale-100' : 'opacity-40 scale-[0.98] origin-bottom-left'} transition-all duration-300 flex flex-col items-start w-full">
+    
+    let html = window.interpHistoryTop.map((msg, i) => `
+        <div class="mb-2 ${i === window.interpHistoryTop.length - 1 ? 'opacity-100' : 'opacity-40'} transition-opacity duration-300 flex flex-col items-start w-full shrink-0">
             <span class="text-2xl sm:text-3xl font-black text-slate-800 break-keep">${msg.translated}</span>
-            <span class="text-sm font-bold text-blue-600 mt-1 border-l-[3px] border-blue-400 pl-2 bg-blue-50/50 pr-3 py-0.5 rounded-r-lg">${msg.original}</span>
+            <span class="text-xs font-bold text-blue-600 mt-1 border-l-[3px] border-blue-400 pl-2 bg-blue-50/50 pr-3 py-0.5 rounded-r-lg">${msg.original}</span>
         </div>
     `).join('');
-    container.scrollTop = container.scrollHeight; // 무조건 맨 아래로 스크롤
+    
+    // 내용물이 바닥에 붙어서 위로 밀려나도록 mt-auto 컨테이너로 감싸줌
+    container.innerHTML = `<div class="mt-auto w-full flex flex-col gap-2">` + html + `</div>`;
+    // 새로 추가될 때마다 최하단으로 스크롤 이동
+    setTimeout(() => { container.scrollTop = container.scrollHeight; }, 50);
 };
 
-// 🌟 아래쪽 화면 렌더링 (최신 글이 위에 쌓이며 과거 텍스트는 아래로 밀림)
+// 🌟 아래쪽 화면 렌더링 (최신 글이 위에 쌓이며 스크롤 가능)
 window.renderInterpBottom = function() {
     const container = document.getElementById('interp-text-bottom');
     if(!container) return;
-    container.innerHTML = window.interpHistoryBottom.map((msg, i) => `
-        <div class="mb-4 ${i === 0 ? 'opacity-100 scale-100' : 'opacity-40 scale-[0.98] origin-top-right'} transition-all duration-300 flex flex-col items-end w-full">
+    
+    let html = window.interpHistoryBottom.map((msg, i) => `
+        <div class="mb-2 ${i === 0 ? 'opacity-100' : 'opacity-40'} transition-opacity duration-300 flex flex-col items-end w-full shrink-0">
             <span class="text-2xl sm:text-3xl font-black text-slate-800 break-keep text-right">${msg.translated}</span>
-            <span class="text-sm font-bold text-orange-600 mt-1 border-r-[3px] border-orange-400 pr-2 bg-orange-50/50 pl-3 py-0.5 rounded-l-lg text-right">${msg.original}</span>
+            <span class="text-xs font-bold text-orange-600 mt-1 border-r-[3px] border-orange-400 pr-2 bg-orange-50/50 pl-3 py-0.5 rounded-l-lg text-right">${msg.original}</span>
         </div>
     `).join('');
-    container.scrollTop = 0; // 무조건 맨 위로 스크롤
+    
+    // 내용물이 천장에 붙어서 아래로 밀려나도록 mb-auto 컨테이너로 감싸줌
+    container.innerHTML = `<div class="mb-auto w-full flex flex-col gap-2">` + html + `</div>`;
+    // 새로 추가될 때마다 최상단으로 스크롤 이동
+    setTimeout(() => { container.scrollTop = 0; }, 50);
 };
 
 // 딥시크 텍스트 통신

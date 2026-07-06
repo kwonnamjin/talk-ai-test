@@ -633,48 +633,49 @@
 </div>
 
 
- <!-- 🎙️ 실시간 대면 통역기 스크린 -->
-        <div id="interpreterModal" class="hidden absolute inset-0 z-[9999] bg-slate-50 flex flex-col sm:rounded-3xl overflow-hidden transition-all duration-300">
-            <!-- 상단 화면 (AI 언어 출력 - 상대방이 보는 방향) -->
-            <div class="flex-1 relative p-6 flex flex-col justify-end bg-slate-100 border-b border-slate-200">
-                <div class="absolute top-6 left-6 bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200 flex items-center gap-2">
-                    <span id="interp-lang-top" class="text-sm font-extrabold text-slate-700">🇺🇸 English</span>
-                </div>
-                <!-- 상대방이 보기 편하게 글자를 180도 뒤집고 싶다면 아래 클래스에 rotate-180 을 추가하시면 됩니다 -->
-                <p id="interp-text-top" class="text-2xl sm:text-3xl font-black text-slate-800 text-left w-full break-keep opacity-40 transition-opacity">
-                    이곳에 번역된 언어가 표시됩니다.
-                </p>
+<!-- 🎙️ 실시간 대면 통역기 스크린 -->
+    <div id="interpreterModal" class="hidden absolute inset-0 z-[9999] bg-slate-50 flex flex-col sm:rounded-3xl overflow-hidden transition-all duration-300">
+        
+        <!-- 상단 화면 (상대방) - 스크롤 지원 -->
+        <div class="flex-1 relative bg-slate-100 border-b border-slate-200 flex flex-col overflow-hidden">
+            <div class="absolute top-4 left-4 bg-white px-3 py-1.5 rounded-full shadow-sm border border-slate-200 flex items-center gap-2 z-10">
+                <span id="interp-lang-top" class="text-xs font-extrabold text-slate-700">🇺🇸 English</span>
             </div>
-            
-            <!-- 중앙 경계선 마이크 제어부 -->
-            <div class="flex-none bg-white shadow-[0_0_20px_rgba(0,0,0,0.1)] z-10 p-4 flex flex-col items-center justify-center relative border-y-4 border-slate-200">
-                <div class="w-full flex justify-between items-center mb-3 px-2 absolute top-4 left-0 right-0 z-20">
-                    <div class="flex items-center gap-2 ml-4">
-                        <span id="interp-status" class="text-[11px] font-black text-slate-500 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm">
-                            실시간 통역 모드 (OFF)
-                        </span>
-                    </div>
-                    <button onclick="window.closeInterpreter()" class="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 text-slate-500 flex items-center justify-center hover:bg-red-50 hover:text-red-500 hover:border-red-200 transition-all mr-4 shadow-sm">
-                        <i class="fa-solid fa-xmark text-lg"></i>
-                    </button>
-                </div>
-                
-                <!-- 길고 커다란 중앙 마이크 버튼 -->
-                <button id="interp-mic-btn" onclick="window.toggleInterpMic()" class="w-full max-w-sm h-20 mt-10 bg-blue-50 text-blue-500 rounded-3xl flex items-center justify-center gap-3 text-3xl font-black transition-all shadow-inner border-[3px] border-blue-100 hover:scale-[1.02]">
-                    <i id="interp-mic-icon" class="fa-solid fa-microphone"></i>
-                </button>
-            </div>
-            
-            <!-- 하단 화면 (사용자 언어 출력) -->
-            <div class="flex-1 relative p-6 flex flex-col justify-start bg-slate-50">
-                <p id="interp-text-bottom" class="text-2xl sm:text-3xl font-black text-slate-800 text-right w-full break-keep mt-8 opacity-40 transition-opacity">
-                    여기에 번역된 언어가 표시됩니다.
-                </p>
-                <div class="absolute bottom-6 right-6 bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200 flex items-center gap-2">
-                    <span id="interp-lang-bottom" class="text-sm font-extrabold text-slate-700">🇰🇷 한국어</span>
-                </div>
+            <!-- 실제 글씨가 쌓이는 스크롤 영역 -->
+            <div id="interp-text-top" class="flex-1 overflow-y-auto no-scrollbar p-5 pt-16 flex flex-col justify-end gap-3 scroll-smooth">
+                <div class="mt-auto w-full"><span class="opacity-40 text-2xl font-black text-slate-800">대화를 시작해주세요.</span></div>
             </div>
         </div>
+        
+        <!-- 중앙 경계선 (마이크) - 엄청 슬림하게 다이어트! -->
+        <div class="flex-none bg-white shadow-[0_0_15px_rgba(0,0,0,0.08)] z-20 py-2.5 px-4 flex items-center justify-between relative border-y-2 border-slate-200">
+            <!-- 좌측: 상태 표시 -->
+            <span id="interp-status" class="text-[10px] font-black text-slate-500 bg-slate-100 border border-slate-200 px-2 py-1 rounded-md shadow-sm w-24 text-center truncate">
+                통역 OFF
+            </span>
+            
+            <!-- 중앙: 얇고 길어진 마이크 버튼 (h-20 -> h-12 로 슬림화) -->
+            <button id="interp-mic-btn" onclick="window.toggleInterpMic()" class="flex-1 max-w-[160px] h-11 mx-3 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center gap-2 text-xl font-black transition-all shadow-sm border-2 border-blue-100 hover:scale-[1.02] outline-none">
+                <i id="interp-mic-icon" class="fa-solid fa-microphone"></i>
+            </button>
+
+            <!-- 우측: 닫기 버튼 -->
+            <button onclick="window.closeInterpreter()" class="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 text-slate-500 flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-all shadow-sm w-24 outline-none">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+        </div>
+        
+        <!-- 하단 화면 (사용자) - 스크롤 지원 -->
+        <div class="flex-1 relative bg-slate-50 flex flex-col overflow-hidden">
+            <!-- 실제 글씨가 쌓이는 스크롤 영역 -->
+            <div id="interp-text-bottom" class="flex-1 overflow-y-auto no-scrollbar p-5 pb-16 flex flex-col justify-start gap-3 scroll-smooth">
+                <div class="mb-auto w-full text-right"><span class="opacity-40 text-2xl font-black text-slate-800">대화를 시작해주세요.</span></div>
+            </div>
+            <div class="absolute bottom-4 right-4 bg-white px-3 py-1.5 rounded-full shadow-sm border border-slate-200 flex items-center gap-2 z-10">
+                <span id="interp-lang-bottom" class="text-xs font-extrabold text-slate-700">🇰🇷 한국어</span>
+            </div>
+        </div>
+    </div>
 
      <!--테스트용 투명버튼-->
 <!-- <div onclick="devTestLimit()" style="position: fixed; bottom: 0; right: 0; width: 50px; height: 50px; opacity: 0; z-index: 9999;"></div> -->
