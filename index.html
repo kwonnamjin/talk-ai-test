@@ -836,7 +836,28 @@
 </div>
 
 
+<div id="unity-container" style="
+        position: fixed; 
+        top: 70px; 
+        right: 20px; 
+        width: 80px; 
+        height: 80px; 
+        z-index: 9999; 
+        border-radius: 50%; 
+        overflow: hidden; 
+        border: 3px solid #60a5fa; 
+        pointer-events: auto;
+        background: black;">
+        
+        <canvas id="unity-canvas" style="width: 100%; height: 100%;"></canvas>
+        <div id="unity-loading-bar" style="display:none;"></div>
+        <div id="unity-progress-bar-full" style="display:none;"></div>
+        <div id="unity-warning" style="display:none;"></div>
+        <div id="unity-fullscreen-button" style="display:none;"></div>
+    </div>
 
+    <div class="w-full max-w-md h-full sm:h-[850px] max-h-full sm:rounded-3xl shadow-2xl overflow-hidden relative mx-auto bg-slate-900">
+        </div>
 
      <!--테스트용 투명버튼-->
 <!-- <div onclick="devTestLimit()" style="position: fixed; bottom: 0; right: 0; width: 50px; height: 50px; opacity: 0; z-index: 9999;"></div> -->
@@ -952,21 +973,6 @@
 
 
 
-
-<div id="unity-container" style="
-    position: fixed; 
-    top: 70px; 
-    right: 20px; 
-    width: 80px; 
-    height: 80px; 
-    z-index: 9999; 
-    border-radius: 50%; 
-    overflow: hidden; 
-    border: 3px solid #60a5fa; 
-    pointer-events: auto;">
-    
-    <canvas id="unity-canvas" style="width: 100%; height: 100%;"></canvas>
-</div>
 
 
 
