@@ -34,42 +34,38 @@
     <script>
   var canvas = document.querySelector("#unity-canvas");
   
-  // PC/모바일 차별 없이 무조건 창 크기에 맞추는 강제 설정
+  // 💡 모바일/PC 상관없이 무조건 꽉 차게 만들기!
   canvas.style.width = "100%";
   canvas.style.height = "100%";
 
   var buildUrl = "Build";
-  var loaderUrl = buildUrl + "/{{{ LOADER_FILENAME }}}";
+  // 👇 실제 파일 이름으로 정확하게 수정되었습니다.
+  var loaderUrl = buildUrl + "/TalkAI_3D_Build.loader.js";
   
   var config = {
-    arguments: [],
-    dataUrl: buildUrl + "/{{{ DATA_FILENAME }}}",
-    frameworkUrl: buildUrl + "/{{{ FRAMEWORK_FILENAME }}}",
-    // 👇 투명도를 위한 절대 치트키
-    webglContextAttributes: { "preserveDrawingBuffer": true, "alpha": true },
-#if USE_WASM
-    codeUrl: buildUrl + "/{{{ CODE_FILENAME }}}",
-#endif
-#if SYMBOLS_FILENAME
-    symbolsUrl: buildUrl + "/{{{ SYMBOLS_FILENAME }}}",
-#endif
+    dataUrl: buildUrl + "/TalkAI_3D_Build.data.unityweb",
+    frameworkUrl: buildUrl + "/TalkAI_3D_Build.framework.js.unityweb",
+    codeUrl: buildUrl + "/TalkAI_3D_Build.wasm.unityweb",
     streamingAssetsUrl: "StreamingAssets",
-    companyName: {{{ JSON.stringify(COMPANY_NAME) }}},
-    productName: {{{ JSON.stringify(PRODUCT_NAME) }}},
-    productVersion: {{{ JSON.stringify(PRODUCT_VERSION) }}}
+    companyName: "DefaultCompany",
+    productName: "TALKAI01",
+    productVersion: "0.1.0",
+    // 👇 배경 투명도를 위한 최종 치트키
+    webglContextAttributes: { "preserveDrawingBuffer": true, "alpha": true }
   };
-
-  document.querySelector("#unity-loading-bar").style.display = "block";
 
   var script = document.createElement("script");
   script.src = loaderUrl;
   script.onload = () => {
     createUnityInstance(canvas, config, (progress) => {
-      document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
+       // 로딩바 진행 상황
     }).then((unityInstance) => {
-      document.querySelector("#unity-loading-bar").style.display = "none";
+      if (document.querySelector("#unity-loading-bar")) {
+          document.querySelector("#unity-loading-bar").style.display = "none";
+      }
+      window.myUnityInstance = unityInstance; 
     }).catch((message) => {
-      alert(message);
+      console.error(message);
     });
   };
   document.body.appendChild(script);
