@@ -849,39 +849,7 @@
     <iframe src="unity-build/index.html" allowtransparency="true" style="width: 100%; height: 100%; border: none; background: transparent; pointer-events: auto;" scrolling="no"></iframe>
 </div>
 
-<script>
-  var canvas = document.querySelector("#unity-canvas");
 
-  var buildUrl = "Build";
-  var loaderUrl = buildUrl + "/TalkAI_3D_Build.loader.js";
-  var config = {
-    dataUrl: buildUrl + "/TalkAI_3D_Build.data.unityweb",
-    frameworkUrl: buildUrl + "/TalkAI_3D_Build.framework.js.unityweb",
-    codeUrl: buildUrl + "/TalkAI_3D_Build.wasm.unityweb",
-    streamingAssetsUrl: "StreamingAssets",
-    companyName: "DefaultCompany",
-    productName: "TALKAI01",
-    productVersion: "0.1.0"
-  };
-
-  // 💡 핵심: 960px 크기 고집을 꺾고, 동그라미 크기에 100% 맞춤!
-  canvas.style.width = "100%";
-  canvas.style.height = "100%";
-
-  var script = document.createElement("script");
-  script.src = loaderUrl;
-  script.onload = () => {
-    createUnityInstance(canvas, config, (progress) => {
-       // 에러를 유발하던 프로그레스바 코드를 삭제했습니다.
-    }).then((unityInstance) => {
-      document.querySelector("#unity-loading-bar").style.display = "none";
-      window.myUnityInstance = unityInstance; 
-    }).catch((message) => {
-      console.error(message);
-    });
-  };
-  document.body.appendChild(script);
-</script>
 
     
 
