@@ -306,20 +306,7 @@
             <div class="relative w-full h-0 z-50 pointer-events-none">
                 <div class="absolute top-4 right-4 flex flex-col items-center pointer-events-auto">
 
-                   <div id="avatarWrap" style="
-    position: absolute; 
-    top: 50px;           /* 위에서부터의 거리: 화면 보면서 조정하세요 */
-    right: 30px;         /* 오른쪽에서부터의 거리: 화면 보면서 조정하세요 */
-    width: 64px;         /* 기존 w-16 크기(64px) */
-    height: 64px;        /* 기존 h-16 크기(64px) */
-    border-radius: 50%; 
-    overflow: hidden; 
-    z-index: 9999;       /* 무조건 제일 위로 띄움 */
-    border: 2px solid #bfdbfe; /* 기존 border-blue-200 색상 */
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); /* 기존 shadow-lg */
-">
-    <canvas id="unity-canvas" style="width: 100%; height: 100%; background: transparent;"></canvas>
-</div>
+                   
 
                     <p id="statusText" class="mt-1.5 px-2.5 py-0.5 bg-white/90 backdrop-blur-sm border border-blue-200 rounded-full shadow-sm text-[9px] font-black text-blue-600 tracking-wide text-center min-w-[50px] transition-all">대기 중</p>
                 </div>
@@ -849,6 +836,8 @@
 </div>
 
 
+
+
      <!--테스트용 투명버튼-->
 <!-- <div onclick="devTestLimit()" style="position: fixed; bottom: 0; right: 0; width: 50px; height: 50px; opacity: 0; z-index: 9999;"></div> -->
 <script>
@@ -960,5 +949,26 @@
 
     <script src="data.js"></script>
     <script src="script.js?v=1"></script>
+
+
+
+
+<div id="unity-container" style="
+    position: fixed; 
+    top: 70px; 
+    right: 20px; 
+    width: 80px; 
+    height: 80px; 
+    z-index: 9999; 
+    border-radius: 50%; 
+    overflow: hidden; 
+    border: 3px solid #60a5fa; 
+    pointer-events: auto;">
+    
+    <canvas id="unity-canvas" style="width: 100%; height: 100%;"></canvas>
+</div>
+
+
+
 </body>
 </html>
