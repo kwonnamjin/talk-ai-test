@@ -812,11 +812,16 @@ window.speakText = function(text, langCode) {
 
     const targetLangCode = langCode || localStorage.getItem('target_language') || 'en-US';
     
-    // 🌟 UI 효과 시작 (기존 방식 유지)
+    // UI 효과 시작 
     isSpeaking = true;
     if(avatarWrap) { avatarWrap.classList.add('speaking-pulse', 'speaking-bob'); avatarWrap.style.borderColor = "#60a5fa"; }
     if(stopAudioBtn) { stopAudioBtn.disabled = false; stopAudioBtn.classList.replace('text-slate-500', 'text-red-500'); }
     if(typeof window.updateStatus === 'function') window.updateStatus("말하는 중...");
+
+    // 💡 [최종 적용] 어떤 캐릭터가 올라오든 무조건 'Avatar'에게 신호 발사!
+    if (window.myUnityInstance) {
+        window.myUnityInstance.SendMessage("Avatar", "ReceiveMessageFromApp", "대화"); 
+    }
 
     // 🌟 앱이면 플러터로, 아니면 브라우저 엔진으로 발화
     if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
