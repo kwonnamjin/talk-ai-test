@@ -52,20 +52,20 @@ button#modeTutorBtn, button#modeTranslateBtn {
 }
 
 
-/* 캐릭터 선택 UI 전체 영역 */
+/* 캐릭터 선택 UI 하단 중앙 강제 고정 */
 #character-ui {
-    position: absolute;
-    bottom: 100px; /* 🔥 핵심: 하단 배너 높이에 맞춰 이 숫자를 조절하세요 (예: 90px, 110px 등) */
+    position: fixed;         /* absolute 대신 fixed를 쓰면 화면 뷰포트 기준으로 고정됩니다 */
+    bottom: 90px;            /* 🔥 하단에서부터의 높이 (멤버십 배너 높이에 맞춰 이 숫자를 조절하세요. 80~120px 추천) */
     left: 50%;
-    transform: translateX(-50%); /* 정확히 가운데 정렬 */
+    transform: translateX(-50%); /* 가로 정중앙 정렬 */
     width: 100%;
     max-width: 350px;
     display: flex;
     justify-content: center; /* 가로로 한 줄로 모으기 */
     align-items: center;     /* 세로 높이 맞추기 */
-    gap: 20px;               /* 🔥 버튼 사이의 간격 */
+    gap: 15px;               /* 버튼 사이의 간격 */
     pointer-events: none;    /* UI 껍데기는 클릭 통과 */
-    z-index: 100;            /* 다른 요소보다 무조건 위에 오게 설정 */
+    z-index: 9999;           /* 무조건 화면 맨 위에 오게 강력하게 설정 */
 }
 
 /* ◁ ▷ 화살표 버튼 디자인 */
