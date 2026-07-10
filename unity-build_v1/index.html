@@ -15,7 +15,13 @@
   <div id="unity-container">
     <canvas id="unity-canvas"></canvas>
   </div>
-  <script>
+  <div id="character-ui">
+      <button class="char-btn" onclick="if(window.clickPrev) window.clickPrev(); else alert('로딩중입니다.');">◁</button>
+      <button class="select-btn" onclick="if(window.clickSelect) window.clickSelect(); else alert('로딩중입니다.');">선택</button>
+      <button class="char-btn" onclick="if(window.clickNext) window.clickNext(); else alert('로딩중입니다.');">▷</button>
+    </div>
+
+    <script>
       var canvas = document.querySelector("#unity-canvas");
       var config = {
         dataUrl: "Build/TalkAI_3D_Build.data.unityweb",
