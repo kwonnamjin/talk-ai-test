@@ -52,46 +52,46 @@ button#modeTutorBtn, button#modeTranslateBtn {
 }
 
 
-/* 캐릭터 선택 UI 전체 영역 (투명하게 덮음) */
+/* 캐릭터 선택 UI 전체 영역 */
 #character-ui {
     position: absolute;
-    top: 50%; /* 화면 중간 높이 */
+    bottom: 100px; /* 🔥 핵심: 하단 배너 높이에 맞춰 이 숫자를 조절하세요 (예: 90px, 110px 등) */
     left: 50%;
-    transform: translate(-50%, -50%); /* 정확한 중앙 정렬 */
+    transform: translateX(-50%); /* 정확히 가운데 정렬 */
     width: 100%;
-    max-width: 400px; /* 모바일 화면 넓이 제한 */
+    max-width: 350px;
     display: flex;
-    justify-content: space-between;
-    padding: 0 20px;
-    box-sizing: border-box;
-    pointer-events: none; /* UI 껍데기 자체는 클릭 안 되게 통과시킴 */
+    justify-content: center; /* 가로로 한 줄로 모으기 */
+    align-items: center;     /* 세로 높이 맞추기 */
+    gap: 20px;               /* 🔥 버튼 사이의 간격 */
+    pointer-events: none;    /* UI 껍데기는 클릭 통과 */
+    z-index: 100;            /* 다른 요소보다 무조건 위에 오게 설정 */
 }
 
-/* 좌우 화살표 버튼 디자인 */
+/* ◁ ▷ 화살표 버튼 디자인 */
 .char-btn {
-    pointer-events: auto; /* 버튼은 클릭 되게 */
-    background: rgba(255, 255, 255, 0.2); /* 반투명 흰색 */
+    pointer-events: auto;
+    background: rgba(255, 255, 255, 0.2); /* 반투명 배경 */
     color: white;
     border: 2px solid white;
-    font-size: 24px;
-    width: 50px;
-    height: 50px;
+    font-size: 20px;
+    width: 45px;
+    height: 45px;
     border-radius: 50%;
     cursor: pointer;
-    backdrop-filter: blur(4px); /* 뒤쪽 살짝 흐리게 (고급스러운 효과) */
+    backdrop-filter: blur(4px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-/* 선택 버튼 디자인 (화살표들보다 살짝 아래에 배치) */
+/* 가운데 [선택] 버튼 디자인 */
 .select-btn {
     pointer-events: auto;
-    position: absolute;
-    bottom: -100px; /* 화살표 기준 100px 아래 */
-    left: 50%;
-    transform: translateX(-50%);
-    background: #4A90E2; /* 파란색 계열 */
+    background: #4A90E2; 
     color: white;
     border: none;
-    padding: 12px 40px;
+    padding: 12px 60px; /* 좌우로 길쭉하게 */
     font-size: 18px;
     border-radius: 30px;
     font-weight: bold;
