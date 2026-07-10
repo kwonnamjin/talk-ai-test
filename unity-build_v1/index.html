@@ -39,16 +39,18 @@
 
       // 🔥 함수를 가장 먼저 브라우저에 등록해버립니다 (에러 2번 원천 차단)
       window.clickPrev = function() {
-          if(myUnityInstance != null) {
-              myUnityInstance.SendMessage('CharManager', 'ShowCharacter1');
-          }
-      };
+        if(myUnityInstance != null) {
+            // 🔥 여기를 CharacterManager 로 바꿨습니다! (오브젝트 이름과 일치)
+            myUnityInstance.SendMessage('CharacterManager', 'ShowCharacter1');
+        }
+    };
 
-      window.clickNext = function() {
-          if(myUnityInstance != null) {
-              myUnityInstance.SendMessage('CharManager', 'ShowCharacter2');
-          }
-      };
+    window.clickNext = function() {
+        if(myUnityInstance != null) {
+            // 🔥 여기도 CharacterManager 로 바꿨습니다!
+            myUnityInstance.SendMessage('CharacterManager', 'ShowCharacter2');
+        }
+    };
 
       window.clickSelect = function() {
           alert("캐릭터가 선택되었습니다!"); 
