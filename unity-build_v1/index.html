@@ -1,48 +1,143 @@
 <!DOCTYPE html>
 <html lang="en-us">
-<head>
-  <style>
-    html, body { background: transparent !important; width: 100%; height: 100%; margin: 0; overflow: hidden; }
-    #unity-container { background: transparent !important; width: 100%; height: 100%; }
-    canvas { background: transparent !important; width: 100%; height: 100%; display: block; }
-  </style>
-</head>
-<body>
-  <div id="unity-container">
-    <canvas id="unity-canvas"></canvas>
-  </div>
-  <script>
-    // 🔥 [핵심 치트키] 유니티가 투명도를 끄려고 해도 브라우저가 강제로 켜버리는 가로채기 코드 🔥
-    var originalGetContext = HTMLCanvasElement.prototype.getContext;
-    HTMLCanvasElement.prototype.getContext = function(type, attributes) {
-        if (type === 'webgl' || type === 'webgl2') {
-            attributes = attributes || {};
-            attributes.alpha = true;                  // 무조건 투명도 ON
-            attributes.preserveDrawingBuffer = true;  // 배경 유지 ON
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Unity Web Player | TALKAI01</title>
+    <link rel="shortcut icon" href="TemplateData/favicon.ico">
+    <link rel="stylesheet" href="TemplateData/style.css">
+
+<style>
+  /* 화면 전체와 유니티 컨테이너를 강제로 투명하게 만듭니다 */
+  body, #unity-container, #unity-canvas {
+    background: transparent !important;
+    background-color: transparent !important;
+  }
+</style>
+  </head>
+  <body>
+    <div id="unity-container" class="unity-desktop">
+      <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
+      <div id="unity-loading-bar">
+        <div id="unity-logo"></div>
+        <div id="unity-progress-bar-empty">
+          <div id="unity-progress-bar-full"></div>
+        </div>
+      </div>
+      <div id="unity-warning"> </div>
+      <div id="unity-footer">
+        <div id="unity-logo-title-footer"></div>
+        <div id="unity-fullscreen-button"></div>
+        <div id="unity-build-title">TALKAI01</div>
+      </div>
+    </div>
+    <script>
+      var canvas = document.querySelector("#unity-canvas");
+
+      // Shows a temporary message banner/ribbon for a few seconds, or
+      // a permanent error message on top of the canvas if type=='error'.
+      // If type=='warning', a yellow highlight color is used.
+      // Modify or remove this function to customize the visually presented
+      // way that non-critical warnings and error messages are presented to the
+      // user.
+      function unityShowBanner(msg, type) {
+        var warningBanner = document.querySelector("#unity-warning");
+        function updateBannerVisibility() {
+          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
         }
-        return originalGetContext.call(this, type, attributes);
-    };
+        var div = document.createElement('div');
+        div.innerHTML = msg;
+        warningBanner.appendChild(div);
+        if (type == 'error') div.style = 'background: red; padding: 10px;';
+        else {
+          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+          setTimeout(function() {
+            warningBanner.removeChild(div);
+            updateBannerVisibility();
+          }, 5000);
+        }
+        updateBannerVisibility();
+      }
 
-    var canvas = document.querySelector("#unity-canvas");
-    var config = {
-      dataUrl: "Build/TalkAI_3D_Build.data.unityweb",
-      frameworkUrl: "Build/TalkAI_3D_Build.framework.js.unityweb",
-      codeUrl: "Build/TalkAI_3D_Build.wasm.unityweb",
-      streamingAssetsUrl: "StreamingAssets",
-      companyName: "DefaultCompany",
-      productName: "TALKAI01",
-      productVersion: "0.1.0",
-      webglContextAttributes: { "preserveDrawingBuffer": true, "alpha": true }
-    };
+      var buildUrl = "Build";
+      var loaderUrl = buildUrl + "/TalkAI_3D_Build.loader.js";
+      var config = {
+        arguments: [],
+        dataUrl: buildUrl + "/TalkAI_3D_Build.data.unityweb",
+        frameworkUrl: buildUrl + "/TalkAI_3D_Build.framework.js.unityweb",
+        webglContextAttributes: { "preserveDrawingBuffer": true, "alpha": true },
+        codeUrl: buildUrl + "/TalkAI_3D_Build.wasm.unityweb",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "DefaultCompany",
+        productName: "TALKAI01",
+        productVersion: "0.1.0",
+        showBanner: unityShowBanner,
+        // errorHandler: function(err, url, line) {
+        //    alert("error " + err + " occurred at line " + line);
+        //    // Return 'true' if you handled this error and don't want Unity
+        //    // to process it further, 'false' otherwise.
+        //    return true;
+        // },
+      };
 
-    var script = document.createElement("script");
-    script.src = "Build/TalkAI_3D_Build.loader.js";
-    script.onload = () => { 
-        createUnityInstance(canvas, config).then(() => {
-            canvas.style.background = "transparent"; // 로딩 직후 한 번 더 강제 투명화
-        }); 
-    };
-    document.body.appendChild(script);
-  </script>
-</body>
+      // By default, Unity keeps WebGL canvas render target size matched with
+      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
+      // Set this to false if you want to decouple this synchronization from
+      // happening inside the engine, and you would instead like to size up
+      // the canvas DOM size and WebGL render target sizes yourself.
+      // config.matchWebGLToCanvasSize = false;
+
+      // If you would like all file writes inside Unity Application.persistentDataPath
+      // directory to automatically persist so that the contents are remembered when
+      // the user revisits the site the next time, uncomment the following line:
+      // config.autoSyncPersistentDataPath = true;
+      // This autosyncing is currently not the default behavior to avoid regressing
+      // existing user projects that might rely on the earlier manual
+      // JS_FileSystem_Sync() behavior, but in future Unity version, this will be
+      // expected to change.
+
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        // Mobile device style: fill the whole browser client area with the game canvas:
+
+        var meta = document.createElement('meta');
+        meta.name = 'viewport';
+        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+        document.getElementsByTagName('head')[0].appendChild(meta);
+        document.querySelector("#unity-container").className = "unity-mobile";
+        canvas.className = "unity-mobile";
+
+        // To lower canvas resolution on mobile devices to gain some
+        // performance, uncomment the following line:
+        // config.devicePixelRatio = 1;
+
+
+      } else {
+        // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
+        canvas.style.width = "960px";
+        canvas.style.height = "600px";
+      }
+
+      document.querySelector("#unity-loading-bar").style.display = "block";
+
+      var script = document.createElement("script");
+      script.src = loaderUrl;
+      script.onload = () => {
+        createUnityInstance(canvas, config, (progress) => {
+          document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
+          
+              }).then((unityInstance) => {
+                document.querySelector("#unity-loading-bar").style.display = "none";
+                document.querySelector("#unity-fullscreen-button").onclick = () => {
+                  unityInstance.SetFullscreen(1);
+                };
+
+              }).catch((message) => {
+                alert(message);
+              });
+            };
+
+      document.body.appendChild(script);
+
+    </script>
+  </body>
 </html>
