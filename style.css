@@ -102,8 +102,8 @@ button#modeTutorBtn, button#modeTranslateBtn {
 /* 기본 상태 (홈 화면 - 꽉 찬 화면) */
 #unity-iframe {
     position: fixed !important;
-    top: 30 !important; 
-    left: 30 !important;
+    top: 20 !important; 
+    left: 20 !important;
     width: 50% !important; 
     height: 50% !important;
     border: none !important;
