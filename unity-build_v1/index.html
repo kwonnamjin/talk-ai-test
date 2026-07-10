@@ -1,15 +1,11 @@
-
 <!DOCTYPE html>
 <html lang="en-us">
 <head>
-<style>
-  /* 웹사이트 배경색과 똑같은 색을 여기 넣으세요 (예: #FFFFFF) */
-  html, body { background-color: #FFFFFF !important; } 
-
-  /* 유니티 캔버스 배경도 똑같이 맞춥니다 */
-  #unity-container { background-color: #FFFFFF !important; }
-  canvas { background-color: #FFFFFF !important; }
-</style>
+  <style>
+    html, body { background: transparent !important; width: 100%; height: 100%; margin: 0; overflow: hidden; }
+    #unity-container { background: transparent !important; width: 100%; height: 100%; }
+    canvas { background: transparent !important; width: 100%; height: 100%; display: block; }
+  </style>
 </head>
 <body>
   <div id="unity-container">
@@ -48,8 +44,5 @@
     };
     document.body.appendChild(script);
   </script>
-
-
-<!---->
 </body>
 </html>
