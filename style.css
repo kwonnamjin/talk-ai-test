@@ -123,11 +123,11 @@ button#modeTutorBtn, button#modeTranslateBtn {
 
 /* 대화창 모드 (우측 하단으로 작아지는 상태 - 홈 설정에 영향을 받지 않도록 초기화 추가) */
 #unity-iframe.chat-mode {
-    bottom: 120px !important; 
+    bottom: 200px !important; 
     right: 20px !important;  
     left: auto !important;      /* 🔥 홈 화면의 중앙 정렬 해제 */
     transform: none !important; /* 🔥 홈 화면의 중앙 정렬 해제 */
-    width: 100px !important;    /* 대화창 캐릭터 가로 크기 */
-    height: 150px !important;   /* 대화창 캐릭터 세로 크기 */
+    width: 200px !important;    /* 대화창 캐릭터 가로 크기 */
+    height: 250px !important;   /* 대화창 캐릭터 세로 크기 */
     z-index: 9999 !important;
 }
