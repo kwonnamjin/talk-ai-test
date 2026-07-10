@@ -5,6 +5,10 @@
     html, body { background: transparent !important; width: 100%; height: 100%; margin: 0; overflow: hidden; }
     #unity-container { background: transparent !important; width: 100%; height: 100%; }
     canvas { background: transparent !important; width: 100%; height: 100%; display: block; }
+
+
+
+    
   </style>
 </head>
 <body>
@@ -38,9 +42,23 @@
     var script = document.createElement("script");
     script.src = "Build/TalkAI_3D_Build.loader.js";
     script.onload = () => { 
-        createUnityInstance(canvas, config).then(() => {
-            canvas.style.background = "transparent"; // 로딩 직후 한 번 더 강제 투명화
-        }); 
+        createUnityInstance(canvas, config).then((unityInstance) => {
+    canvas.style.background = "transparent"; // 기존 투명화 코드
+
+    // 🔥 여기서부터 추가: 버튼을 누르면 유니티로 신호를 보냄
+    document.getElementById("btn-prev").onclick = function() {
+        unityInstance.SendMessage('CharManager', 'ShowCharacter1');
+    };
+
+    document.getElementById("btn-next").onclick = function() {
+        unityInstance.SendMessage('CharManager', 'ShowCharacter2');
+    };
+
+    document.getElementById("btn-select").onclick = function() {
+        // 선택 버튼을 눌렀을 때 할 행동 (예: 다음 페이지로 이동)
+        alert("캐릭터가 선택되었습니다!"); 
+    };
+});
     };
     document.body.appendChild(script);
   </script>
