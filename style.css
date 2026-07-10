@@ -128,6 +128,6 @@ button#modeTutorBtn, button#modeTranslateBtn {
     left: auto !important;      /* 🔥 홈 화면의 중앙 정렬 해제 */
     transform: none !important; /* 🔥 홈 화면의 중앙 정렬 해제 */
     width: 200px !important;    /* 대화창 캐릭터 가로 크기 */
-    height: 250px !important;   /* 대화창 캐릭터 세로 크기 */
+    height: 400px !important;   /* 대화창 캐릭터 세로 크기 */
     z-index: 9999 !important;
 }
