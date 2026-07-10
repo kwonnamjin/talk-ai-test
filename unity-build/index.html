@@ -2,16 +2,29 @@
 <html lang="en-us">
 <head>
   <style>
-    html, body { background: transparent !important; overflow: hidden; margin: 0; padding: 0; width: 100%; height: 100%; }
-    #unity-container, canvas { background: transparent !important; width: 100%; height: 100%; display: block; }
+    html, body { background: transparent !important; width: 100%; height: 100%; margin: 0; overflow: hidden; }
+    #unity-container { background: transparent !important; width: 100%; height: 100%; }
+    canvas { background: transparent !important; width: 100%; height: 100%; display: block; }
   </style>
 </head>
 <body>
-  <div id="unity-container"><canvas id="unity-canvas"></canvas></div>
+  <div id="unity-container">
+    <canvas id="unity-canvas"></canvas>
+  </div>
   <script>
+    // 🔥 [핵심 치트키] 유니티가 투명도를 끄려고 해도 브라우저가 강제로 켜버리는 가로채기 코드 🔥
+    var originalGetContext = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function(type, attributes) {
+        if (type === 'webgl' || type === 'webgl2') {
+            attributes = attributes || {};
+            attributes.alpha = true;                  // 무조건 투명도 ON
+            attributes.preserveDrawingBuffer = true;  // 배경 유지 ON
+        }
+        return originalGetContext.call(this, type, attributes);
+    };
+
     var canvas = document.querySelector("#unity-canvas");
     var config = {
-      // 👇 파일명은 대표님 세팅에 맞게 고정해두었습니다
       dataUrl: "Build/TalkAI_3D_Build.data.unityweb",
       frameworkUrl: "Build/TalkAI_3D_Build.framework.js.unityweb",
       codeUrl: "Build/TalkAI_3D_Build.wasm.unityweb",
@@ -19,12 +32,16 @@
       companyName: "DefaultCompany",
       productName: "TALKAI01",
       productVersion: "0.1.0",
-      // 👇 유니티가 지워버렸던 투명도 치트키를 다시 박아넣습니다
       webglContextAttributes: { "preserveDrawingBuffer": true, "alpha": true }
     };
+
     var script = document.createElement("script");
     script.src = "Build/TalkAI_3D_Build.loader.js";
-    script.onload = () => { createUnityInstance(canvas, config); };
+    script.onload = () => { 
+        createUnityInstance(canvas, config).then(() => {
+            canvas.style.background = "transparent"; // 로딩 직후 한 번 더 강제 투명화
+        }); 
+    };
     document.body.appendChild(script);
   </script>
 </body>
