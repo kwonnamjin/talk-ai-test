@@ -104,7 +104,7 @@ button#modeTutorBtn, button#modeTranslateBtn {
     position: fixed !important;
     
     /* 🔥 위치 설정: 선택 버튼(bottom: 90px) 바로 위쪽으로 배치 */
-    bottom: 160px !important; /* 버튼 위 여백. 너무 붙어있으면 180px, 200px 등으로 늘리세요 */
+    bottom: 140px !important; /* 버튼 위 여백. 너무 붙어있으면 180px, 200px 등으로 늘리세요 */
     left: 50% !important;
     transform: translateX(-50%) !important; /* 가로 정중앙 맞춤 */
     
@@ -123,7 +123,7 @@ button#modeTutorBtn, button#modeTranslateBtn {
 
 /* 대화창 모드 (우측 하단으로 작아지는 상태 - 홈 설정에 영향을 받지 않도록 초기화 추가) */
 #unity-iframe.chat-mode {
-    bottom: 20px !important; 
+    bottom: 120px !important; 
     right: 20px !important;  
     left: auto !important;      /* 🔥 홈 화면의 중앙 정렬 해제 */
     transform: none !important; /* 🔥 홈 화면의 중앙 정렬 해제 */
