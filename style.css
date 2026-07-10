@@ -104,7 +104,7 @@ button#modeTutorBtn, button#modeTranslateBtn {
     position: fixed !important;
     
     /* 🔥 위치 설정: 선택 버튼(bottom: 90px) 바로 위쪽으로 배치 */
-    bottom: 140px !important; /* 버튼 위 여백. 너무 붙어있으면 180px, 200px 등으로 늘리세요 */
+    bottom: 130px !important; /* 버튼 위 여백. 너무 붙어있으면 180px, 200px 등으로 늘리세요 */
     left: 50% !important;
     transform: translateX(-50%) !important; /* 가로 정중앙 맞춤 */
     
