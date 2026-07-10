@@ -39,21 +39,19 @@
       webglContextAttributes: { "preserveDrawingBuffer": true, "alpha": true }
     };
 
-    // 🔥 1. 유니티를 담아둘 전역 변수 (누구나 접근 가능)
+    // 🔥 여기서부터 기존 코드를 싹 지우고 덮어쓰세요 🔥
     var myUnityInstance = null;
 
     var script = document.createElement("script");
     script.src = "Build/TalkAI_3D_Build.loader.js";
     script.onload = () => { 
         createUnityInstance(canvas, config).then((unityInstance) => {
-            // 🔥 2. 로딩이 끝나면 변수에 유니티를 쏙 집어넣습니다
             myUnityInstance = unityInstance; 
             canvas.style.background = "transparent"; 
         }); 
     };
-    document.body.appendChild(script); // 스크립트 실행 (절대 빠지면 안 됨!)
+    document.body.appendChild(script);
 
-    // 🔥 3. 버튼이 눌렸을 때 언제든지 쏠 수 있는 미사일(함수)들
     window.clickPrev = function() {
         if(myUnityInstance != null) {
             myUnityInstance.SendMessage('CharManager', 'ShowCharacter1');
@@ -69,7 +67,7 @@
     window.clickSelect = function() {
         alert("캐릭터가 선택되었습니다!"); 
     };
-    document.body.appendChild(script);
+  // 🔥 여기까지 복사해서 덮어쓰세요 (</script> 바로 윗줄까지) 🔥
   </script>
 </body>
 </html>
