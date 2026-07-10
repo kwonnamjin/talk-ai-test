@@ -1203,6 +1203,20 @@ window.navigate = function(screenId) {
             home.style.transform = 'translateX(-20%)';
         }
     }
+
+    // 🔥 [새로 추가된 부분] 화면 이동 시 유니티 캐릭터와 버튼 상태 제어
+    const unityIframe = document.getElementById('unity-iframe');
+    const charUI = document.getElementById('character-ui');
+
+    if (screenId === 'screen-home') {
+        // 홈 화면으로 올 때: 캐릭터 크게(가운데로 원복), 선택 버튼 보이기
+        if (unityIframe) unityIframe.classList.remove('chat-mode');
+        if (charUI) charUI.style.display = 'flex';
+    } else {
+        // 대화창 등 다른 화면으로 갈 때: 캐릭터 작게(우측 하단 미니모드), 선택 버튼 숨기기
+        if (unityIframe) unityIframe.classList.add('chat-mode');
+        if (charUI) charUI.style.display = 'none';
+    }
 };
 
 // ==========================================

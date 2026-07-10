@@ -53,8 +53,13 @@
     };
 
       window.clickSelect = function() {
-          alert("캐릭터가 선택되었습니다!"); 
-      };
+    // 1. 선택한 캐릭터 번호 저장
+    localStorage.setItem("selectedTalkAI_Char", window.currentCharacter);
+    
+    // 2. 대화창(프리토킹 화면)으로 이동! (예: 'screen-main'이 대화창이라면)
+    // 💡 navigate 함수가 실행되면서 알아서 캐릭터가 우측 하단으로 스르륵 날아갑니다.
+    window.navigate('screen-main'); 
+};
 
       // 유니티 로딩 시작
       var script = document.createElement("script");

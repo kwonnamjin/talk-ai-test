@@ -98,3 +98,26 @@ button#modeTutorBtn, button#modeTranslateBtn {
     cursor: pointer;
     box-shadow: 0 4px 6px rgba(0,0,0,0.3);
 }
+
+/* 기본 상태의 유니티 화면 (화면 전체) */
+#unity-iframe {
+    position: fixed;
+    top: 0; 
+    left: 0;
+    width: 100%; 
+    height: 100%;
+    z-index: 10;
+    transition: all 0.4s ease-in-out; /* 🔥 크기와 위치가 바뀔 때 스르륵~ 부드럽게 움직이게 하는 애니메이션 */
+    pointer-events: none; /* 뒤쪽 클릭 통과 */
+}
+
+/* 대화창으로 넘어갔을 때 우측 하단으로 작아지는 모드 */
+#unity-iframe.chat-mode {
+    top: auto; 
+    left: auto;
+    bottom: 20px; /* 아래에서 20px 띄움 */
+    right: 20px;  /* 오른쪽에서 20px 띄움 */
+    width: 120px; /* 🔥 캐릭터 창 가로 크기 (원하시는 대로 조절하세요) */
+    height: 180px;/* 🔥 캐릭터 창 세로 크기 */
+    z-index: 9999; /* 채팅창보다 무조건 위에 오게 */
+}
