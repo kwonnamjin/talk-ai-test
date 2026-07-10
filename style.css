@@ -73,7 +73,7 @@ button#modeTutorBtn, button#modeTranslateBtn {
     pointer-events: auto;
     background: rgba(255, 255, 255, 0.2); /* 반투명 배경 */
     color: rgb(7, 173, 151);
-    border: 2px solid white;
+    border: 2px solid rgb(7, 173, 151);
     font-size: 20px;
     width: 45px;
     height: 45px;
