@@ -39,33 +39,35 @@
       webglContextAttributes: { "preserveDrawingBuffer": true, "alpha": true }
     };
 
+    // 🔥 1. 유니티를 담아둘 전역 변수 (누구나 접근 가능)
+    var myUnityInstance = null;
+
     var script = document.createElement("script");
     script.src = "Build/TalkAI_3D_Build.loader.js";
     script.onload = () => { 
-       createUnityInstance(canvas, config).then((unityInstance) => {
-    canvas.style.background = "transparent"; // 기존 투명화 코드
+        createUnityInstance(canvas, config).then((unityInstance) => {
+            // 🔥 2. 로딩이 끝나면 변수에 유니티를 쏙 집어넣습니다
+            myUnityInstance = unityInstance; 
+            canvas.style.background = "transparent"; 
+        }); 
+    };
+    document.body.appendChild(script); // 스크립트 실행 (절대 빠지면 안 됨!)
 
-    // 안전장치 추가: 버튼이 HTML에 존재할 때만 클릭 이벤트를 연결합니다.
-    var btnPrev = document.getElementById("btn-prev");
-    var btnNext = document.getElementById("btn-next");
-    var btnSelect = document.getElementById("btn-select");
+    // 🔥 3. 버튼이 눌렸을 때 언제든지 쏠 수 있는 미사일(함수)들
+    window.clickPrev = function() {
+        if(myUnityInstance != null) {
+            myUnityInstance.SendMessage('CharManager', 'ShowCharacter1');
+        }
+    };
 
-    if (btnPrev) {
-        btnPrev.onclick = function() {
-            unityInstance.SendMessage('CharManager', 'ShowCharacter1');
-        };
-    }
-    if (btnNext) {
-        btnNext.onclick = function() {
-            unityInstance.SendMessage('CharManager', 'ShowCharacter2');
-        };
-    }
-    if (btnSelect) {
-        btnSelect.onclick = function() {
-            alert("캐릭터가 선택되었습니다!"); 
-        };
-    }
-});
+    window.clickNext = function() {
+        if(myUnityInstance != null) {
+            myUnityInstance.SendMessage('CharManager', 'ShowCharacter2');
+        }
+    };
+
+    window.clickSelect = function() {
+        alert("캐릭터가 선택되었습니다!"); 
     };
     document.body.appendChild(script);
   </script>
