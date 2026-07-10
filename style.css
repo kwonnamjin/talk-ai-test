@@ -99,27 +99,35 @@ button#modeTutorBtn, button#modeTranslateBtn {
     box-shadow: 0 4px 6px rgba(0,0,0,0.3);
 }
 
-/* 기본 상태 (홈 화면 - 꽉 찬 화면) */
+/* 기본 상태 (홈 화면 - 크기 50% 축소 & 선택 버튼 위쪽 배치) */
 #unity-iframe {
     position: fixed !important;
-    top: 20 !important; 
-    left: 20 !important;
-    width: 50% !important; 
-    height: 50% !important;
+    
+    /* 🔥 위치 설정: 선택 버튼(bottom: 90px) 바로 위쪽으로 배치 */
+    bottom: 160px !important; /* 버튼 위 여백. 너무 붙어있으면 180px, 200px 등으로 늘리세요 */
+    left: 50% !important;
+    transform: translateX(-50%) !important; /* 가로 정중앙 맞춤 */
+    
+    /* 🔥 크기 설정: 화면의 50% 크기로 축소 */
+    width: 50vw !important;  /* 화면 가로 넓이의 50% */
+    height: 50vh !important; /* 화면 세로 높이의 50% */
+    max-width: 300px !important; /* 모바일에서 너무 뚱뚱해지지 않게 최대치 제한 */
+    max-height: 450px !important;
+    
     border: none !important;
     background: transparent !important;
     z-index: 10;
-    transition: all 0.4s ease-in-out;
-    pointer-events: none !important; /* 🔥 핵심: 투명 유리가 버튼 클릭을 절대 막지 못하게 통과시킴! */
+    transition: all 0.4s ease-in-out; /* 대화창 넘어갈 때 부드럽게 움직이도록 애니메이션 */
+    pointer-events: none !important; /* 클릭 통과 유지 */
 }
 
-/* 대화창 모드 (우측 하단으로 쪼그라든 상태) */
+/* 대화창 모드 (우측 하단으로 작아지는 상태 - 홈 설정에 영향을 받지 않도록 초기화 추가) */
 #unity-iframe.chat-mode {
-    top: auto !important; 
-    left: auto !important;
-    bottom: 20px !important; /* 화면 아래에서 띄우는 여백 */
-    right: 20px !important;  /* 화면 오른쪽에서 띄우는 여백 */
-    width: 120px !important; /* 🔥 메인 화면에서 캐릭터가 너무 크면 이 숫자를 줄이세요 (예: 90px) */
-    height: 180px !important;/* 🔥 메인 화면에서 캐릭터가 너무 크면 이 숫자를 줄이세요 (예: 130px) */
+    bottom: 20px !important; 
+    right: 20px !important;  
+    left: auto !important;      /* 🔥 홈 화면의 중앙 정렬 해제 */
+    transform: none !important; /* 🔥 홈 화면의 중앙 정렬 해제 */
+    width: 100px !important;    /* 대화창 캐릭터 가로 크기 */
+    height: 150px !important;   /* 대화창 캐릭터 세로 크기 */
     z-index: 9999 !important;
 }
