@@ -111,8 +111,8 @@ button#modeTutorBtn, button#modeTranslateBtn {
     /* 🔥 크기 설정: 화면의 50% 크기로 축소 */
     width: 50vw !important;  /* 화면 가로 넓이의 50% */
     height: 50vh !important; /* 화면 세로 높이의 50% */
-    max-width: 300px !important; /* 모바일에서 너무 뚱뚱해지지 않게 최대치 제한 */
-    max-height: 450px !important;
+    max-width: 250px !important; /* 모바일에서 너무 뚱뚱해지지 않게 최대치 제한 */
+    max-height: 400px !important;
     
     border: none !important;
     background: transparent !important;
@@ -128,6 +128,6 @@ button#modeTutorBtn, button#modeTranslateBtn {
     left: auto !important;      /* 🔥 홈 화면의 중앙 정렬 해제 */
     transform: none !important; /* 🔥 홈 화면의 중앙 정렬 해제 */
     width: 200px !important;    /* 대화창 캐릭터 가로 크기 */
-    height: 400px !important;   /* 대화창 캐릭터 세로 크기 */
+    height: 350px !important;   /* 대화창 캐릭터 세로 크기 */
     z-index: 9999 !important;
 }
