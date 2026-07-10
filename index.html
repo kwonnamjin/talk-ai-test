@@ -264,13 +264,31 @@
         <p class="text-white text-[12px] font-bold drop-shadow-md">
             우측 상단 [ ? ] 버튼을 누르면<br>기능 설명을 볼 수 있습니다.
         </p>
-        <div id="home-tab-content">
+    </div>
+
+
+    <div id="unity-container" style="
+    position: fixed; 
+    top: 360px; 
+    right: 130px; 
+    width: 160px;   /* 캐릭터가 잘리지 않게 넉넉히 */
+    height: 250px;  /* 캐릭터가 잘리지 않게 넉넉히 */
+    z-index: 9999; 
+    background: transparent; /* 배경 완전 투명 */
+    pointer-events: none; /* 뒤에 있는 채팅창 터치 가능하게 */
+">
+<div id="home-tab-content">
    <div id="character-ui">
   <button class="char-btn" onclick="document.getElementById('unity-iframe').contentWindow.clickPrev()">◁</button>
   <button class="select-btn" onclick="document.getElementById('unity-iframe').contentWindow.clickSelect()">선택</button>
   <button class="char-btn" onclick="document.getElementById('unity-iframe').contentWindow.clickNext()">▷</button>
 </div>
-    </div>
+</div>
+    <iframe id="unity-iframe" src="unity-build_v1/index.html?ver=333" allowtransparency="true" style="width: 100%; height: 100%; border: none; background: transparent; pointer-events: auto;" scrolling="no"></iframe>
+</div>
+
+
+
 </div>
             <div class="absolute inset-0 z-0 pointer-events-none bg-[#e0f2fe]">
                 <div class="absolute inset-0 bg-[url('app-bg-02.jpg')] bg-[length:100%_auto] bg-center bg-no-repeat opacity-[0.90] mix-blend-multiply"></div>
@@ -842,20 +860,7 @@
 </div>
 
 
-<div id="unity-container" style="
-    position: fixed; 
-    top: 360px; 
-    right: 130px; 
-    width: 160px;   /* 캐릭터가 잘리지 않게 넉넉히 */
-    height: 250px;  /* 캐릭터가 잘리지 않게 넉넉히 */
-    z-index: 9999; 
-    background: transparent; /* 배경 완전 투명 */
-    pointer-events: none; /* 뒤에 있는 채팅창 터치 가능하게 */
-">
 
-</div>
-    <iframe id="unity-iframe" src="unity-build_v1/index.html?ver=333" allowtransparency="true" style="width: 100%; height: 100%; border: none; background: transparent; pointer-events: auto;" scrolling="no"></iframe>
-</div>
 
 
 
