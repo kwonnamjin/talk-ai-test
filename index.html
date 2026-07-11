@@ -307,16 +307,25 @@
             </div>
 
             <div class="flex-none bg-slate-50/50 px-4 py-2 flex justify-between items-center border-b border-slate-300 text-[11px] shadow-sm z-10">
-                <label for="fontSizeSlider" class="text-slate-600 font-bold text-[10px] flex items-center gap-1.5 cursor-pointer">
-                    <i class="fa-solid fa-text-height text-slate-400"></i> <span id="set_font_size">채팅 글자 크기</span>
-                </label>
-                <input type="range" id="fontSizeSlider" min="12" max="22" step="1" value="14" class="w-[140px] accent-blue-500 cursor-pointer" oninput="document.documentElement.style.setProperty('--chat-font-size', this.value + 'px'); localStorage.setItem('chat_font_size', this.value);">
-                <button onclick="document.getElementById('memoModal').classList.remove('hidden');" class="ml-auto w-[70px] h-[32px] flex items-center justify-center bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-700 text-[10px] font-bold rounded shadow-sm transition-all px-1 relative">
-                    <span id="ui_memo_text" class="truncate w-full text-center">메모장</span>
-                    <span id="memoCountBadge" class="absolute -top-1 -right-1 w-4 h-4 flex items-center justify-center bg-red-500 text-white text-[9px] font-bold rounded-full hidden">0</span>
-                </button>
-            </div>
+    <label for="fontSizeSlider" class="text-slate-600 font-bold text-[10px] flex items-center gap-1.5 cursor-pointer">
+        <i class="fa-solid fa-text-height text-slate-400"></i> <span id="set_font_size">채팅 글자 크기</span>
+    </label>
+    <input type="range" id="fontSizeSlider" min="12" max="22" step="1" value="14" class="w-[140px] accent-blue-500 cursor-pointer" oninput="document.documentElement.style.setProperty('--chat-font-size', this.value + 'px'); localStorage.setItem('chat_font_size', this.value);">
+    
+    <!-- 💡 여기서부터 수정: 버튼 2개를 묶어주는 div 추가 -->
+    <div class="ml-auto flex items-center gap-2">
+        <!-- 💃 새롭게 추가된 Dance 버튼 -->
+        <button onclick="document.getElementById('unity-iframe').contentWindow.myUnityInstance.SendMessage('CharacterManager', 'StartDance');" class="w-[70px] h-[32px] flex items-center justify-center bg-pink-50 hover:bg-pink-100 border border-pink-200 text-pink-600 text-[10px] font-bold rounded shadow-sm transition-all px-1 relative">
+            <span class="truncate w-full text-center"><i class="fa-solid fa-music mr-1"></i>Dance</span>
+        </button>
 
+        <!-- 기존 메모장 버튼 (기존 코드에서 클래스 속 ml-auto 부분만 제거했습니다) -->
+        <button onclick="document.getElementById('memoModal').classList.remove('hidden');" class="w-[70px] h-[32px] flex items-center justify-center bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-700 text-[10px] font-bold rounded shadow-sm transition-all px-1 relative">
+            <span id="ui_memo_text" class="truncate w-full text-center">메모장</span>
+            <span id="memoCountBadge" class="absolute -top-1 -right-1 w-4 h-4 flex items-center justify-center bg-red-500 text-white text-[9px] font-bold rounded-full hidden">0</span>
+        </button>
+    </div>
+</div>
             <div class="relative w-full h-0 z-50 pointer-events-none">
                 <div class="absolute top-4 right-4 flex flex-col items-center pointer-events-auto">
 
