@@ -121,16 +121,16 @@ button#modeTutorBtn, button#modeTranslateBtn {
     pointer-events: none !important; /* 클릭 통과 유지 */
 }
 
-/* 대화창 모드 (가로 영역을 100% 꽉 채워서 춤출 때 안 잘리게 만듦) */
+/* 대화창 모드 (우측 하단 배치 + 춤춰도 안 잘리는 넉넉한 무대) */
 #unity-iframe.chat-mode {
     bottom: 200px !important; 
-    left: 0 !important;         
-    right: 0 !important;        
-    width: 100% !important;     
-    max-width: 100% !important; /* 🔥 기존 250px 제한 강제 해제 */
-    height: 250px !important;   
-    transform: none !important; /* 🔥 엉뚱하게 왼쪽으로 쏠리는 현상 방지 */
-    margin: 0 !important;       /* 🔥 여백 강제 초기화 */
+    right: 0px !important;      /* 🔥 화면 우측 끝에 붙임 */
+    left: auto !important;      /* 🔥 기존 left 설정 무시 */
+    width: 350px !important;    /* 🔥 가로를 350px로 넉넉하게! (팔다리 안 잘림) */
+    max-width: 400px !important; /* 강제 축소 방지 */
+    height: 350px !important;   
+    transform: none !important; /* 쏠림 방지 */
+    margin: 0 !important;       
     z-index: 9999 !important;
     pointer-events: none !important; 
 }
