@@ -38,35 +38,28 @@
       var myUnityInstance = null;
 
       // 💡 1번부터 6번까지 총 캐릭터 개수를 설정합니다.
-    const maxCharacters = 6; 
-    window.currentCharacter = 1; 
+    // 💡 1번부터 6번까지 총 캐릭터 개수
+      window.maxCharacters = 6; 
+      window.currentCharacter = 1; 
 
-    window.clickPrev = function() {
-        // 번호를 1 줄입니다. 만약 1보다 작아지면 6(끝)으로 돌아갑니다.
-        window.currentCharacter--;
-        if (window.currentCharacter < 1) {
-            window.currentCharacter = maxCharacters;
-        }
+      // 🔥 방 안(유니티)에 있으므로 contentWindow를 빼고 직접 명령합니다.
+      window.clickPrev = function() {
+          window.currentCharacter--;
+          if (window.currentCharacter < 1) window.currentCharacter = window.maxCharacters;
 
-        const unityInstance = document.getElementById('unity-iframe').contentWindow.myUnityInstance;
-        if(unityInstance != null) {
-            // 🔥 유니티의 ShowCharacter 함수로 변경된 '숫자'를 함께 던져줍니다.
-            unityInstance.SendMessage('CharacterManager', 'ShowCharacter', window.currentCharacter);
-        }
-    };
+          if(myUnityInstance != null) {
+              myUnityInstance.SendMessage('CharacterManager', 'ShowCharacter', window.currentCharacter);
+          }
+      };
 
-    window.clickNext = function() {
-        // 번호를 1 늘립니다. 만약 6보다 커지면 1(처음)로 돌아갑니다.
-        window.currentCharacter++;
-        if (window.currentCharacter > maxCharacters) {
-            window.currentCharacter = 1;
-        }
+      window.clickNext = function() {
+          window.currentCharacter++;
+          if (window.currentCharacter > window.maxCharacters) window.currentCharacter = 1;
 
-        const unityInstance = document.getElementById('unity-iframe').contentWindow.myUnityInstance;
-        if(unityInstance != null) {
-            unityInstance.SendMessage('CharacterManager', 'ShowCharacter', window.currentCharacter);
-        }
-    };
+          if(myUnityInstance != null) {
+              myUnityInstance.SendMessage('CharacterManager', 'ShowCharacter', window.currentCharacter);
+          }
+      };
 
       // 유니티 로딩 시작
       var script = document.createElement("script");
