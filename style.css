@@ -124,7 +124,7 @@ button#modeTutorBtn, button#modeTranslateBtn {
 /* 대화창 모드 (우측 하단 배치 + 춤춰도 안 잘리는 넉넉한 무대) */
 #unity-iframe.chat-mode {
     bottom: 150px !important; 
-    right: 20px !important;      /* 🔥 화면 우측 끝에 붙임 */
+    right: -30px !important;      /* 🔥 화면 우측 끝에 붙임 */
     left: auto !important;      /* 🔥 기존 left 설정 무시 */
     width: 350px !important;    /* 🔥 가로를 350px로 넉넉하게! (팔다리 안 잘림) */
     max-width: 400px !important; /* 강제 축소 방지 */
