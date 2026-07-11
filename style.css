@@ -128,7 +128,7 @@ button#modeTutorBtn, button#modeTranslateBtn {
     left: auto !important;      /* 🔥 기존 left 설정 무시 */
     width: 350px !important;    /* 🔥 가로를 350px로 넉넉하게! (팔다리 안 잘림) */
     max-width: 400px !important; /* 강제 축소 방지 */
-    height: 350px !important;   
+    height: 200px !important;   
     transform: none !important; /* 쏠림 방지 */
     margin: 0 !important;       
     z-index: 9999 !important;
