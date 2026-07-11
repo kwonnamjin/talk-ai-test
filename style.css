@@ -121,13 +121,14 @@ button#modeTutorBtn, button#modeTranslateBtn {
     pointer-events: none !important; /* 클릭 통과 유지 */
 }
 
-/* 대화창 모드 (우측 하단으로 작아지는 상태 - 홈 설정에 영향을 받지 않도록 초기화 추가) */
+/* 대화창 모드 (가로 영역을 100% 꽉 채워서 춤출 때 안 잘리게 만듦) */
 #unity-iframe.chat-mode {
     bottom: 200px !important; 
-    right: 20px !important;  
-    left: auto !important;      /* 🔥 홈 화면의 중앙 정렬 해제 */
-    transform: none !important; /* 🔥 홈 화면의 중앙 정렬 해제 */
-    width: 150px !important;    /* 대화창 캐릭터 가로 크기 */
-    height: 250px !important;   /* 대화창 캐릭터 세로 크기 */
+    left: 0 !important;         /* 🔥 화면 왼쪽 끝에 붙임 */
+    right: 0 !important;        /* 🔥 화면 오른쪽 끝에 붙임 */
+    width: 100% !important;     /* 🔥 가로 영역을 100% 꽉 채움 */
+    height: 250px !important;   /* 세로 높이는 그대로 유지 */
+    transform: none !important; 
     z-index: 9999 !important;
+    pointer-events: none !important; /* 클릭 통과 유지 (매우 중요) */
 }
