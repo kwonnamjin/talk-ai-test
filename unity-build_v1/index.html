@@ -37,29 +37,36 @@
       // 유니티 변수 준비
       var myUnityInstance = null;
 
-      // 🔥 함수를 가장 먼저 브라우저에 등록해버립니다 (에러 2번 원천 차단)
-      window.clickPrev = function() {
-        if(myUnityInstance != null) {
-            // 🔥 여기를 CharacterManager 로 바꿨습니다! (오브젝트 이름과 일치)
-            myUnityInstance.SendMessage('CharacterManager', 'ShowCharacter1');
+      // 💡 1번부터 6번까지 총 캐릭터 개수를 설정합니다.
+    const maxCharacters = 6; 
+    window.currentCharacter = 1; 
+
+    window.clickPrev = function() {
+        // 번호를 1 줄입니다. 만약 1보다 작아지면 6(끝)으로 돌아갑니다.
+        window.currentCharacter--;
+        if (window.currentCharacter < 1) {
+            window.currentCharacter = maxCharacters;
+        }
+
+        const unityInstance = document.getElementById('unity-iframe').contentWindow.myUnityInstance;
+        if(unityInstance != null) {
+            // 🔥 유니티의 ShowCharacter 함수로 변경된 '숫자'를 함께 던져줍니다.
+            unityInstance.SendMessage('CharacterManager', 'ShowCharacter', window.currentCharacter);
         }
     };
 
     window.clickNext = function() {
-        if(myUnityInstance != null) {
-            // 🔥 여기도 CharacterManager 로 바꿨습니다!
-            myUnityInstance.SendMessage('CharacterManager', 'ShowCharacter2');
+        // 번호를 1 늘립니다. 만약 6보다 커지면 1(처음)로 돌아갑니다.
+        window.currentCharacter++;
+        if (window.currentCharacter > maxCharacters) {
+            window.currentCharacter = 1;
+        }
+
+        const unityInstance = document.getElementById('unity-iframe').contentWindow.myUnityInstance;
+        if(unityInstance != null) {
+            unityInstance.SendMessage('CharacterManager', 'ShowCharacter', window.currentCharacter);
         }
     };
-
-      window.clickSelect = function() {
-    // 1. 선택한 캐릭터 번호 저장
-    localStorage.setItem("selectedTalkAI_Char", window.currentCharacter);
-    
-    // 2. 대화창(프리토킹 화면)으로 이동! (예: 'screen-main'이 대화창이라면)
-    // 💡 navigate 함수가 실행되면서 알아서 캐릭터가 우측 하단으로 스르륵 날아갑니다.
-    window.navigate('screen-main'); 
-};
 
       // 유니티 로딩 시작
       var script = document.createElement("script");
