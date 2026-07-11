@@ -261,7 +261,7 @@
 <!-- 💡 가장 깔끔한 방식: 배경 없이 글자만 띄우기 -->
 <div id="home-guide-message" class="fixed top-[33%] left-0 right-0 z-[9999999] flex justify-center pointer-events-none">
     <div class="px-6 py-3 rounded-full border border-Pink backdrop-blur-sm shadow-xl text-center">
-        <p class="text-white text-[12px] font-bold drop-shadow-md">
+        <p class="text-white text-[12px] font-bold drop-shadow-md" data-i18n="home_guide_msg">
             우측 상단 [ ? ] 버튼을 누르면<br>기능 설명을 볼 수 있습니다.
         </p>
     </div>
@@ -629,108 +629,107 @@
             <!--말풍선 안내-->
         <div id="helpXrayOverlay" class="hidden absolute inset-0 z-[99999] bg-slate-900/80 backdrop-blur-sm transition-opacity" onclick="nextHelpStep(event)">
             
-            <div class="absolute top-1/2 left-0 right-0 -translate-y-1/2 flex flex-col items-center justify-center px-4 pointer-events-none z-50 gap-3">
-                <span class="text-white/90 text-[11px] font-bold bg-black/50 px-4 py-2 rounded-full border border-white/20 shadow-md animate-pulse">
-                     화면을 터치하면 다음으로 넘어갑니다 👆
-                </span>
-                    <button onclick="closeHelpMode(event)" class="pointer-events-auto bg-white/20 hover:bg-white/30 text-white text-[11px] font-bold px-4 py-2 rounded-full border border-white/30 shadow-md backdrop-blur-md active:scale-95 transition-all">
-                    건너뛰기 (Skip)
-                    </button>
-            </div>
+    <div class="absolute top-1/2 left-0 right-0 -translate-y-1/2 flex flex-col items-center justify-center px-4 pointer-events-none z-50 gap-3">
+        <span class="text-white/90 text-[11px] font-bold bg-black/50 px-4 py-2 rounded-full border border-white/20 shadow-md animate-pulse" data-i18n="help_touch_next">
+             화면을 터치하면 다음으로 넘어갑니다 👆
+        </span>
+            <button onclick="closeHelpMode(event)" class="pointer-events-auto bg-white/20 hover:bg-white/30 text-white text-[11px] font-bold px-4 py-2 rounded-full border border-white/30 shadow-md backdrop-blur-md active:scale-95 transition-all" data-i18n="help_skip">
+            건너뛰기 (Skip)
+            </button>
+    </div>
 
-            <div id="help-screen-home" class="help-group hidden w-full h-full relative">
-                <div class="help-step step-1 absolute top-[120px] left-[60px] bg-red-500 text-white text-[11px] font-black px-3 py-2 rounded-2xl shadow-xl animate-bounce">
+    <div id="help-screen-home" class="help-group hidden w-full h-full relative">
+        <div class="help-step step-1 absolute top-[120px] left-[60px] bg-red-500 text-white text-[11px] font-black px-3 py-2 rounded-2xl shadow-xl animate-bounce">
             <div class="absolute -top-1.5 left-6 w-3 h-3 bg-red-500 transform rotate-45"></div>
-            👆  Pages에서 <br>프리토킹, 롤플레잉, 단어장,<br> 기초발음, 보관함, 이동하세요!
+            <span data-i18n="help_home_1">👆  Pages에서 <br>프리토킹, 롤플레잉, 단어장,<br> 기초발음, 보관함, 이동하세요!</span>
         </div>
         <div class="help-step step-2 hidden absolute top-[120px] left-[130px] bg-red-500 text-white text-[11px] font-black px-3 py-2 rounded-2xl shadow-xl animate-bounce">
             <div class="absolute -top-1.5 left-6 w-3 h-3 bg-red-500 transform rotate-45"></div>
-            👆  Report에서 학습량을 확인!
+            <span data-i18n="help_home_2">👆  Report에서 학습량을 확인!</span>
         </div>
         <div class="help-step step-3 hidden absolute top-[120px] left-[200px] bg-red-500 text-white text-[11px] font-black px-3 py-2 rounded-2xl shadow-xl animate-bounce">
             <div class="absolute -top-1.5 left-6 w-3 h-3 bg-red-500 transform rotate-45"></div>
-            👆  AI Mind에서 속마음 확인
+            <span data-i18n="help_home_3">👆  AI Mind에서 속마음 확인</span>
         </div>
         <div class="help-step step-4 hidden absolute top-[120px] left-[220px] bg-red-500 text-white text-[11px] font-black px-3 py-2 rounded-2xl shadow-xl animate-bounce">
             <div class="absolute -top-1.5 right-6 w-3 h-3 bg-red-500 transform rotate-45"></div>
-            👆 AI Character로<br>친구,비서,가이드 교체<br>나만의 AI를 만드세요!
+            <span data-i18n="help_home_4">👆 AI Character로<br>친구,비서,가이드 교체<br>나만의 AI를 만드세요!</span>
         </div>
         <div class="help-step step-5 hidden absolute top-[120px] right-4 bg-red-500 text-white text-[11px] font-black px-3 py-2 rounded-2xl shadow-xl animate-bounce">
             <div class="absolute -top-1.5 right-6 w-3 h-3 bg-red-500 transform rotate-45"></div>
-            👆  Setting에서 환경설정!
+            <span data-i18n="help_home_5">👆  Setting에서 환경설정!</span>
         </div>
        
         <div class="help-step step-6 hidden absolute bottom-[100px] left-4 right-4 bg-amber-500 text-white text-[11px] font-black px-4 py-3 rounded-2xl shadow-xl text-center animate-bounce">
             <div class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-amber-500 transform rotate-45"></div>
-            ✨  멤버십 업그레이드로 한도 확장!
+            <span data-i18n="help_home_6">✨  멤버십 업그레이드로 한도 확장!</span>
         </div>
-            </div>
+    </div>
 
-            <div id="help-screen-main" class="help-group hidden w-full h-full relative">
-                
-                <div class="help-step step-1 hidden absolute bottom-[85px] left-[180px] bg-emerald-500 text-white text-[11px] font-black px-3 py-2 rounded-2xl shadow-xl animate-bounce" style="animation-duration: 2.2s;">
-                    <div class="absolute -bottom-1.5 left-10 w-3 h-3 bg-emerald-500 transform rotate-45"></div>
-                    🎙️ 마이크를 누르고<br>AI 에게 말을 걸어보세요!
-                </div>
-                <div class="help-step step-1 hidden absolute bottom-[170px] left-[10px] bg-indigo-500 text-white text-[11px] font-black px-3 py-2 rounded-2xl shadow-xl animate-bounce" style="animation-duration: 2.2s;">
-                    <div class="absolute -bottom-1.5 left-10 w-3 h-3 bg-indigo-500 transform rotate-45"></div>
-                    💬 대화를 선택 후<br>AI와 프리토킹을 할수있어요!
-                </div>
-                <div class="help-step step-2 hidden absolute bottom-[170px] left-[130px] bg-indigo-500 text-white text-[11px] font-black px-3 py-2 rounded-2xl shadow-xl animate-bounce" style="animation-duration: 2.2s;">
-                    <div class="absolute -bottom-1.5 left-10 w-3 h-3 bg-indigo-500 transform rotate-45"></div>
-                    🌐 실시간 대면 통역이나<br>스마트 번역기를 켤 수 있어요!
-                </div>
-                <div class="help-step step-2 hidden absolute bottom-[85px] left-[30px] bg-emerald-500 text-white text-[11px] font-black px-3 py-2 rounded-2xl shadow-xl animate-bounce" style="animation-duration: 2.2s;">
-                    <div class="absolute -bottom-1.5 left-10 w-3 h-3 bg-emerald-500 transform rotate-45"></div>
-                     자동 전송을 누르고<br>ON/OFF 기능을 사용해 보세요!
-                </div>
-                <div class="help-step step-3 hidden absolute bottom-[170px] left-[230px] bg-purple-500 text-white text-[11px] font-black px-3 py-2 rounded-2xl shadow-xl animate-bounce" style="animation-duration: 1.9s;">
-                    <div class="absolute -bottom-1.5 right-6 w-3 h-3 bg-purple-500 transform rotate-45"></div>
-                    🔄 여기를 누르면<br>언어가 휙! 바뀝니다.
-                </div>
-                <div class="help-step step-3 hidden absolute bottom-[40px] left-[270px] bg-emerald-500 text-white text-[11px] font-black px-3 py-2 rounded-2xl shadow-xl animate-bounce" style="animation-duration: 2.2s;">
-                    <div class="absolute -bottom-1.5 left-10 w-3 h-3 bg-emerald-500 transform rotate-45"></div>
-                     AI가 문장을 생성하면<br>과외 해설을 눌러보세요!<br>단어와 문장을<br>자세히 설명해 줍니다.
-                </div>
-                <div class="help-step step-4 hidden absolute top-[150px] left-[80px] bg-amber-500 text-white text-[11px] font-black px-3 py-2 rounded-2xl shadow-xl animate-bounce">
-                    <div class="absolute -top-1.5 left-6 w-3 h-3 bg-amber-500 transform rotate-45"></div>
-                   👆  채팅 글자 크기 조절
-                </div>
-                <div class="help-step step-4 hidden absolute top-[150px] left-[270px] bg-red-500 text-white text-[11px] font-black px-3 py-2 rounded-2xl shadow-xl animate-bounce">
-                    <div class="absolute -top-1.5 right-6 w-3 h-3 bg-red-500 transform rotate-45"></div>
-                   👆  AI의 메모를 확인해봐요!
-                </div>
-            </div>
-
-            <div id="help-screen-roleplay" class="help-group hidden w-full h-full relative">
-                <div class="help-step step-1 absolute top-[580px] left-4 bg-purple-500 text-white text-[11px] font-black px-3 py-2 rounded-2xl shadow-xl animate-bounce" style="animation-duration: 2.1s;">
-                    <div class="absolute -left-1.5 top-3 w-3 h-3 bg-purple-500 transform rotate-45"></div>
-                    👉 레벨과 상황을 고르고<br>AI 대본을 1초 만에 생성하세요!
-                </div>
-                <div class="help-step step-1 hidden absolute bottom-[180px] left-[250px] bg-amber-500 text-white text-[11px] font-black px-3 py-2 rounded-2xl shadow-xl animate-bounce" style="animation-duration: 2.2s;">
-                    <div class="absolute -bottom-1.5 left-10 w-3 h-3 bg-amber-500 transform rotate-45"></div>
-                    텍스트를 입력하고<br>원하는 상황을 설정하세요!
-                </div>
-                <div class="help-step step-2 hidden absolute bottom-[85px] left-[180px] bg-emerald-500 text-white text-[11px] font-black px-3 py-2 rounded-2xl shadow-xl animate-bounce" style="animation-duration: 2.2s;">
-                    <div class="absolute -bottom-1.5 left-10 w-3 h-3 bg-emerald-500 transform rotate-45"></div>
-                    🎙️ AI가 만든 대본을<br>직접 읽으며 실전 연습해요!
-                </div>
-            </div>
-
-            <div id="help-screen-vocab" class="help-group hidden w-full h-full relative">
-                <div class="help-step step-1 absolute top-[180px] left-4 bg-pink-500 text-white text-[11px] font-black px-3 py-2 rounded-2xl shadow-xl animate-bounce" style="animation-duration: 2.3s;">
-                    <div class="absolute -top-1.5 left-6 w-3 h-3 bg-pink-500 transform rotate-45"></div>
-                    👆 테마를 고르고 생성하면<br>나만의 AI 단어장이 만들어져요!
-                </div>
-                <div class="help-step step-2 hidden absolute top-[220px] left-[220px] bg-red-500 text-white text-[11px] font-black px-3 py-2 rounded-2xl shadow-xl animate-bounce">
-                    <div class="absolute -top-1.5 right-6 w-3 h-3 bg-red-500 transform rotate-45"></div>
-                   👆  텍스트를 입력해 보세요<br>예시)암기,단어,입력, ...(10개)
-                </div>
-            </div>
-            
-            <div id="help-screen-alphabet" class="help-group hidden"></div>
-            <div id="help-screen-archive" class="help-group hidden"></div>
+    <div id="help-screen-main" class="help-group hidden w-full h-full relative">
+        <div class="help-step step-1 hidden absolute bottom-[85px] left-[180px] bg-emerald-500 text-white text-[11px] font-black px-3 py-2 rounded-2xl shadow-xl animate-bounce" style="animation-duration: 2.2s;">
+            <div class="absolute -bottom-1.5 left-10 w-3 h-3 bg-emerald-500 transform rotate-45"></div>
+            <span data-i18n="help_main_1">🎙️ 마이크를 누르고<br>AI 에게 말을 걸어보세요!</span>
         </div>
+        <div class="help-step step-1 hidden absolute bottom-[170px] left-[10px] bg-indigo-500 text-white text-[11px] font-black px-3 py-2 rounded-2xl shadow-xl animate-bounce" style="animation-duration: 2.2s;">
+            <div class="absolute -bottom-1.5 left-10 w-3 h-3 bg-indigo-500 transform rotate-45"></div>
+            <span data-i18n="help_main_2">💬 대화를 선택 후<br>AI와 프리토킹을 할수있어요!</span>
+        </div>
+        <div class="help-step step-2 hidden absolute bottom-[170px] left-[130px] bg-indigo-500 text-white text-[11px] font-black px-3 py-2 rounded-2xl shadow-xl animate-bounce" style="animation-duration: 2.2s;">
+            <div class="absolute -bottom-1.5 left-10 w-3 h-3 bg-indigo-500 transform rotate-45"></div>
+            <span data-i18n="help_main_3">🌐 실시간 대면 통역이나<br>스마트 번역기를 켤 수 있어요!</span>
+        </div>
+        <div class="help-step step-2 hidden absolute bottom-[85px] left-[30px] bg-emerald-500 text-white text-[11px] font-black px-3 py-2 rounded-2xl shadow-xl animate-bounce" style="animation-duration: 2.2s;">
+            <div class="absolute -bottom-1.5 left-10 w-3 h-3 bg-emerald-500 transform rotate-45"></div>
+            <span data-i18n="help_main_4">자동 전송을 누르고<br>ON/OFF 기능을 사용해 보세요!</span>
+        </div>
+        <div class="help-step step-3 hidden absolute bottom-[170px] left-[230px] bg-purple-500 text-white text-[11px] font-black px-3 py-2 rounded-2xl shadow-xl animate-bounce" style="animation-duration: 1.9s;">
+            <div class="absolute -bottom-1.5 right-6 w-3 h-3 bg-purple-500 transform rotate-45"></div>
+            <span data-i18n="help_main_5">🔄 여기를 누르면<br>언어가 휙! 바뀝니다.</span>
+        </div>
+        <div class="help-step step-3 hidden absolute bottom-[40px] left-[270px] bg-emerald-500 text-white text-[11px] font-black px-3 py-2 rounded-2xl shadow-xl animate-bounce" style="animation-duration: 2.2s;">
+            <div class="absolute -bottom-1.5 left-10 w-3 h-3 bg-emerald-500 transform rotate-45"></div>
+            <span data-i18n="help_main_6">AI가 문장을 생성하면<br>과외 해설을 눌러보세요!<br>단어와 문장을<br>자세히 설명해 줍니다.</span>
+        </div>
+        <div class="help-step step-4 hidden absolute top-[150px] left-[80px] bg-amber-500 text-white text-[11px] font-black px-3 py-2 rounded-2xl shadow-xl animate-bounce">
+            <div class="absolute -top-1.5 left-6 w-3 h-3 bg-amber-500 transform rotate-45"></div>
+            <span data-i18n="help_main_7">👆 채팅 글자 크기 조절</span>
+        </div>
+        <div class="help-step step-4 hidden absolute top-[150px] left-[270px] bg-red-500 text-white text-[11px] font-black px-3 py-2 rounded-2xl shadow-xl animate-bounce">
+            <div class="absolute -top-1.5 right-6 w-3 h-3 bg-red-500 transform rotate-45"></div>
+            <span data-i18n="help_main_8">👆 AI의 메모를 확인해봐요!</span>
+        </div>
+    </div>
+
+    <div id="help-screen-roleplay" class="help-group hidden w-full h-full relative">
+        <div class="help-step step-1 absolute top-[580px] left-4 bg-purple-500 text-white text-[11px] font-black px-3 py-2 rounded-2xl shadow-xl animate-bounce" style="animation-duration: 2.1s;">
+            <div class="absolute -left-1.5 top-3 w-3 h-3 bg-purple-500 transform rotate-45"></div>
+            <span data-i18n="help_rp_1">👉 레벨과 상황을 고르고<br>AI 대본을 1초 만에 생성하세요!</span>
+        </div>
+        <div class="help-step step-1 hidden absolute bottom-[180px] left-[250px] bg-amber-500 text-white text-[11px] font-black px-3 py-2 rounded-2xl shadow-xl animate-bounce" style="animation-duration: 2.2s;">
+            <div class="absolute -bottom-1.5 left-10 w-3 h-3 bg-amber-500 transform rotate-45"></div>
+            <span data-i18n="help_rp_2">텍스트를 입력하고<br>원하는 상황을 설정하세요!</span>
+        </div>
+        <div class="help-step step-2 hidden absolute bottom-[85px] left-[180px] bg-emerald-500 text-white text-[11px] font-black px-3 py-2 rounded-2xl shadow-xl animate-bounce" style="animation-duration: 2.2s;">
+            <div class="absolute -bottom-1.5 left-10 w-3 h-3 bg-emerald-500 transform rotate-45"></div>
+            <span data-i18n="help_rp_3">🎙️ AI가 만든 대본을<br>직접 읽으며 실전 연습해요!</span>
+        </div>
+    </div>
+
+    <div id="help-screen-vocab" class="help-group hidden w-full h-full relative">
+        <div class="help-step step-1 absolute top-[180px] left-4 bg-pink-500 text-white text-[11px] font-black px-3 py-2 rounded-2xl shadow-xl animate-bounce" style="animation-duration: 2.3s;">
+            <div class="absolute -top-1.5 left-6 w-3 h-3 bg-pink-500 transform rotate-45"></div>
+            <span data-i18n="help_vocab_1">👆 테마를 고르고 생성하면<br>나만의 AI 단어장이 만들어져요!</span>
+        </div>
+        <div class="help-step step-2 hidden absolute top-[220px] left-[220px] bg-red-500 text-white text-[11px] font-black px-3 py-2 rounded-2xl shadow-xl animate-bounce">
+            <div class="absolute -top-1.5 right-6 w-3 h-3 bg-red-500 transform rotate-45"></div>
+            <span data-i18n="help_vocab_2">👆 텍스트를 입력해 보세요<br>예시)암기,단어,입력, ...(10개)</span>
+        </div>
+    </div>
+    
+    <div id="help-screen-alphabet" class="help-group hidden"></div>
+    <div id="help-screen-archive" class="help-group hidden"></div>
+</div>
 
 
 
