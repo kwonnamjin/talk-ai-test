@@ -3596,3 +3596,25 @@ window.updateUiLanguage = function(newLang) {
 }
 
 
+// 🌟 언어 변경 자동 감지기 (0.5초마다 언어가 바뀌었는지 몰래 확인하고 즉시 새로고침)
+let __lastSavedLang = window.getAppLang(); // 처음 언어 기억
+
+setInterval(function() {
+    let __currentLang = window.getAppLang(); // 현재 언어 확인
+    
+    // 어? 아까 기억한 언어랑 다르네? (유저가 언어를 바꿨다!)
+    if (__lastSavedLang !== __currentLang) {
+        __lastSavedLang = __currentLang; // 새로운 언어 기억
+        
+        // 1. 바깥쪽 홈 배너 즉시 업데이트
+        if (typeof window.applyBannerTranslation === 'function') {
+            window.applyBannerTranslation();
+        }
+        
+        // 2. 만약 결제 팝업이 켜져 있다면 즉시 업데이트
+        const openModal = document.getElementById('subscriptionModal');
+        if (openModal && typeof window.showSubscriptionModal === 'function') {
+            window.showSubscriptionModal(openModal.getAttribute('data-reason') || 'upgrade');
+        }
+    }
+}, 500); // 0.5초(500ms)마다 체크
