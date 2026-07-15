@@ -3552,15 +3552,21 @@ window.activateSmartTranslate = function() {
     if (typeof window.updateStatus === 'function') window.updateStatus("스마트 번역 모드로 전환되었습니다.");
 };
 
+// 🌐 언어가 변경될 때 호출하는 함수
+window.updateUiLanguage = function(newLang) {
+    // 1. 숨겨진 언어 기준 값(explanationLanguage)을 최신 언어로 강제 업데이트
+    const langInput = document.getElementById('explanationLanguage');
+    if (langInput) {
+        langInput.value = newLang;
+    }
+
+    // 2. 만약 화면에 결제창(모달)이 띄워져 있다면? -> 닫고 새 언어로 즉시 다시 열기
+    const openModal = document.getElementById('subscriptionModal');
+    if (openModal) {
+        const currentReason = openModal.getAttribute('data-reason') || 'upgrade';
+        // 모달을 새 언어로 다시 그립니다 (유저 입장에서는 글자만 싹 바뀌는 것처럼 보임)
+        window.showSubscriptionModal(currentReason); 
+    }
+}
 
 
-
-// 테스트 투명버튼
-
-//window.devTestLimit = function() {
-  //  let todayObj = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}');
-  //  todayObj.count = 50; // 번개 50개 소진
-  //  localStorage.setItem('daily_usage_v4', JSON.stringify(todayObj));
-  //  localStorage.setItem('moon_coins', '3'); // 초승달 3개 줌
- //   window.updateBadgeUI();
-  //  alert("삐빅! 번개 0, 초승달 3개로 조작 완료!");};
