@@ -3560,12 +3560,16 @@ window.updateUiLanguage = function(newLang) {
         langInput.value = newLang;
     }
 
-    // 2. 만약 화면에 결제창(모달)이 띄워져 있다면? -> 닫고 새 언어로 즉시 다시 열기
+    // 2. 만약 화면에 결제창(모달)이 띄워져 있다면 새 언어로 즉시 다시 열기
     const openModal = document.getElementById('subscriptionModal');
     if (openModal) {
         const currentReason = openModal.getAttribute('data-reason') || 'upgrade';
-        // 모달을 새 언어로 다시 그립니다 (유저 입장에서는 글자만 싹 바뀌는 것처럼 보임)
         window.showSubscriptionModal(currentReason); 
+    }
+
+    // 3. 🌟 홈 화면 배너 즉시 번역 (추가된 부분)
+    if (typeof applyBannerTranslation === 'function') {
+        applyBannerTranslation();
     }
 }
 
