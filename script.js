@@ -174,7 +174,7 @@ window.changeUILanguage = function(langCode) {
     const baseLang = langCode.split('-')[0];
     const dict = window.UI_DICTIONARY ? (window.UI_DICTIONARY[baseLang] || window.UI_DICTIONARY['en']) : {};
 
-    // 2. ID 기반 텍스트 변경 (회원님 기존 방식 보존)
+    // 2. ID 기반 텍스트 변경 (대표님이 올려주신 코드 - 기존 화면 완벽 보호)
     for (const [id, text] of Object.entries(dict)) {
         const element = document.getElementById(id);
         if (element) {
@@ -186,13 +186,18 @@ window.changeUILanguage = function(langCode) {
         }
     }
 
-    // 3. data-i18n 속성 요소 강제 교체
+    // 3. 🌟 새로 추가된 핵심: data-i18n 속성 번역 (통역기, 보관함 등 모두 해결)
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
         if (dict[key]) el.innerHTML = dict[key];
     });
 
-    // 4. 배너 및 외부 UI 갱신 (에러 방어 로직 추가)
+    document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+        const key = el.getAttribute('data-i18n-ph');
+        if (dict[key]) el.placeholder = dict[key];
+    });
+
+    // 4. 배너 및 외부 UI 갱신 (에러 방어 로직 적용)
     if (typeof window.applyBannerTranslation === 'function') window.applyBannerTranslation();
     if (typeof window.updateLangDisplays === 'function') window.updateLangDisplays();
     if (typeof window.updateExtraUI === 'function') window.updateExtraUI();
@@ -3408,10 +3413,12 @@ window.startPingPongMic = function(speaker) {
         const status = document.getElementById('interp-status');
 
         window.interpRec.onstart = () => {
-            const myTurnTxt = window.getTrans('ui_interp_my_turn', "내 차례입니다 🎙️");
-            const otherTurnTxt = window.getTrans('ui_interp_other_turn', "상대방 차례입니다 🎙️");
-            if(status) status.innerHTML = speaker === 'ME' ? `<span class="text-blue-600 font-bold">${myTurnTxt}</span>` : `<span class="text-orange-600 font-bold">${otherTurnTxt}</span>`;
-        };
+    const myTurnTxt = window.getTrans('ui_interp_my_turn', "내 차례입니다 🎙️");
+    const otherTurnTxt = window.getTrans('ui_interp_other_turn', "상대방 차례입니다 🎙️");
+    if(status) status.innerHTML = speaker === 'ME' ? 
+        `<span class="text-blue-600 font-bold">${myTurnTxt}</span>` : 
+        `<span class="text-orange-600 font-bold">${otherTurnTxt}</span>`;
+};
 
         window.interpRec.onresult = (e) => {
             const transcript = e.results[e.results.length - 1][0].transcript;
