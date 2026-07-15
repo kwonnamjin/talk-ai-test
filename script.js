@@ -526,38 +526,58 @@ function checkUsageLimit() {
     return { allowed: true, tier: currentTier, count: usageObj.count, maxLimit };
 }
 
+// 1. 현재 언어를 가장 정확하게 가져오는 공통 함수
+window.getAppLang = function() {
+    const langInput = document.getElementById('explanationLanguage');
+    let lang = langInput ? langInput.value : 'ko';
+    return lang.split('-')[0]; // 'ko-KR' -> 'ko', 'en-US' -> 'en'
+};
+
+// 2. 홈 배너 번역 함수
+window.applyBannerTranslation = function() {
+    const lang = window.getAppLang();
+    const titleEl = document.getElementById('ui_home_premium_title');
+    const descEl = document.getElementById('ui_home_premium_desc');
+    
+    if (!titleEl || !descEl) return;
+
+    const bannerData = {
+        'en': { t: "🚀 50% OFF Membership Sale!", d: "Check out Basic / Premium / VIP plans!" },
+        'ja': { t: "🚀 メンバーシップ50％特大セール！", d: "ベーシック/プレミアム/VIPプランをチェック！" },
+        'th': { t: "🚀 ลด 50% สมาชิกพิเศษ!", d: "ตรวจสอบแผน Basic / Premium / VIP!" },
+        'zh': { t: "🚀 会员50%特价活动进行中！", d: "快来了解 Basic / Premium / VIP 计划！" },
+        'ko': { t: "🚀 멤버십 50% 특가 진행 중!", d: "베이직 / 프리미엄 / VIP 혜택을 만나보세요!" }
+    };
+    const b = bannerData[lang] || bannerData['ko'];
+    titleEl.innerText = b.t;
+    descEl.innerText = b.d;
+};
+
+// 3. 결제창(모달) 띄우기 함수 (기존 사전 완전 무시 & 독립 번역)
 window.showSubscriptionModal = function(reason) {
     const existingModal = document.getElementById('subscriptionModal');
-    if (existingModal) existingModal.remove();
+    if (existingModal) existingModal.remove(); // 기존 창 닫기 (새로고침 효과)
 
-    // 1. 현재 설정된 언어 가져오기 ('ko', 'en', 'ja' 등)
-    const baseLang = (document.getElementById('explanationLanguage').value || 'ko-KR').split('-')[0];
+    const lang = window.getAppLang(); // 현재 바뀐 언어 즉시 확인
     
-    // 2. 타이틀용 기존 사전 (이건 그대로 둠)
-    const dict = window.UI_DICTIONARY ? (window.UI_DICTIONARY[baseLang] || window.UI_DICTIONARY['en']) : {};
-
-    let titleText = dict.ui_premium_title || "멤버십 업그레이드", 
-        descText = dict.ui_premium_desc || "원하시는 요금제를 선택해<br>더욱 자유롭게 학습해 보세요!";
-        
-    if (reason === 'trial_expired') { 
-        titleText = dict.ui_trial_end_title || "3일 무료 체험이 종료되었습니다."; 
-        descText = dict.ui_trial_end_desc || "계속 학습하시려면<br>멤버십 플랜을 선택해 주세요."; 
-    } 
-    else if (reason === 'limit_reached') { 
-        titleText = dict.ui_limit_end_title || "일일 사용량을 모두 소진했습니다!"; 
-        descText = dict.ui_limit_end_desc || "계속 학습하시려면<br>멤버십 플랜을 선택해 주세요."; 
-    }
-
-    // 🚨 핵심 포인트: 기존 사전을 완전히 무시하는 특가 요금제 전용 독립 사전
+    // 🚨 팝업 내부 모든 텍스트를 독립적으로 번역 (옛날 번역본 무시)
     const promo = {
-        'ko': { b_title: "베이직 (Basic)", b_desc: "매일 130건 충전", p_title: "프리미엄 (Premium)", p_desc: "매일 300건 충전", v_title: "브이아이피 (VIP)", v_desc: "매일 400건 충전", sale: "🎉 출시 기념! 3개월간 50% 반값 할인", unl: "무제한급" },
-        'en': { b_title: "Basic Plan", b_desc: "130 credits daily", p_title: "Premium Plan", p_desc: "300 credits daily", v_title: "VIP Plan", v_desc: "400 credits daily", sale: "🎉 Launch Promo! 50% OFF for 3 months", unl: "Unlimited-tier" },
-        'ja': { b_title: "ベーシック (Basic)", b_desc: "毎日 130回 チャージ", p_title: "プレミアム (Premium)", p_desc: "毎日 300回 チャージ", v_title: "VIP プラン", v_desc: "毎日 400回 チャージ", sale: "🎉 リリース記念！3ヶ月間 50％オフ", unl: "無制限級" },
-        'th': { b_title: "แผนเบสิก (Basic)", b_desc: "ชาร์จ 130 ครั้งต่อวัน", p_title: "แผนพรีเมียม (Premium)", p_desc: "ชาร์จ 300 ครั้งต่อวัน", v_title: "แผน VIP", v_desc: "ชาร์จ 400 ครั้งต่อวัน", sale: "🎉 โปรเปิดตัว! ลด 50% นาน 3 เดือน", unl: "ระดับไร้ขีดจำกัด" },
-        'zh': { b_title: "基础套餐 (Basic)", b_desc: "每日充值130次", p_title: "高级套餐 (Premium)", p_desc: "每日充值300次", v_title: "VIP 套餐", v_desc: "每日充值400次", sale: "🎉 首发特惠！前3个月50%折扣", unl: "无限级" }
+        'ko': { main_t: "멤버십 업그레이드", main_d: "원하시는 요금제를 선택해<br>더욱 자유롭게 학습해 보세요!", b_t: "베이직 (Basic)", b_d: "매일 130건 충전", p_t: "프리미엄 (Premium)", p_d: "매일 300건 충전", v_t: "브이아이피 (VIP)", v_d: "매일 400건 충전", sale: "🎉 출시 기념! 3개월간 50% 반값 할인", unl: "무제한급", mo: "/월" },
+        'en': { main_t: "Upgrade Membership", main_d: "Choose your plan and<br>learn without limits!", b_t: "Basic Plan", b_d: "130 credits daily", p_t: "Premium Plan", p_d: "300 credits daily", v_t: "VIP Plan", v_d: "400 credits daily", sale: "🎉 Launch Promo! 50% OFF for 3 months", unl: "Unlimited-tier", mo: "/mo" },
+        'ja': { main_t: "メンバーシップのアップグレード", main_d: "プランを選択して<br>自由に学習しましょう！", b_t: "ベーシック (Basic)", b_d: "毎日 130回 チャージ", p_t: "プレミアム (Premium)", p_d: "毎日 300回 チャージ", v_t: "VIP プラン", v_d: "毎日 400回 チャージ", sale: "🎉 リリース記念！3ヶ月間 50％オフ", unl: "無制限級", mo: "/月" },
+        'th': { main_t: "อัปเกรดสมาชิก", main_d: "เลือกแผนของคุณและ<br>เรียนรู้ได้อย่างอิสระ!", b_t: "แผนเบสิก (Basic)", b_d: "ชาร์จ 130 ครั้งต่อวัน", p_t: "แผนพรีเมียม (Premium)", p_d: "ชาร์จ 300 ครั้งต่อวัน", v_t: "แผน VIP", v_d: "ชาร์จ 400 ครั้งต่อวัน", sale: "🎉 โปรเปิดตัว! ลด 50% นาน 3 เดือน", unl: "ระดับไร้ขีดจำกัด", mo: "/เดือน" },
+        'zh': { main_t: "升级会员", main_d: "选择您的套餐<br>享受自由学习！", b_t: "基础套餐 (Basic)", b_d: "每日充值130次", p_t: "高级套餐 (Premium)", p_d: "每日充值300次", v_t: "VIP 套餐", v_d: "每日充值400次", sale: "🎉 首发特惠！前3个月50%折扣", unl: "无限级", mo: "/月" }
     };
-    // 현재 언어에 맞는 데이터를 뽑아옵니다. (없으면 한국어 기본 적용)
-    const p = promo[baseLang] || promo['ko'];
+    const p = promo[lang] || promo['ko'];
+
+    // 🚨 3일 무료 만료 / 한도 초과 시 텍스트도 새 언어에 맞게 덮어쓰기
+    if (reason === 'trial_expired') { 
+        p.main_t = (lang === 'en') ? "3-Day Trial Ended" : (lang === 'ja') ? "3日間の無料体験が終了しました" : "3일 무료 체험이 종료되었습니다.";
+        p.main_d = (lang === 'en') ? "Select a plan to continue." : (lang === 'ja') ? "学習を続けるにはプランを選択してください。" : "계속 학습하시려면<br>멤버십 플랜을 선택해 주세요.";
+    } else if (reason === 'limit_reached') {
+        p.main_t = (lang === 'en') ? "Daily Limit Reached!" : (lang === 'ja') ? "1日の利用上限に達しました！" : "일일 사용량을 모두 소진했습니다!";
+        p.main_d = (lang === 'en') ? "Select a plan to continue." : (lang === 'ja') ? "学習を続けるにはプランを選択してください。" : "계속 학습하시려면<br>멤버십 플랜을 선택해 주세요.";
+    }
 
     const modalHtml = `
     <div id="subscriptionModal" data-reason="${reason}" class="fixed inset-0 bg-black/70 z-[999] flex items-center justify-center p-4 backdrop-blur-sm">
@@ -565,54 +585,27 @@ window.showSubscriptionModal = function(reason) {
             <button onclick="document.getElementById('subscriptionModal').remove()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-2xl"></i></button>
             <div class="p-6 text-center">
                 <div class="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-indigo-100"><i class="fa-solid fa-crown text-3xl text-indigo-500"></i></div>
-                <h2 class="text-xl font-black text-slate-800 mb-2">${titleText}</h2>
-                <p class="text-sm text-slate-500 mb-4">${descText}</p>
+                <h2 class="text-xl font-black text-slate-800 mb-2">${p.main_t}</h2>
+                <p class="text-sm text-slate-500 mb-4">${p.main_d}</p>
                 
-                <!-- 🎁 할인 강조 배너 (독립 번역 적용) -->
                 <div class="bg-rose-50 text-rose-600 text-sm font-black p-2 rounded-xl mb-4 border border-rose-100 animate-pulse">
                     ${p.sale}
                 </div>
 
                 <div class="space-y-3 text-left">
-                    <!-- 1. 베이직 플랜 -->
                     <button onclick="processPayment('basic')" class="w-full border-2 border-slate-100 hover:border-indigo-400 bg-slate-50 rounded-2xl p-4 flex items-center justify-between transition-all">
-                        <div>
-                            <h3 class="text-slate-700 font-bold text-lg">${p.b_title}</h3>
-                            <p class="text-xs text-slate-500 font-medium">${p.b_desc}</p>
-                        </div>
-                        <div class="text-right">
-                            <span class="text-slate-400 line-through text-xs mr-1">₩7,900</span>
-                            <br>
-                            <span class="text-slate-800 font-black text-lg">₩3,900</span><span class="text-xs text-slate-400">/mo</span>
-                        </div>
+                        <div><h3 class="text-slate-700 font-bold text-lg">${p.b_t}</h3><p class="text-xs text-slate-500 font-medium">${p.b_d}</p></div>
+                        <div class="text-right"><span class="text-slate-400 line-through text-xs mr-1">₩7,900</span><br><span class="text-slate-800 font-black text-lg">₩3,900</span><span class="text-xs text-slate-400">${p.mo}</span></div>
                     </button>
-
-                    <!-- 2. 프리미엄 플랜 -->
                     <button onclick="processPayment('premium')" class="w-full border-2 border-indigo-200 hover:border-indigo-500 bg-indigo-50/50 rounded-2xl p-4 flex items-center justify-between transition-all relative overflow-hidden">
                         <div class="absolute top-0 right-0 bg-indigo-500 text-white text-[10px] font-black px-2 py-0.5 rounded-bl-lg shadow-sm">BEST</div>
-                        <div>
-                            <h3 class="text-indigo-800 font-bold text-lg">${p.p_title}</h3>
-                            <p class="text-xs text-indigo-500 font-medium">${p.p_desc}</p>
-                        </div>
-                        <div class="text-right">
-                            <span class="text-slate-400 line-through text-xs mr-1">₩15,900</span>
-                            <br>
-                            <span class="text-indigo-600 font-black text-lg">₩7,900</span><span class="text-xs text-slate-400">/mo</span>
-                        </div>
+                        <div><h3 class="text-indigo-800 font-bold text-lg">${p.p_t}</h3><p class="text-xs text-indigo-500 font-medium">${p.p_d}</p></div>
+                        <div class="text-right"><span class="text-slate-400 line-through text-xs mr-1">₩15,900</span><br><span class="text-indigo-600 font-black text-lg">₩7,900</span><span class="text-xs text-slate-400">${p.mo}</span></div>
                     </button>
-
-                    <!-- 3. VIP 플랜 -->
                     <button onclick="processPayment('vip')" class="w-full border-2 border-amber-200 hover:border-amber-400 bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-4 flex items-center justify-between transition-all relative overflow-hidden">
                         <div class="absolute top-0 right-0 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[10px] font-black px-2 py-0.5 rounded-bl-lg shadow-sm">${p.unl}</div>
-                        <div>
-                            <h3 class="text-amber-800 font-bold text-lg">${p.v_title}</h3>
-                            <p class="text-xs text-amber-600 font-medium">${p.v_desc}</p>
-                        </div>
-                        <div class="text-right">
-                            <span class="text-amber-400 line-through text-xs mr-1">₩19,900</span>
-                            <br>
-                            <span class="text-amber-700 font-black text-lg">₩9,900</span><span class="text-xs text-slate-400">/mo</span>
-                        </div>
+                        <div><h3 class="text-amber-800 font-bold text-lg">${p.v_t}</h3><p class="text-xs text-amber-600 font-medium">${p.v_d}</p></div>
+                        <div class="text-right"><span class="text-amber-400 line-through text-xs mr-1">₩19,900</span><br><span class="text-amber-700 font-black text-lg">₩9,900</span><span class="text-xs text-slate-400">${p.mo}</span></div>
                     </button>
                 </div>
             </div>
@@ -620,11 +613,27 @@ window.showSubscriptionModal = function(reason) {
     </div>`;
     document.body.insertAdjacentHTML('beforeend', modalHtml);
     if(window.stopSpeaking) window.stopSpeaking();
-}
+};
 
+// 4. 언어 변경 시 호출되는 메인 함수 (팝업과 배너 동시 업데이트 보장)
+window.updateUiLanguage = function(newLang) {
+    const langInput = document.getElementById('explanationLanguage');
+    if (langInput) langInput.value = newLang; // 언어 값 업데이트
+
+    // 바깥 배너 즉시 새로고침
+    window.applyBannerTranslation();
+
+    // 팝업이 켜져있다면, 닫고 '새로운 언어'로 즉시 다시 열기
+    const openModal = document.getElementById('subscriptionModal');
+    if (openModal) {
+        const currentReason = openModal.getAttribute('data-reason') || 'upgrade';
+        window.showSubscriptionModal(currentReason); 
+    }
+};
+
+// 결제 진행 함수 (이건 그대로 유지)
 window.processPayment = function(plan) {
     if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
-        // 실제 앱의 결제 로직 호출 (plan 변수에 'basic', 'premium', 'vip'가 전달됨)
         window.flutter_inappwebview.callHandler('purchase', plan);
     } else {
         alert("앱 내에서만 결제가 가능합니다.");
