@@ -872,25 +872,13 @@
 
 
     <!-- 🚨 앱 종료 확인 팝업 (모달) -->
+<!-- index.html에 아래 코드가 있어야 팝업이 뜹니다 -->
 <div id="exitModal" class="hidden fixed inset-0 bg-black/70 z-[999999] flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
     <div class="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl relative animate-fade-in-up border border-slate-100 p-6 text-center">
-        <!-- 상단 아이콘 -->
-        <div class="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-100">
-            <i class="fa-solid fa-right-from-bracket text-3xl text-red-500"></i>
-        </div>
-        
-        <!-- 텍스트 -->
         <h2 class="text-xl font-black text-slate-800 mb-2">앱을 종료하시겠습니까?</h2>
-        <p class="text-sm text-slate-500 mb-6 font-medium">오늘의 학습을 여기서 마칠까요?</p>
-        
-        <!-- 버튼 영역 -->
-        <div class="flex gap-3">
-            <button onclick="document.getElementById('exitModal').classList.add('hidden')" class="flex-1 py-3.5 bg-slate-100 text-slate-600 font-bold text-sm rounded-xl hover:bg-slate-200 transition-colors">
-                취소
-            </button>
-            <button onclick="confirmAppExit()" class="flex-1 py-3.5 bg-red-500 text-white font-bold text-sm rounded-xl hover:bg-red-600 transition-colors shadow-md">
-                종료하기
-            </button>
+        <div class="flex gap-3 mt-6">
+            <button onclick="document.getElementById('exitModal').classList.add('hidden')" class="flex-1 py-3.5 bg-slate-100 text-slate-600 font-bold text-sm rounded-xl">취소</button>
+            <button onclick="confirmAppExit()" class="flex-1 py-3.5 bg-red-500 text-white font-bold text-sm rounded-xl">종료하기</button>
         </div>
     </div>
 </div>
