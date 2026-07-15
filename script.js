@@ -3581,3 +3581,139 @@ window.refreshAllTranslations = function() {
     console.log("🎨 UI 언어 강제 갱신 완료:", lang);
 };
 
+// ==========================================
+// 🚨 실시간 대면 통역 & 자동 전송 완벽 번역 모듈 (script.js 맨 아래 추가)
+// ==========================================
+(function() {
+    // 1. 번역 데이터 강제 주입
+    const EXTRA_TRANS = {
+        "ko": {
+            ui_auto_send: "자동 전송", ui_auto_send_on: "자동 전송 ON", ui_auto_send_off: "자동 전송 OFF",
+            ui_interp_live: "🎙️ 실시간 대면 통역", ui_interp_smart: "🧠 스마트 번역",
+            ui_interp_mic_other: "상대방 마이크 (터치하여 말하기)", ui_interp_mic_me: "내 마이크 (터치하여 말하기)",
+            ui_interp_listening: "듣는 중... (터치 시 턴 뺏기)", ui_interp_select_mic: "마이크를 선택하세요 🎙️",
+            ui_interp_my_turn: "내 차례입니다 🎙️", ui_interp_other_turn: "상대방 차례입니다 🎙️",
+            ui_interp_paused: "대기 중 (마이크를 눌러 재개) ⏸️", ui_interp_lang_changed: "언어가 변경되었습니다 🎙️",
+            ui_interp_getting_turn: "턴을 가져오는 중... ⚡", ui_interp_error: "오류 발생. 마이크를 다시 누르세요.",
+            ui_interp_changing_turn: "턴 교체 중... 🏓", ui_interp_keep_listening: "계속 듣고 있습니다... 👂"
+        },
+        "en": {
+            ui_auto_send: "Auto Send", ui_auto_send_on: "Auto Send ON", ui_auto_send_off: "Auto Send OFF",
+            ui_interp_live: "🎙️ Live Interpreter", ui_interp_smart: "🧠 Smart Translate",
+            ui_interp_mic_other: "Other's Mic (Touch to speak)", ui_interp_mic_me: "My Mic (Touch to speak)",
+            ui_interp_listening: "Listening... (Touch to take turn)", ui_interp_select_mic: "Select a microphone 🎙️",
+            ui_interp_my_turn: "My turn 🎙️", ui_interp_other_turn: "Other's turn 🎙️",
+            ui_interp_paused: "Paused (Press mic to resume) ⏸️", ui_interp_lang_changed: "Language changed 🎙️",
+            ui_interp_getting_turn: "Taking turn... ⚡", ui_interp_error: "Error. Press mic again.",
+            ui_interp_changing_turn: "Changing turn... 🏓", ui_interp_keep_listening: "Still listening... 👂"
+        },
+        "ja": {
+            ui_auto_send: "自動送信", ui_auto_send_on: "自動送信 ON", ui_auto_send_off: "自動送信 OFF",
+            ui_interp_live: "🎙️ リアルタイム通訳", ui_interp_smart: "🧠 スマート翻訳",
+            ui_interp_mic_other: "相手のマイク (タッチして話す)", ui_interp_mic_me: "自分のマイク (タッチして話す)",
+            ui_interp_listening: "リスニング中... (タッチでターン奪取)", ui_interp_select_mic: "マイクを選択してください 🎙️",
+            ui_interp_my_turn: "私の番です 🎙️", ui_interp_other_turn: "相手の番です 🎙️",
+            ui_interp_paused: "待機中 (マイクを押して再開) ⏸️", ui_interp_lang_changed: "言語が変更されました 🎙️",
+            ui_interp_getting_turn: "ターンを取得中... ⚡", ui_interp_error: "エラー。もう一度押してください。",
+            ui_interp_changing_turn: "ターン交替中... 🏓", ui_interp_keep_listening: "引き続きリスニング中... 👂"
+        },
+        "zh": {
+            ui_auto_send: "自动发送", ui_auto_send_on: "自动发送开启", ui_auto_send_off: "自动发送关闭",
+            ui_interp_live: "🎙️ 实时同传", ui_interp_smart: "🧠 智能翻译",
+            ui_interp_mic_other: "对方麦克风 (点击说话)", ui_interp_mic_me: "我的麦克风 (点击说话)",
+            ui_interp_listening: "聆听中... (点击抢占回合)", ui_interp_select_mic: "请选择麦克风 🎙️",
+            ui_interp_my_turn: "到我了 🎙️", ui_interp_other_turn: "对方回合 🎙️",
+            ui_interp_paused: "暂停中 (点击麦克风恢复) ⏸️", ui_interp_lang_changed: "语言已更改 🎙️",
+            ui_interp_getting_turn: "正在抢占回合... ⚡", ui_interp_error: "发生错误，请重新点击。",
+            ui_interp_changing_turn: "回合切换中... 🏓", ui_interp_keep_listening: "继续聆听中... 👂"
+        },
+        "es": {
+            ui_auto_send: "Envío Auto", ui_auto_send_on: "Envío Auto ON", ui_auto_send_off: "Envío Auto OFF",
+            ui_interp_live: "🎙️ Intérprete en Vivo", ui_interp_smart: "🧠 Traducción Inteligente",
+            ui_interp_mic_other: "Mic. del Otro (Toca para hablar)", ui_interp_mic_me: "Mi Mic (Toca para hablar)",
+            ui_interp_listening: "Escuchando... (Toca para tu turno)", ui_interp_select_mic: "Selecciona un micrófono 🎙️",
+            ui_interp_my_turn: "Mi turno 🎙️", ui_interp_other_turn: "Turno del otro 🎙️",
+            ui_interp_paused: "Pausado (Presiona el mic) ⏸️", ui_interp_lang_changed: "Idioma cambiado 🎙️",
+            ui_interp_getting_turn: "Tomando el turno... ⚡", ui_interp_error: "Error. Presiona de nuevo.",
+            ui_interp_changing_turn: "Cambiando turno... 🏓", ui_interp_keep_listening: "Sigo escuchando... 👂"
+        }
+    };
+
+    if (typeof window.UI_DICTIONARY !== 'undefined') {
+        Object.keys(EXTRA_TRANS).forEach(lang => {
+            if (window.UI_DICTIONARY[lang]) Object.assign(window.UI_DICTIONARY[lang], EXTRA_TRANS[lang]);
+        });
+    }
+
+    // 2. 텍스트 번역 도우미
+    window.getTrans = function(key, defaultStr) {
+        const lang = (typeof window.getAppLang === 'function') ? window.getAppLang() : 'ko';
+        const dict = window.UI_DICTIONARY ? window.UI_DICTIONARY[lang] : null;
+        return (dict && dict[key]) ? dict[key] : defaultStr;
+    };
+
+    // 3. 상태창 및 마이크 텍스트 실시간 적용
+    window.toggleAutoSend = function() {
+        window.isAutoSend = !window.isAutoSend;
+        const btn = document.getElementById('autoSendToggleBtn');
+        const icon = document.getElementById('autoSendIcon');
+        if(window.isAutoSend) {
+            btn.classList.replace('bg-slate-100', 'bg-blue-50'); btn.classList.replace('text-slate-500', 'text-blue-600'); btn.classList.replace('border-slate-200', 'border-blue-200'); icon.classList.replace('fa-toggle-off', 'fa-toggle-on');
+            window.updateStatus(window.getTrans('ui_auto_send_on', "자동 전송 ON"));
+        } else {
+            btn.classList.replace('bg-blue-50', 'bg-slate-100'); btn.classList.replace('text-blue-600', 'text-slate-500'); btn.classList.replace('border-blue-200', 'border-slate-200'); icon.classList.replace('fa-toggle-on', 'fa-toggle-off');
+            window.updateStatus(window.getTrans('ui_auto_send_off', "자동 전송 OFF"));
+        }
+    };
+
+    window.resetMicUI = function() {
+        const btnTop = document.getElementById('btn-mic-top');
+        const btnBottom = document.getElementById('btn-mic-bottom');
+        if(btnTop) {
+            btnTop.className = "w-full py-3.5 rounded-xl bg-orange-100 text-orange-600 border border-orange-200 flex items-center justify-center gap-2 shadow-sm transition-all duration-300 active:scale-[0.98]";
+            btnTop.innerHTML = `<i class="fa-solid fa-microphone text-lg"></i><span class="text-sm font-bold">${window.getTrans('ui_interp_mic_other', "상대방 마이크 (터치하여 말하기)")}</span>`;
+        }
+        if(btnBottom) {
+            btnBottom.className = "w-full py-3.5 rounded-xl bg-blue-100 text-blue-600 border border-blue-200 flex items-center justify-center gap-2 shadow-sm transition-all duration-300 active:scale-[0.98]";
+            btnBottom.innerHTML = `<i class="fa-solid fa-microphone text-lg"></i><span class="text-sm font-bold">${window.getTrans('ui_interp_mic_me', "내 마이크 (터치하여 말하기)")}</span>`;
+        }
+        const status = document.getElementById('interp-status');
+        if(status) status.innerHTML = window.getTrans('ui_interp_select_mic', "마이크를 선택하세요 🎙️");
+        window.activeMicSpeaker = null;
+    };
+
+    window.startPingPongMic = function(speaker) {
+        window.manualStop = false; window.hasSpoken = false; window.resetMicUI(); window.activeMicSpeaker = speaker;
+        const activeBtn = speaker === 'OTHER' ? document.getElementById('btn-mic-top') : document.getElementById('btn-mic-bottom');
+        if (activeBtn) {
+            activeBtn.className = "w-full py-3.5 rounded-xl bg-red-500 text-white border border-red-600 flex items-center justify-center gap-2 shadow-md transition-all duration-300 animate-pulse scale-[1.02]";
+            activeBtn.innerHTML = `<i class="fa-solid fa-bolt text-lg"></i><span class="text-sm font-bold">${window.getTrans('ui_interp_listening', "듣는 중... (터치 시 턴 뺏기)")}</span>`;
+        }
+        const langCode = speaker === 'ME' ? (localStorage.getItem('stt_input_language') || 'ko-KR') : (localStorage.getItem('target_language') || 'en-US');
+        if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+            window.interpRec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            window.interpRec.continuous = false; window.interpRec.interimResults = false; window.interpRec.lang = langCode;
+            const status = document.getElementById('interp-status');
+            window.interpRec.onstart = () => {
+                if(status) status.innerHTML = speaker === 'ME' ? `<span class="text-blue-600 font-bold">${window.getTrans('ui_interp_my_turn', "내 차례입니다 🎙️")}</span>` : `<span class="text-orange-600 font-bold">${window.getTrans('ui_interp_other_turn', "상대방 차례입니다 🎙️")}</span>`;
+            };
+            window.interpRec.onresult = (e) => {
+                if(e.results[e.results.length - 1][0].transcript.trim()) { window.hasSpoken = true; window.processInterpTranslationExplicit(e.results[e.results.length - 1][0].transcript, speaker); }
+            };
+            window.interpRec.onerror = (e) => {
+                if (e.error !== 'no-speech' && e.error !== 'aborted') { window.manualStop = true; window.resetMicUI(); if(status) status.innerHTML = window.getTrans('ui_interp_error', "오류 발생. 마이크를 다시 누르세요."); }
+            };
+            window.interpRec.onend = () => {
+                if (window.manualStop) { /* 수동 정지 */ } 
+                else if (window.hasSpoken) {
+                    if(status) status.innerHTML = window.getTrans('ui_interp_changing_turn', "턴 교체 중... 🏓");
+                    setTimeout(() => { window.startPingPongMic(speaker === 'ME' ? 'OTHER' : 'ME'); }, 300);
+                } else {
+                    if(status) status.innerHTML = window.getTrans('ui_interp_keep_listening', "계속 듣고 있습니다... 👂");
+                    setTimeout(() => { window.startPingPongMic(speaker); }, 100);
+                }
+            };
+            try { window.interpRec.start(); } catch(e) { window.resetMicUI(); }
+        }
+    };
+})();
