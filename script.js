@@ -592,18 +592,14 @@ window.showSubscriptionModal = function(reason) {
                 <div class="bg-rose-50 text-rose-600 text-sm font-black p-2 rounded-xl mb-4 border border-rose-100 animate-pulse">${p.sale}</div>
                 <div class="space-y-3 text-left">
                     <button onclick="processPayment('basic')" class="w-full border-2 border-slate-100 hover:border-indigo-400 bg-slate-50 rounded-2xl p-4 flex items-center justify-between transition-all">
-                        <div><h3 class="text-slate-700 font-bold text-lg">${p.b_t}</h3><p class="text-xs text-slate-500 font-medium">${p.b_d}</p></div>
-                        <div class="text-right"><span class="text-slate-400 line-through text-xs mr-1">₩7,900</span><br><span class="text-slate-800 font-black text-lg">₩3,900</span><span class="text-xs text-slate-400">${p.mo}</span></div>
-                    </button>
-                    <button onclick="processPayment('premium')" class="w-full border-2 border-indigo-200 hover:border-indigo-500 bg-indigo-50/50 rounded-2xl p-4 flex items-center justify-between transition-all relative overflow-hidden">
-                        <div class="absolute top-0 right-0 bg-indigo-500 text-white text-[10px] font-black px-2 py-0.5 rounded-bl-lg shadow-sm">BEST</div>
-                        <div><h3 class="text-indigo-800 font-bold text-lg">${p.p_t}</h3><p class="text-xs text-indigo-500 font-medium">${p.p_d}</p></div>
-                        <div class="text-right"><span class="text-slate-400 line-through text-xs mr-1">₩15,900</span><br><span class="text-indigo-600 font-black text-lg">₩7,900</span><span class="text-xs text-slate-400">${p.mo}</span></div>
-                    </button>
-                    <button onclick="processPayment('vip')" class="w-full border-2 border-amber-200 hover:border-amber-400 bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-4 flex items-center justify-between transition-all relative overflow-hidden">
-                        <div class="absolute top-0 right-0 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[10px] font-black px-2 py-0.5 rounded-bl-lg shadow-sm">${p.unl}</div>
-                        <div><h3 class="text-amber-800 font-bold text-lg">${p.v_t}</h3><p class="text-xs text-amber-600 font-medium">${p.v_d}</p></div>
-                        <div class="text-right"><span class="text-amber-400 line-through text-xs mr-1">₩19,900</span><br><span class="text-amber-700 font-black text-lg">₩9,900</span><span class="text-xs text-slate-400">${p.mo}</span></div>
+                        <div>
+                            <h3 class="text-indigo-800 font-bold text-lg">${dict.ui_plan_basic}</h3>
+                            <p class="text-xs text-indigo-500 font-medium">${dict.ui_plan_basic_desc}</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-slate-800 font-black text-lg">₩3,900</span>
+                            <span class="text-xs text-slate-400">/mo</span>
+                        </div>
                     </button>
                 </div>
             </div>
