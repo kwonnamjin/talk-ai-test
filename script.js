@@ -527,46 +527,43 @@ function checkUsageLimit() {
 }
 
 // 1. 현재 언어를 가장 정확하게 가져오는 공통 함수
-// ==========================================
-// 🚀 [최종본] 독립형 번역 & 언어 자동 감지 스크립트
+/// ==========================================
+// 🚀 [최종 종결판] 요금제 업데이트 & 완벽 다국어 연동
+// (기존의 불안정했던 타이머 오류 원천 차단)
 // ==========================================
 
-// 1. 안전한 언어 감지기 (값이 잠깐 날아가도 버팀)
+// 1. 불안정한 화면(DOM) 태그 대신, 절대 날아가지 않는 '로컬 스토리지'에서 언어를 가져옵니다.
 window.getAppLang = function() {
-    const langInput = document.getElementById('explanationLanguage');
-    // 🚨 핵심: 값이 없거나 태그가 잠시 사라졌을 때는 강제로 한국어로 돌리지 않고 false 반환
-    if (!langInput || !langInput.value) return false; 
-    return langInput.value.split('-')[0];
+    let lang = localStorage.getItem('explanation_language');
+    if (!lang) return 'ko';
+    return lang.split('-')[0];
 };
 
-// 2. 홈 배너 번역
+// 2. 홈 배너 번역 (출시 할인가 적용)
 window.applyBannerTranslation = function() {
-    // 현재 언어가 안 잡히면, 마지막으로 성공했던 언어를 사용
-    const lang = window.getAppLang() || window.__lastSavedLang || 'ko';
+    const lang = window.getAppLang();
     const titleEl = document.getElementById('ui_home_premium_title');
     const descEl = document.getElementById('ui_home_premium_desc');
-    
     if (!titleEl || !descEl) return;
 
-    const bannerData = {
+    const b = {
         'en': { t: "🚀 50% OFF Membership Sale!", d: "Check out Basic / Premium / VIP plans!" },
         'ja': { t: "🚀 メンバーシップ50％特大セール！", d: "ベーシック/プレミアム/VIPプランをチェック！" },
         'th': { t: "🚀 ลด 50% สมาชิกพิเศษ!", d: "ตรวจสอบแผน Basic / Premium / VIP!" },
         'zh': { t: "🚀 会员50%特价活动进行中！", d: "快来了解 Basic / Premium / VIP 计划！" },
         'ko': { t: "🚀 멤버십 50% 특가 진행 중!", d: "베이직 / 프리미엄 / VIP 혜택을 만나보세요!" }
-    };
-    const b = bannerData[lang] || bannerData['ko'];
+    }[lang] || { t: "🚀 멤버십 50% 특가 진행 중!", d: "베이직 / 프리미엄 / VIP 혜택을 만나보세요!" };
+    
     titleEl.innerText = b.t;
     descEl.innerText = b.d;
 };
 
-// 3. 결제창(모달) 띄우기 함수 (기존 사전 완전 무시 & 독립 번역)
+// 3. 결제창 팝업 함수 (새로운 요금제 & 할인가 & 다국어 완벽 연동)
 window.showSubscriptionModal = function(reason) {
     const existingModal = document.getElementById('subscriptionModal');
     if (existingModal) existingModal.remove();
 
-    const lang = window.getAppLang() || window.__lastSavedLang || 'ko';
-    
+    const lang = window.getAppLang();
     const promo = {
         'ko': { main_t: "멤버십 업그레이드", main_d: "원하시는 요금제를 선택해<br>더욱 자유롭게 학습해 보세요!", b_t: "베이직 (Basic)", b_d: "매일 130건 충전", p_t: "프리미엄 (Premium)", p_d: "매일 300건 충전", v_t: "브이아이피 (VIP)", v_d: "매일 400건 충전", sale: "🎉 출시 기념! 3개월간 50% 반값 할인", unl: "무제한급", mo: "/월" },
         'en': { main_t: "Upgrade Membership", main_d: "Choose your plan and<br>learn without limits!", b_t: "Basic Plan", b_d: "130 credits daily", p_t: "Premium Plan", p_d: "300 credits daily", v_t: "VIP Plan", v_d: "400 credits daily", sale: "🎉 Launch Promo! 50% OFF for 3 months", unl: "Unlimited-tier", mo: "/mo" },
@@ -616,31 +613,90 @@ window.showSubscriptionModal = function(reason) {
     if(window.stopSpeaking) window.stopSpeaking();
 };
 
-window.processPayment = function(plan) {
-    if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
-        window.flutter_inappwebview.callHandler('purchase', plan);
-    } else {
-        alert("앱 내에서만 결제가 가능합니다.");
-    }
-}
-
-// 4. 오류 차단형 언어 감지 루프
-window.__lastSavedLang = window.getAppLang() || 'ko';
-
-setInterval(function() {
-    let current = window.getAppLang();
+// 4. 앱 내부의 진짜 일일 한도 수치 업데이트 (130 / 300 / 400)
+window.checkUsageLimit = function() {
+    const PLAN_LIMITS = { free: 50, basic: 130, premium: 300, vip: 400 }; 
+    const isTestMode = localStorage.getItem('is_test_mode') === 'true';
+    let currentTier = localStorage.getItem('subscription_tier') || 'free';
+    if (isTestMode) currentTier = 'premium'; 
     
-    // 🚨 핵심 방어 로직: current가 정상적인 값을 가지고 있고, 예전 값과 다를 때만 실행!
-    if (current && current !== window.__lastSavedLang) {
-        window.__lastSavedLang = current;
-        
-        window.applyBannerTranslation();
-        
-        const openModal = document.getElementById('subscriptionModal');
-        if (openModal) {
-            window.showSubscriptionModal(openModal.getAttribute('data-reason') || 'upgrade');
+    const maxLimit = PLAN_LIMITS[currentTier] || 50;
+
+    if (currentTier === 'free') {
+        const firstUseDate = localStorage.getItem('free_trial_start');
+        if (firstUseDate) {
+            const daysPassed = (Date.now() - parseInt(firstUseDate)) / (1000 * 60 * 60 * 24);
+            if (daysPassed > 3) return { allowed: false, reason: 'trial_expired', tier: currentTier, maxLimit };
         }
     }
+
+    const todayStr = new Date().toLocaleDateString();
+    let usageObj = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}');
+    if (usageObj.date !== todayStr) {
+        usageObj = { date: todayStr, count: 0 };
+        localStorage.setItem('daily_usage_v4', JSON.stringify(usageObj));
+    }
+
+    if (usageObj.count >= maxLimit) return { allowed: false, reason: 'limit_reached', tier: currentTier, count: usageObj.count, maxLimit };
+    return { allowed: true, tier: currentTier, count: usageObj.count, maxLimit };
+};
+
+// 5. 상단 번개 배지에도 VIP 등급 전용 디자인(보석 아이콘) 연동
+window.updateBadgeUI = function() {
+    if (typeof window.checkUsageLimit !== 'function') return;
+    
+    const status = window.checkUsageLimit();
+    let currentMoons = parseInt(localStorage.getItem('moon_coins')) || 0;
+    let savedLightning = parseInt(localStorage.getItem('lightning_coins')) || 0;
+    
+    let remainingDaily = 0;
+    if (status.allowed) {
+        const currentCount = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}').count || 0;
+        remainingDaily = Math.max(0, status.maxLimit - currentCount);
+    }
+
+    let totalLightning = remainingDaily + savedLightning;
+    const moonHtml = `<div class="bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-full text-[11px] font-black border border-indigo-200 shadow-sm flex items-center gap-1.5"><i class="fa-solid fa-moon"></i> <span>${currentMoons}</span></div>`;
+    let badgeContent = '';
+
+    // VIP 전용 영롱한 레드/로즈 골드 보석 배지
+    if (status.tier === 'vip') {
+        badgeContent = moonHtml + `<div class="bg-gradient-to-r from-rose-500 to-red-500 text-white px-2.5 py-1 rounded-full text-[9px] font-black border border-rose-400 shadow-sm flex items-center gap-1.5 transition hover:scale-105"><i class="fa-solid fa-gem text-rose-200"></i> <span class="text-[9px] tracking-wide mt-[1px]">VIP</span> <span class="text-rose-200 opacity-60 font-normal mx-0.5 text-[10px]">|</span> <i class="fa-solid fa-bolt text-rose-200"></i> ${totalLightning}</div>`;
+    } else if (status.tier === 'premium') {
+        badgeContent = moonHtml + `<div class="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2.5 py-1 rounded-full text-[9px] font-black border border-amber-400 shadow-sm flex items-center gap-1.5 transition hover:scale-105"><i class="fa-solid fa-crown text-amber-200"></i> <span class="text-[9px] tracking-wide mt-[1px]">PREMIUM</span> <span class="text-amber-200 opacity-60 font-normal mx-0.5 text-[10px]">|</span> <i class="fa-solid fa-bolt text-amber-200"></i> ${totalLightning}</div>`;
+    } else if (status.tier === 'basic') {
+        badgeContent = moonHtml + `<div class="bg-gradient-to-r from-indigo-500 to-blue-500 text-white px-2.5 py-1 rounded-full text-[9px] font-black border border-indigo-400 shadow-sm flex items-center gap-1.5 transition hover:scale-105"><i class="fa-solid fa-star text-indigo-200"></i> <span class="text-[9px] tracking-wide mt-[1px]">BASIC</span> <span class="text-indigo-200 opacity-60 font-normal mx-0.5 text-[10px]">|</span> <i class="fa-solid fa-bolt text-indigo-200"></i> ${totalLightning}</div>`;
+    } else {
+        badgeContent = moonHtml + `<div class="bg-white text-slate-600 px-2.5 py-1 rounded-full text-[11px] font-black border border-slate-200 shadow-sm flex items-center gap-1.5 transition hover:bg-slate-50"><i class="fa-solid fa-bolt text-yellow-500"></i> <span>${totalLightning}</span></div>`;
+    }
+
+    const badgeIds = ['usageBadge', 'usageBadge2'];
+    badgeIds.forEach(id => {
+        const badge = document.getElementById(id);
+        if(badge) { 
+            badge.innerHTML = badgeContent; 
+            badge.className = "flex items-center gap-1.5 shrink-0 cursor-pointer"; 
+        }
+    });
+};
+
+// 6. 언어가 바뀔 때마다 "무조건" 즉시 화면 강제 렌더링 (가장 중요한 부분!)
+const _originalChangeUILanguage = window.changeUILanguage;
+window.changeUILanguage = function(langCode) {
+    if (_originalChangeUILanguage) _originalChangeUILanguage(langCode);
+    
+    // 언어 변경 직후 홈 배너와 결제 팝업을 즉시 번역하여 덮어씌웁니다.
+    window.applyBannerTranslation();
+    const openModal = document.getElementById('subscriptionModal');
+    if (openModal) {
+        window.showSubscriptionModal(openModal.getAttribute('data-reason') || 'upgrade');
+    }
+};
+
+// 페이지 첫 로드 시 한 번 새로고침
+setTimeout(() => {
+    window.applyBannerTranslation();
+    window.updateBadgeUI();
 }, 500);
 
 async function fetchAPI(url, options) {
