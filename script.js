@@ -3791,3 +3791,13 @@ window.confirmAppExit = function() {
         window.close();
     }
 };
+
+// 결제 내역 복원 함수
+window.restorePurchase = function() {
+    console.log("결제 복원 버튼 클릭됨");
+    if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
+        window.flutter_inappwebview.callHandler('restorePurchase');
+    } else {
+        alert("앱 환경에서만 결제 복원이 가능합니다.");
+    }
+};
