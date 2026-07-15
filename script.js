@@ -585,6 +585,12 @@ window.showSubscriptionModal = function(reason) {
     document.body.insertAdjacentHTML('beforeend', modalHtml);
     if(window.stopSpeaking) window.stopSpeaking();
 }
+window.forceOpenModal = function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("배너 클릭 이벤트 감지!");
+    window.showSubscriptionModal('upgrade');
+};
 window.triggerBannerClick = function(e) {
     e.stopPropagation(); // 부모 레이어의 이벤트 간섭을 원천 차단
     window.showSubscriptionModal('upgrade');
