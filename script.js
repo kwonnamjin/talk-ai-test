@@ -3725,3 +3725,69 @@ window.refreshAllTranslations = function() {
         }
     };
 })();
+
+
+
+// ==========================================
+// 🚨 안드로이드 뒤로가기(백버튼) 제어 및 종료 팝업 모듈
+// ==========================================
+(function() {
+    // 1. 초기 접속 시 가짜 방문 기록을 하나 밀어넣음 (뒤로가기를 잡기 위한 덫)
+    window.history.pushState({ page: 'main' }, null, '');
+
+    // 2. 사용자가 폰에서 뒤로가기(<) 버튼을 눌렀을 때 감지
+    window.addEventListener('popstate', function(event) {
+        let modalClosed = false;
+
+        // 1단계: 열려있는 팝업이나 모달창이 있다면 우선적으로 닫기
+        const modals = ['subscriptionModal', 'streak-modal', 'memoModal', 'customLangModal', 'paywallModal', 'helpXrayOverlay'];
+        modals.forEach(id => {
+            const el = document.getElementById(id);
+            if (el && (!el.classList.contains('hidden') || el.style.display === 'flex')) {
+                if (id === 'subscriptionModal') el.remove();
+                else el.classList.add('hidden');
+                modalClosed = true;
+            }
+        });
+
+        // 통역기 창이 열려있다면 닫기
+        const interpModal = document.getElementById('interpreterModal');
+        if (interpModal && !interpModal.classList.contains('hidden')) {
+            if (typeof window.closeInterpreter === 'function') window.closeInterpreter();
+            modalClosed = true;
+        }
+
+        // 모달창을 닫은 경우, 앱이 꺼지면 안되므로 다시 덫(pushState)을 놓음
+        if (modalClosed) {
+            window.history.pushState({ page: 'main' }, null, '');
+            return;
+        }
+
+        // 2단계: 모달창이 없고, 홈 화면이 아니라면 홈 화면으로 돌려보냄
+        if (window.currentActiveScreen !== 'screen-home') {
+            if (typeof window.navigate === 'function') window.navigate('screen-home');
+            window.history.pushState({ page: 'main' }, null, '');
+            return;
+        }
+
+        // 3단계: 홈 화면이고 팝업도 없다면 '종료 확인 팝업'을 띄움
+        const exitModal = document.getElementById('exitModal');
+        if (exitModal) {
+            exitModal.classList.remove('hidden');
+        }
+        
+        // 팝업에서 취소를 누를 수 있으므로 다시 덫을 놓아둠
+        window.history.pushState({ page: 'main' }, null, '');
+    });
+})();
+
+// 3. 진짜 '종료하기' 버튼을 눌렀을 때 실행되는 함수
+window.confirmAppExit = function() {
+    if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
+        // 플러터 앱으로 종료 신호를 쏩니다.
+        window.flutter_inappwebview.callHandler('exitApp');
+    } else {
+        // 웹 브라우저 테스트용
+        window.close();
+    }
+};
