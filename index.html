@@ -287,23 +287,23 @@
             <div class="relative z-10 w-full h-full pb-6 px-1 overflow-y-auto no-scrollbar" id="homeScrollContainer">
                 <div class="absolute bottom-4 left-4 right-4 z-50">
     <div id="premiumBanner" 
-         class="bg-gradient-to-r from-indigo-600/95 via-blue-600/95 to-blue-500/95 backdrop-blur-md rounded-2xl p-3 shadow-lg cursor-pointer transition-all border border-white/20" 
-         onclick="window.showSubscriptionModal('upgrade')">
+     class="bg-gradient-to-r from-indigo-600/95 via-blue-600/95 to-blue-500/95 backdrop-blur-md rounded-2xl p-3 shadow-lg cursor-pointer transition-all border border-white/20" 
+     style="pointer-events: auto !important; cursor: pointer !important; position: relative; z-index: 9999;"
+     onclick="window.forceOpenModal(event)">
     
-        <!-- 반짝이는 빛 효과는 유지 -->
-        <div class="absolute inset-0 bg-white/20 skew-x-12 translate-x-[-150%] animate-[shine_3s_infinite]"></div>
+    <div class="absolute inset-0 bg-white/20 skew-x-12 translate-x-[-150%] animate-[shine_3s_infinite]"></div>
 
-        <div class="flex items-center gap-3 relative z-10">
-            <div class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-yellow-300 border border-white/30 shrink-0 shadow-inner">
-                <i class="fa-solid fa-crown text-sm"></i>
-            </div>
-            <div class="flex-1">
-                <p id="ui_home_premium_title" class="text-white font-bold text-sm tracking-tight">멤버십 업그레이드 ✨</p>
-                <p id="ui_home_premium_desc" class="text-blue-100 text-[9px] mt-0.5 font-medium">베이직 / 프리미엄 / VIP 혜택을 만나보세요!</p>
-            </div>
-            <div class="text-white/50 text-xs mr-1"><i class="fa-solid fa-chevron-right"></i></div>
+    <div class="flex items-center gap-3 relative z-10">
+        <div class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-yellow-300 border border-white/30 shrink-0 shadow-inner">
+            <i class="fa-solid fa-crown text-sm"></i>
         </div>
+        <div class="flex-1">
+            <p id="ui_home_premium_title" class="text-white font-bold text-sm tracking-tight">멤버십 업그레이드 ✨</p>
+            <p id="ui_home_premium_desc" class="text-blue-100 text-[9px] mt-0.5 font-medium">베이직 / 프리미엄 / VIP 혜택을 만나보세요!</p>
+        </div>
+        <div class="text-white/50 text-xs mr-1"><i class="fa-solid fa-chevron-right"></i></div>
     </div>
+</div>
 </div>
             </div>
         </div>
