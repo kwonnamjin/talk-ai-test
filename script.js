@@ -18,6 +18,7 @@ const statusText = document.getElementById('statusText'), chatContainer = docume
 const avatarWrap = document.getElementById('avatarWrap'), stopAudioBtn = document.getElementById('stopAudioBtn');
 const selectionTooltip = document.getElementById('selectionTooltip');
 
+localStorage.removeItem('is_test_mode');
 
 // ==========================================
 // 💖 AI 친밀도 & 감성 시스템 모듈
@@ -25,10 +26,10 @@ const selectionTooltip = document.getElementById('selectionTooltip');
 const INTIMACY_SYSTEM = {
     levels: {
         1: { name: "어색하지만 설렘", minExp: 0, aiMind: "어떤 분일까? 대화하는 게 설레고 긴장돼요. 😳" },
-        2: { name: "조금 더 알고 싶어요", minExp: 50, aiMind: "당신에 대해 더 많은 걸 알고 싶어졌어요. 🤔" },
-        3: { name: "이제 우리 친구해요", minExp: 150, aiMind: "이제 우리 제법 친해진 것 같아 기뻐요! 😊" },
-        4: { name: "없으면 허전한 단짝", minExp: 300, aiMind: "당신과 대화하지 않으면 하루가 허전해요. 🥹" },
-        5: { name: "마음을 아는 소울메이트", minExp: 500, aiMind: "말하지 않아도 당신의 마음을 알 것 같아요. 늘 응원해요. ❤️" }
+        2: { name: "조금 더 알고 싶어요", minExp: 100, aiMind: "당신에 대해 더 많은 걸 알고 싶어졌어요. 🤔" },
+        3: { name: "이제 우리 친구해요", minExp: 500, aiMind: "이제 우리 제법 친해진 것 같아 기뻐요! 😊" },
+        4: { name: "없으면 허전한 단짝", minExp: 2500, aiMind: "당신과 대화하지 않으면 하루가 허전해요. 🥹" },
+        5: { name: "마음을 아는 소울메이트", minExp: 10000, aiMind: "말하지 않아도 당신의 마음을 알 것 같아요. 늘 응원해요. ❤️" }
     },
     
     // 데이터 불러오기 및 🚨 '서운함(결석)' 체크
@@ -570,15 +571,12 @@ window.showSubscriptionModal = function(reason) {
     if(window.stopSpeaking) window.stopSpeaking();
 }
 window.processPayment = function(plan) {
-    if (window.flutter_inappwebview) {
+    if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
+        // 실제 앱의 결제 로직 호출
         window.flutter_inappwebview.callHandler('purchase', plan);
     } else {
-        localStorage.setItem('subscription_tier', plan);
-        let usageObj = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}');
-        usageObj.count = 0; localStorage.setItem('daily_usage_v4', JSON.stringify(usageObj));
-        document.getElementById('subscriptionModal').remove();
-        window.updateBadgeUI(); window.enableInputs();
-        alert("결제가 반영되었습니다. 대화를 다시 시작해 보세요!");
+        // 혹시 모를 에러 방어
+        alert("앱 내에서만 결제가 가능합니다.");
     }
 }
 
@@ -643,23 +641,14 @@ window.swapLanguages = function() {
 };
 
 
-// 🌟 치트키 입력 기능
 window.sendTextMessage = function() {
     const input = document.getElementById('textInput'); 
     const text = input.value.trim();
 
-    if (text === "testmode999") { 
-        localStorage.setItem('subscription_tier', 'premium');
-        localStorage.setItem('is_test_mode', 'true');
-        const testData = { count: 0, date: new Date().toLocaleDateString() };
-        localStorage.setItem('daily_usage_v4', JSON.stringify(testData));
-        alert("프리미엄 테스트 모드가 활성화되었습니다! 🚀");
+    if (text) { 
         input.value = ''; 
-        if (typeof window.updateBadgeUI === 'function') window.updateBadgeUI(); 
-        if (typeof window.enableInputs === 'function') window.enableInputs();
-        return; 
+        handleUserMessage(text); 
     }
-    if (text) { input.value = ''; handleUserMessage(text); }
 }
 
 async function initDeviceID() {
@@ -894,12 +883,27 @@ async function handleUserMessage(text) {
     const aiLangNames = { "ko-KR": "Korean", "en-US": "English", "ja-JP": "Japanese", "zh-CN": "Simplified Chinese (Mandarin)", "es-ES": "Spanish", "th-TH": "Thai", "vi-VN": "Vietnamese", "fr-FR": "French", "de-DE": "German", "ru-RU": "Russian" };
     const exactAiLang = aiLangNames[expLangCode] || expLangCode;
 
-    const savedMemory = localStorage.getItem('user_compressed_memory') || '';
-    const memoryPrompt = savedMemory ? `\n\n[User's Core Memory: ${savedMemory}]` : '';
-    const criticalRule = `\n\n🚨 CRITICAL RULE: The 'translation' MUST be in ${exactAiLang}.`;
+    // 페르소나와 상관없이 무조건 500자 요약본을 불러오도록 고정
+// 1. 필요한 설정값들을 가장 먼저 가져옵니다.
+const currentMode = localStorage.getItem('current_persona') || localStorage.getItem('currentPersona') || 'friend';
+const customId = localStorage.getItem('custom_id'); 
 
-    const currentMode = localStorage.getItem('current_persona') || localStorage.getItem('currentPersona') || 'friend';
-    
+// 2. savedMemory 변수를 딱 한 번만 선언합니다.
+let savedMemory = '';
+if (currentMode === 'custom' && customId) {
+    savedMemory = localStorage.getItem(`user_memory_custom_${customId}`) || '';
+} else {
+    savedMemory = localStorage.getItem('user_compressed_memory') || '';
+}
+
+// 3. 이제 이 변수를 사용하여 memoryPrompt를 만듭니다.
+const memoryPrompt = savedMemory.length > 0 ? `\n\n[장기 기억 데이터: ${savedMemory}]` : '';
+
+// 4. 나머지 코드들 (criticalRule 등)은 바로 밑에 이어서 작성하세요.
+const criticalRule = `\n\n🚨 CRITICAL RULE: The 'translation' MUST be in ${exactAiLang}.`;
+
+
+
     let customName = 'AI 튜터';
     let customPrompt = '친절한 튜터';
     
@@ -999,6 +1003,13 @@ Respond EXACTLY in JSON:
             apiMessages[apiMessages.length - 1].content = `[STRICT RULE: TRANSLATE the following text into ${targetName}. DO NOT answer the question or converse.]\n\n` + apiMessages[apiMessages.length - 1].content;
         }
 
+        // 첫 만남 날짜 확인 및 저장
+        let firstDate = localStorage.getItem('first_meet_date');
+        if (!firstDate) { 
+            firstDate = new Date().toISOString().split('T')[0]; 
+            localStorage.setItem('first_meet_date', firstDate); 
+        }
+
         let res = await fetchAPI(WORKER_URL, { 
             method: 'POST', 
             headers: { 'Content-Type': 'application/json', 'X-Device-ID': myDeviceId }, 
@@ -1006,7 +1017,8 @@ Respond EXACTLY in JSON:
                 model: "deepseek-chat", 
                 messages: apiMessages, 
                 response_format: { type: "json_object" },
-                userLocalTime: new Date().toLocaleString() 
+                userLocalTime: new Date().toLocaleString(),
+                firstMeetDate: firstDate // <-- 💡 동적 날짜 추가
             }) 
         });
         
@@ -1027,12 +1039,16 @@ Respond EXACTLY in JSON:
         window.conversationTurn = (window.conversationTurn || 0) + 1;
 
         if (window.conversationTurn % 5 === 0) {
-            if (parsed.memory) {
-                localStorage.setItem('user_compressed_memory', parsed.memory);
-                if (typeof window.updateMemoryDisplay === 'function') {
-                    window.updateMemoryDisplay();
-                }
-            }
+            if (parsed.memory && parsed.memory.trim() !== "") {
+    // 💡 기존 데이터가 있으면 유지하면서 새 데이터를 덮어쓰거나 합치는 방식
+    localStorage.setItem('user_compressed_memory', parsed.memory);
+    
+    if (typeof window.updateMemoryDisplay === 'function') {
+        window.updateMemoryDisplay();
+    }
+} else {
+    console.warn("🚨 AI가 메모리를 반환하지 않았습니다. 기존 데이터를 보호합니다.");
+}
         }
 
         if (Array.isArray(conversationHistory)) {
@@ -1118,7 +1134,11 @@ window.requestExplanationFromBubble = async function(bubbleId, fullText, isExp, 
     const targetLangName = tLang.options[tLang.selectedIndex].dataset.langName;
     const expLangCode = document.getElementById('explanationLanguage').value || 'ko-KR';
     
-    window.updateStatus("AI 튜터가 문법을 분석 중입니다..."); document.getElementById('avatarWrap').style.borderColor = "#f59e0b"; 
+    window.updateStatus("AI 튜터가 문법을 분석 중입니다..."); 
+    
+    // 💡 방어막 1: 아바타가 화면에 있을 때만 테두리 색상 변경
+    const avatarWrap = document.getElementById('avatarWrap');
+    if(avatarWrap) avatarWrap.style.borderColor = "#f59e0b"; 
 
     const aiLangNames = { "ko-KR": "Korean", "en-US": "English", "ja-JP": "Japanese", "zh-CN": "Chinese", "es-ES": "Spanish", "th-TH": "Thai", "vi-VN": "Vietnamese", "fr-FR": "French", "de-DE": "German", "ru-RU": "Russian", "ar-SA": "Arabic", "hi-IN": "Hindi", "id-ID": "Indonesian" };
     const exactAiLang = aiLangNames[expLangCode] || expLangCode;
@@ -1167,8 +1187,17 @@ window.requestExplanationFromBubble = async function(bubbleId, fullText, isExp, 
         const safeExplanation = explanationText.replace(/\n/g, ' <br> ');
         msgDiv.innerHTML = `<div class="bg-amber-50 border border-amber-200 rounded-2xl rounded-tl-none p-4 max-w-[95%] shadow-md self-start relative"><p class="text-[11px] font-extrabold text-amber-600 mb-2 flex items-center gap-1.5"><i class="fa-solid fa-lightbulb"></i> [집중 해설] ${targetText}</p><p id="bubble-${bId}" class="chat-text-dynamic text-slate-800 break-words leading-relaxed font-medium">${window.createSpansForText(safeExplanation, bId, true)}</p></div>`;
         document.getElementById('chatContainer').appendChild(msgDiv); setTimeout(() => document.getElementById('chatContainer').scrollTop = document.getElementById('chatContainer').scrollHeight, 50);
-        window.updateStatus("대기 중"); document.getElementById('avatarWrap').style.borderColor = "#60a5fa"; 
-    } catch(e) { console.error(e); window.updateStatus("해설 통신 에러"); document.getElementById('avatarWrap').style.borderColor = "#f87171"; }
+        window.updateStatus("대기 중"); 
+        
+        // 💡 방어막 2: 성공 시 파란색 복구
+        if(avatarWrap) avatarWrap.style.borderColor = "#60a5fa"; 
+    } catch(e) { 
+        console.error(e); 
+        window.updateStatus("해설 통신 에러"); 
+        
+        // 💡 방어막 3: 에러 시 빨간색 변경
+        if(avatarWrap) avatarWrap.style.borderColor = "#f87171"; 
+    }
 };
 
 window.clearChatSession = function() { 
@@ -2070,13 +2099,16 @@ window.saveToArchive = function(type, itemData) {
     if (!window.archiveData) window.archiveData = { script: [], vocab: [], freetalk: [] };
     if (!window.archiveData[type]) window.archiveData[type] = [];
 
-    alert("💾 보관함에 저장되었습니다.");
+    // 💡 [수정됨] 앱을 먹통으로 만들던 원흉인 alert()를 삭제하고, 부드러운 하단 상태창 알림으로 교체합니다.
+    if (typeof window.updateStatus === 'function') {
+        window.updateStatus("💾 보관함에 저장되었습니다!");
+    }
 
     const inherentLang = itemData.langCode || localStorage.getItem('target_language') || 'en-US';
 
     const newItem = {
         id: 'archive_' + Date.now(),
-        savedLangCode: inherentLang, // 만들어진 당시의 언어만 기억
+        savedLangCode: inherentLang,
         ...itemData
     };
 
@@ -2148,63 +2180,68 @@ window.updateMemoryDisplay = function() {
     const levelInfo = INTIMACY_SYSTEM.levels[intimacyData.level];
     const dynamicThought = localStorage.getItem('ai_dynamic_thought') || levelInfo.aiMind; 
 
-    let htmlContent = `
-        <div class="mb-3 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-xl shadow-sm relative overflow-hidden">
-            <div class="absolute -right-2 -top-2 opacity-10 text-4xl">💭</div>
-            <p class="text-[10px] font-black text-blue-500 mb-1">${statusLabel}: Lv.${intimacyData.level} ${levelInfo.name}</p>
-            <p class="text-xs font-bold text-slate-700 leading-relaxed">"${dynamicThought}"</p>
-        </div>`;
+    // 💡 [수정됨] 엔터(줄바꿈)가 빈칸으로 인식되지 않도록 코드를 한 줄로 완전히 붙여버렸습니다!
+    let htmlContent = `<div class="mt-1"><p class="text-[10px] font-black text-blue-500 mb-1">${statusLabel}: Lv.${intimacyData.level} ${levelInfo.name}</p><p class="text-xs font-bold text-slate-700 leading-relaxed">"${dynamicThought}"</p></div>`;
 
     memDisplay.innerHTML = htmlContent;
 };
 
 window.compressMemory = async function() {
-    if (conversationHistory.length < 14) return; 
-    const savedMem = localStorage.getItem('user_compressed_memory') || 'Empty';
-    const chatLog = JSON.stringify(conversationHistory);
-    
+    if (conversationHistory.length < 5) return;
+
+    // 1. 저장할 키값 결정 (커스텀 vs 기본 페르소나 분리)
+    const currentMode = localStorage.getItem('current_persona') || 'friend';
+    const customId = localStorage.getItem('custom_id');
+    const memoryKey = (currentMode === 'custom' && customId) 
+        ? `user_memory_custom_${customId}` 
+        : 'user_compressed_memory';
+
+    // 2. 기존 기억 불러오기 (결정된 키값 사용)
+    const oldMemory = localStorage.getItem(memoryKey) || '';
+    const chatLog = JSON.stringify(conversationHistory.slice(-10));
+
     const expLangCode = document.getElementById('explanationLanguage').value || 'ko-KR';
     const aiLangNames = { "ko-KR": "Korean", "en-US": "English", "ja-JP": "Japanese", "zh-CN": "Chinese", "es-ES": "Spanish", "th-TH": "Thai", "vi-VN": "Vietnamese", "fr-FR": "French", "de-DE": "German", "ru-RU": "Russian", "ar-SA": "Arabic", "hi-IN": "Hindi", "id-ID": "Indonesian" };
     const exactAiLang = aiLangNames[expLangCode] || expLangCode;
 
-    const sysPrompt = `You are an AI tutor's memory compressor. Extract the user's characteristics, preferences, and interests from the chat log.
-    STRICT RULE: You MUST write the compressed memory ONLY in ${exactAiLang}. Keep it friendly and concise (under 100 characters).
-    Respond ONLY in JSON format: {"memory": "..."}`;
+    let firstDate = localStorage.getItem('first_meet_date') || new Date().toISOString().split('T')[0];
+    
+    // 💡 덮어쓰기가 아닌 '병합(Merge)' 프롬프트
+    const sysPrompt = `You are an AI tutor's memory compressor. 
+    STRICT RULE: Update the 'memory' by merging new information into the old one. 
+    NEVER lose critical facts like user's name, hobbies, or meeting date (${firstDate}).
+    The total memory must not exceed 500 characters. MUST be written in ${exactAiLang}.
+    Output ONLY JSON format: {"memory": "..."}`;
 
     try {
         let res = await fetchAPI(WORKER_URL, {
             method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Device-ID': myDeviceId },
-            body: JSON.stringify({ model: "deepseek-chat", messages: [{role: "system", content: sysPrompt}, {role: "user", content: `Old Memory:${savedMem}\nNew Chat:${chatLog}`}], response_format: { type: "json_object" } })
+            body: JSON.stringify({ 
+                model: "deepseek-chat", 
+                messages: [{role: "system", content: sysPrompt}, {role: "user", content: `기존 기억:${oldMemory}\n새로운 대화:${chatLog}`}], 
+                response_format: { type: "json_object" } 
+            })
         });
         let data = await res.json();
-        let rawContent = data.choices[0].message.content.replace(/```json/g, "").replace(/```/g, "").trim();
-        let parsed = JSON.parse(rawContent.match(/\{[\s\S]*\}/)[0]);
         
-        if (parsed.memory) {
-            window.conversationTurn = (window.conversationTurn || 0) + 1;
+        // 💡 3. 방어적 파싱 로직 (에러 방지)
+        let rawContent = data.choices[0].message.content.match(/\{[\s\S]*\}/)[0];
+        let parsed = JSON.parse(rawContent);
 
-            if (window.conversationTurn % 5 === 0) {
-                let isUpdated = false; 
-
-                if (parsed.memory) {
-                    localStorage.setItem('user_compressed_memory', parsed.memory);
-                    isUpdated = true;
-                }
-
-                if (parsed.inner_thought) {
-                    localStorage.setItem('ai_dynamic_thought', parsed.inner_thought);
-                    isUpdated = true;
-                }
-
-                if (isUpdated && typeof window.updateMemoryDisplay === 'function') {
-                    window.updateMemoryDisplay();
-                }
-            }
-
-            const pureChat = conversationHistory.filter(m => m.role !== "system");
-            conversationHistory = pureChat.slice(-4);
-            sessionStorage.setItem('llmHistory', JSON.stringify(conversationHistory));
+        // 💡 4. 안전하게 '분리된 키(memoryKey)'에 저장
+        if (parsed && parsed.memory && parsed.memory.trim().length > 5) {
+            localStorage.setItem(memoryKey, parsed.memory);
         }
+
+        if (window.conversationTurn % 5 === 0 && parsed.inner_thought) {
+            localStorage.setItem('ai_dynamic_thought', parsed.inner_thought);
+            if (typeof window.updateMemoryDisplay === 'function') window.updateMemoryDisplay();
+        }
+
+        const pureChat = conversationHistory.filter(m => m.role !== "system");
+        conversationHistory = pureChat.slice(-10);
+        sessionStorage.setItem('llmHistory', JSON.stringify(conversationHistory));
+
     } catch(e) {
         console.error("메모리 압축 실패:", e);
     }
@@ -2274,13 +2311,9 @@ window.closeStreakModal = function() {
     }
 };
 
+// 기존의 복잡했던 방 번호 기록 방식을 지우고, 깔끔하게 통계 1 증가로 교체!
 window.markScriptAsLearned = function(scriptIndex) {
-    let learnedScripts = JSON.parse(localStorage.getItem('learned_scripts_log') || '[]');
-    if (!learnedScripts.includes(scriptIndex)) {
-        learnedScripts.push(scriptIndex);
-        localStorage.setItem('learned_scripts_log', JSON.stringify(learnedScripts));
-    }
-    window.updateDashboardUI(); 
+    window.addLearningStat('script', 1);
 };
 
 window.updateStreakUI = function() {
@@ -2407,9 +2440,15 @@ window.addStudyMission = function(type) {
 setTimeout(window.updateStreakUI, 500);
 
 window.updateDashboardUI = function() {
-    let stats = JSON.parse(localStorage.getItem('user_learning_stats_v1')) || { sentences: 0, words: 0 };
-    const learnedScripts = JSON.parse(localStorage.getItem('learned_scripts_log') || '[]');
-    let scriptsLearnedCount = learnedScripts.length;
+    // 💡 scripts: 0 을 기본값으로 추가하여 대본 통계 그릇을 만듭니다.
+    let stats = JSON.parse(localStorage.getItem('user_learning_stats_v1')) || { sentences: 0, words: 0, scripts: 0 };
+    
+    // 💡 혹시 예전 방식(learned_scripts_log)에 남아있는 기록이 있다면 초기 통계에 합산해주는 센스 (하위 호환성)
+    if (stats.scripts === undefined) {
+        const legacyCount = JSON.parse(localStorage.getItem('learned_scripts_log') || '[]').length;
+        stats.scripts = legacyCount;
+        localStorage.setItem('user_learning_stats_v1', JSON.stringify(stats));
+    }
 
     const elSentences = document.getElementById('dash-total-sentences');
     const elWords = document.getElementById('dash-total-words');
@@ -2417,7 +2456,8 @@ window.updateDashboardUI = function() {
 
     if(elSentences) elSentences.innerText = stats.sentences;
     if(elWords) elWords.innerText = stats.words;
-    if(elScripts) elScripts.innerText = scriptsLearnedCount; 
+    // 💡 이제 무한하게 오르는 정상적인 대본 학습 횟수를 화면에 꽂아줍니다.
+    if(elScripts) elScripts.innerText = stats.scripts; 
 
     const baseLang = (document.getElementById('explanationLanguage').value || 'ko-KR').split('-')[0];
     const dict = window.UI_DICTIONARY ? (window.UI_DICTIONARY[baseLang] || window.UI_DICTIONARY['en']) : {};
@@ -2427,9 +2467,13 @@ window.updateDashboardUI = function() {
 };
 
 window.addLearningStat = function(type, amount = 1) {
-    let stats = JSON.parse(localStorage.getItem('user_learning_stats_v1')) || { sentences: 0, words: 0 };
+    let stats = JSON.parse(localStorage.getItem('user_learning_stats_v1')) || { sentences: 0, words: 0, scripts: 0 };
+    
     if (type === 'sentence') stats.sentences += amount;
     if (type === 'word') stats.words += amount;
+    // 💡 대본(script)이 들어왔을 때 카운트를 올려주는 로직을 추가합니다!
+    if (type === 'script') stats.scripts = (stats.scripts || 0) + amount;
+    
     localStorage.setItem('user_learning_stats_v1', JSON.stringify(stats));
     window.updateDashboardUI(); 
 };
@@ -2656,6 +2700,7 @@ window.selectPersona = function(mode, customId = null) {
     localStorage.setItem('current_persona', mode);
 
     if (mode === 'custom' && customId) {
+        localStorage.setItem('custom_id', customId);
         let chars = JSON.parse(localStorage.getItem('my_custom_characters') || '[]');
         let selectedChar = chars.find(c => c.id === customId);
         if (selectedChar) localStorage.setItem('user_custom_persona', JSON.stringify(selectedChar));
@@ -2676,7 +2721,7 @@ window.selectPersona = function(mode, customId = null) {
         activeBtn.classList.add('bg-gradient-to-r', 'from-blue-500', 'to-indigo-500', 'text-white', 'border-transparent', 'scale-105');
     }
 
-    window.clearChatSession();
+    //window.clearChatSession();
     window.updateStatus(`${mode === 'custom' ? '나만의 AI' : mode} 모드 적용!`);
 };
 

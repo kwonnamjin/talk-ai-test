@@ -127,9 +127,9 @@
         <p id="ui_home_memory_title" class="text-[11px] font-black text-slate-700">AI의 기억 🧠</p>
     </div>
     <!-- 💡 수정된 부분: max-h-[250px]와 overflow-y-auto를 삭제하여 스크롤을 없애고 창이 내용에 맞춰 늘어나게 함 -->
-    <div class="bg-slate-50 rounded-xl p-3 border border-slate-100 min-h-[80px]">
-        <div id="ai_memory_display" class="text-[11px] text-slate-700 font-bold leading-relaxed whitespace-pre-wrap">데이터 로딩 중...</div>
-    </div>
+    <div id="ai_memory_display" class="text-[11px] text-slate-700 font-bold leading-relaxed whitespace-pre-wrap mt-2 pl-1">
+    데이터 로딩 중...
+</div>
 </div>
 
             <!-- AI Character 패널 -->
@@ -857,19 +857,9 @@
 
 </div>
 
-<div id="unity-container" style="
-    position: fixed; 
-    top: 360px; 
-    right: 130px; 
-    width: 160px;   /* 캐릭터가 잘리지 않게 넉넉히 */
-    height: 250px;  /* 캐릭터가 잘리지 않게 넉넉히 */
-    z-index: 9999; 
-    background: transparent; /* 배경 완전 투명 */
-    pointer-events: none; /* 뒤에 있는 채팅창 터치 가능하게 */
-">
-<iframe id="unity-iframe" src="unity-build_v1/index.html?ver=333" allowtransparency="true" scrolling="no"></iframe>
+<div id="unity-container">
+    <iframe id="unity-iframe" src="unity-build_v1/index.html?ver=333" allowtransparency="true" scrolling="no"></iframe>
 </div>
-
 
 
 

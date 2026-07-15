@@ -37,10 +37,11 @@
       // 유니티 변수 준비
       var myUnityInstance = null;
 
-      // 💡 1번부터 6번까지 총 캐릭터 개수를 설정합니다.
-    // 💡 1번부터 6번까지 총 캐릭터 개수
-      window.maxCharacters = 6; 
-      window.currentCharacter = 1; 
+     // 💡 캐릭터 총 개수를 7개로 늘려줍니다.
+      window.maxCharacters = 7; 
+      
+      // 💡 시작할 때 앱도 "나는 지금 7번을 보고 있다"고 동기화시켜 줍니다.
+      window.currentCharacter = 7; 
 
       // 🔥 방 안(유니티)에 있으므로 contentWindow를 빼고 직접 명령합니다.
       window.clickPrev = function() {
