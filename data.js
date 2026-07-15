@@ -2039,13 +2039,8 @@ if (typeof window.UI_DICTIONARY !== 'undefined') {
     }
 }
 
-// 🌟 21개 언어 요금제 통합 사전
+// 🌟 21개 언어 VIP 포함 요금제 통합 사전
 const SUBSCRIPTION_TRANS = {
-    // [기본 키값]
-    // ui_plan_basic, ui_plan_premium, ui_plan_vip
-    // ui_plan_basic_desc, ui_plan_premium_desc, ui_plan_vip_desc
-    // ui_price_basic, ui_price_premium, ui_price_vip
-    
     "ko": { ui_plan_basic: "베이직 (Basic)", ui_plan_basic_desc: "매일 130건 충전", ui_plan_premium: "프리미엄 (Premium)", ui_plan_premium_desc: "매일 300건 충전", ui_plan_vip: "브이아이피 (VIP)", ui_plan_vip_desc: "매일 400건 충전" },
     "en": { ui_plan_basic: "Basic Plan", ui_plan_basic_desc: "130 credits daily", ui_plan_premium: "Premium Plan", ui_plan_premium_desc: "300 credits daily", ui_plan_vip: "VIP Plan", ui_plan_vip_desc: "400 credits daily" },
     "ja": { ui_plan_basic: "ベーシック", ui_plan_basic_desc: "毎日 130回チャージ", ui_plan_premium: "プレミアム", ui_plan_premium_desc: "毎日 300回チャージ", ui_plan_vip: "VIPプラン", ui_plan_vip_desc: "毎日 400回チャージ" },
