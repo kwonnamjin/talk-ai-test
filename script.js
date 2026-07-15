@@ -527,15 +527,22 @@ function checkUsageLimit() {
 }
 
 // 1. 현재 언어를 가장 정확하게 가져오는 공통 함수
+// ==========================================
+// 🚀 [최종본] 독립형 번역 & 언어 자동 감지 스크립트
+// ==========================================
+
+// 1. 안전한 언어 감지기 (값이 잠깐 날아가도 버팀)
 window.getAppLang = function() {
     const langInput = document.getElementById('explanationLanguage');
-    let lang = langInput ? langInput.value : 'ko';
-    return lang.split('-')[0]; // 'ko-KR' -> 'ko', 'en-US' -> 'en'
+    // 🚨 핵심: 값이 없거나 태그가 잠시 사라졌을 때는 강제로 한국어로 돌리지 않고 false 반환
+    if (!langInput || !langInput.value) return false; 
+    return langInput.value.split('-')[0];
 };
 
-// 2. 홈 배너 번역 함수
+// 2. 홈 배너 번역
 window.applyBannerTranslation = function() {
-    const lang = window.getAppLang();
+    // 현재 언어가 안 잡히면, 마지막으로 성공했던 언어를 사용
+    const lang = window.getAppLang() || window.__lastSavedLang || 'ko';
     const titleEl = document.getElementById('ui_home_premium_title');
     const descEl = document.getElementById('ui_home_premium_desc');
     
@@ -556,11 +563,10 @@ window.applyBannerTranslation = function() {
 // 3. 결제창(모달) 띄우기 함수 (기존 사전 완전 무시 & 독립 번역)
 window.showSubscriptionModal = function(reason) {
     const existingModal = document.getElementById('subscriptionModal');
-    if (existingModal) existingModal.remove(); // 기존 창 닫기 (새로고침 효과)
+    if (existingModal) existingModal.remove();
 
-    const lang = window.getAppLang(); // 현재 바뀐 언어 즉시 확인
+    const lang = window.getAppLang() || window.__lastSavedLang || 'ko';
     
-    // 🚨 팝업 내부 모든 텍스트를 독립적으로 번역 (옛날 번역본 무시)
     const promo = {
         'ko': { main_t: "멤버십 업그레이드", main_d: "원하시는 요금제를 선택해<br>더욱 자유롭게 학습해 보세요!", b_t: "베이직 (Basic)", b_d: "매일 130건 충전", p_t: "프리미엄 (Premium)", p_d: "매일 300건 충전", v_t: "브이아이피 (VIP)", v_d: "매일 400건 충전", sale: "🎉 출시 기념! 3개월간 50% 반값 할인", unl: "무제한급", mo: "/월" },
         'en': { main_t: "Upgrade Membership", main_d: "Choose your plan and<br>learn without limits!", b_t: "Basic Plan", b_d: "130 credits daily", p_t: "Premium Plan", p_d: "300 credits daily", v_t: "VIP Plan", v_d: "400 credits daily", sale: "🎉 Launch Promo! 50% OFF for 3 months", unl: "Unlimited-tier", mo: "/mo" },
@@ -570,7 +576,6 @@ window.showSubscriptionModal = function(reason) {
     };
     const p = promo[lang] || promo['ko'];
 
-    // 🚨 3일 무료 만료 / 한도 초과 시 텍스트도 새 언어에 맞게 덮어쓰기
     if (reason === 'trial_expired') { 
         p.main_t = (lang === 'en') ? "3-Day Trial Ended" : (lang === 'ja') ? "3日間の無料体験が終了しました" : "3일 무료 체험이 종료되었습니다.";
         p.main_d = (lang === 'en') ? "Select a plan to continue." : (lang === 'ja') ? "学習を続けるにはプランを選択してください。" : "계속 학습하시려면<br>멤버십 플랜을 선택해 주세요.";
@@ -587,11 +592,7 @@ window.showSubscriptionModal = function(reason) {
                 <div class="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-indigo-100"><i class="fa-solid fa-crown text-3xl text-indigo-500"></i></div>
                 <h2 class="text-xl font-black text-slate-800 mb-2">${p.main_t}</h2>
                 <p class="text-sm text-slate-500 mb-4">${p.main_d}</p>
-                
-                <div class="bg-rose-50 text-rose-600 text-sm font-black p-2 rounded-xl mb-4 border border-rose-100 animate-pulse">
-                    ${p.sale}
-                </div>
-
+                <div class="bg-rose-50 text-rose-600 text-sm font-black p-2 rounded-xl mb-4 border border-rose-100 animate-pulse">${p.sale}</div>
                 <div class="space-y-3 text-left">
                     <button onclick="processPayment('basic')" class="w-full border-2 border-slate-100 hover:border-indigo-400 bg-slate-50 rounded-2xl p-4 flex items-center justify-between transition-all">
                         <div><h3 class="text-slate-700 font-bold text-lg">${p.b_t}</h3><p class="text-xs text-slate-500 font-medium">${p.b_d}</p></div>
@@ -615,23 +616,6 @@ window.showSubscriptionModal = function(reason) {
     if(window.stopSpeaking) window.stopSpeaking();
 };
 
-// 4. 언어 변경 시 호출되는 메인 함수 (팝업과 배너 동시 업데이트 보장)
-window.updateUiLanguage = function(newLang) {
-    const langInput = document.getElementById('explanationLanguage');
-    if (langInput) langInput.value = newLang; // 언어 값 업데이트
-
-    // 바깥 배너 즉시 새로고침
-    window.applyBannerTranslation();
-
-    // 팝업이 켜져있다면, 닫고 '새로운 언어'로 즉시 다시 열기
-    const openModal = document.getElementById('subscriptionModal');
-    if (openModal) {
-        const currentReason = openModal.getAttribute('data-reason') || 'upgrade';
-        window.showSubscriptionModal(currentReason); 
-    }
-};
-
-// 결제 진행 함수 (이건 그대로 유지)
 window.processPayment = function(plan) {
     if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
         window.flutter_inappwebview.callHandler('purchase', plan);
@@ -639,6 +623,25 @@ window.processPayment = function(plan) {
         alert("앱 내에서만 결제가 가능합니다.");
     }
 }
+
+// 4. 오류 차단형 언어 감지 루프
+window.__lastSavedLang = window.getAppLang() || 'ko';
+
+setInterval(function() {
+    let current = window.getAppLang();
+    
+    // 🚨 핵심 방어 로직: current가 정상적인 값을 가지고 있고, 예전 값과 다를 때만 실행!
+    if (current && current !== window.__lastSavedLang) {
+        window.__lastSavedLang = current;
+        
+        window.applyBannerTranslation();
+        
+        const openModal = document.getElementById('subscriptionModal');
+        if (openModal) {
+            window.showSubscriptionModal(openModal.getAttribute('data-reason') || 'upgrade');
+        }
+    }
+}, 500);
 
 async function fetchAPI(url, options) {
     let delay = 2000; // 💡 첫 재시도 대기 시간을 0.5초에서 2초로 대폭 늘림 (AI 서버 과부하 배려)
