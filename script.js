@@ -563,43 +563,34 @@ window.showSubscriptionModal = function(reason) {
     const existingModal = document.getElementById('subscriptionModal');
     if (existingModal) existingModal.remove();
 
-    const lang = window.getAppLang();
-    const promo = {
-        'ko': { main_t: "멤버십 업그레이드", main_d: "원하시는 요금제를 선택해<br>더욱 자유롭게 학습해 보세요!", b_t: "베이직 (Basic)", b_d: "매일 130건 충전", p_t: "프리미엄 (Premium)", p_d: "매일 300건 충전", v_t: "브이아이피 (VIP)", v_d: "매일 400건 충전", sale: "🎉 출시 기념! 3개월간 50% 반값 할인", unl: "무제한급", mo: "/월" },
-        'en': { main_t: "Upgrade Membership", main_d: "Choose your plan and<br>learn without limits!", b_t: "Basic Plan", b_d: "130 credits daily", p_t: "Premium Plan", p_d: "300 credits daily", v_t: "VIP Plan", v_d: "400 credits daily", sale: "🎉 Launch Promo! 50% OFF for 3 months", unl: "Unlimited-tier", mo: "/mo" },
-        'ja': { main_t: "メンバーシップのアップグレード", main_d: "プランを選択して<br>自由に学習しましょう！", b_t: "ベーシック (Basic)", b_d: "毎日 130回 チャージ", p_t: "プレミアム (Premium)", p_d: "毎日 300回 チャージ", v_t: "VIP プラン", v_d: "毎日 400回 チャージ", sale: "🎉 リリース記念！3ヶ月間 50％オフ", unl: "無制限級", mo: "/月" },
-        'th': { main_t: "อัปเกรดสมาชิก", main_d: "เลือกแผนของคุณและ<br>เรียนรู้ได้อย่างอิสระ!", b_t: "แผนเบสิก (Basic)", b_d: "ชาร์จ 130 ครั้งต่อวัน", p_t: "แผนพรีเมียม (Premium)", p_d: "ชาร์จ 300 ครั้งต่อวัน", v_t: "แผน VIP", v_d: "ชาร์จ 400 ครั้งต่อวัน", sale: "🎉 โปรเปิดตัว! ลด 50% นาน 3 เดือน", unl: "ระดับไร้ขีดจำกัด", mo: "/เดือน" },
-        'zh': { main_t: "升级会员", main_d: "选择您的套餐<br>享受自由学习！", b_t: "基础套餐 (Basic)", b_d: "每日充值130次", p_t: "高级套餐 (Premium)", p_d: "每日充值300次", v_t: "VIP 套餐", v_d: "每日充值400次", sale: "🎉 首发特惠！前3个月50%折扣", unl: "无限级", mo: "/月" }
-    };
-    const p = promo[lang] || promo['ko'];
-
-    if (reason === 'trial_expired') { 
-        p.main_t = (lang === 'en') ? "3-Day Trial Ended" : (lang === 'ja') ? "3日間の無料体験が終了しました" : "3일 무료 체험이 종료되었습니다.";
-        p.main_d = (lang === 'en') ? "Select a plan to continue." : (lang === 'ja') ? "学習を続けるにはプランを選択してください。" : "계속 학습하시려면<br>멤버십 플랜을 선택해 주세요.";
-    } else if (reason === 'limit_reached') {
-        p.main_t = (lang === 'en') ? "Daily Limit Reached!" : (lang === 'ja') ? "1日の利用上限に達しました！" : "일일 사용량을 모두 소진했습니다!";
-        p.main_d = (lang === 'en') ? "Select a plan to continue." : (lang === 'ja') ? "学習を続けるにはプランを選択してください。" : "계속 학습하시려면<br>멤버십 플랜을 선택해 주세요.";
-    }
-
+    // 변수 dict를 참조하는 부분을 모두 삭제하고 하드코딩으로 고정했습니다.
     const modalHtml = `
-    <div id="subscriptionModal" data-reason="${reason}" class="fixed inset-0 bg-black/70 z-[999] flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl relative animate-fade-in-up border border-slate-100">
+    <div id="subscriptionModal" data-reason="${reason}" class="fixed inset-0 bg-black/70 z-[999] flex items-center justify-center p-4 backdrop-blur-sm pointer-events-auto">
+        <div class="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl relative animate-fade-in-up border border-slate-100" style="pointer-events: auto;">
             <button onclick="document.getElementById('subscriptionModal').remove()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-2xl"></i></button>
             <div class="p-6 text-center">
                 <div class="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-indigo-100"><i class="fa-solid fa-crown text-3xl text-indigo-500"></i></div>
-                <h2 class="text-xl font-black text-slate-800 mb-2">${p.main_t}</h2>
-                <p class="text-sm text-slate-500 mb-4">${p.main_d}</p>
-                <div class="bg-rose-50 text-rose-600 text-sm font-black p-2 rounded-xl mb-4 border border-rose-100 animate-pulse">${p.sale}</div>
+                <h2 class="text-xl font-black text-slate-800 mb-2">Membership Upgrade</h2>
+                <p class="text-sm text-slate-500 mb-4">Choose a plan to continue learning without limits!</p>
+                
+                <div class="bg-rose-50 text-rose-600 text-sm font-black p-2 rounded-xl mb-4 border border-rose-100 animate-pulse">
+                    🎉 Launch Promo! 50% OFF for 3 months
+                </div>
+
                 <div class="space-y-3 text-left">
                     <button onclick="processPayment('basic')" class="w-full border-2 border-slate-100 hover:border-indigo-400 bg-slate-50 rounded-2xl p-4 flex items-center justify-between transition-all">
-                        <div>
-                            <h3 class="text-indigo-800 font-bold text-lg">${dict.ui_plan_basic}</h3>
-                            <p class="text-xs text-indigo-500 font-medium">${dict.ui_plan_basic_desc}</p>
-                        </div>
-                        <div class="text-right">
-                            <span class="text-slate-800 font-black text-lg">₩3,900</span>
-                            <span class="text-xs text-slate-400">/mo</span>
-                        </div>
+                        <div><h3 class="text-slate-700 font-bold text-lg">Basic Plan</h3><p class="text-xs text-slate-500 font-medium">130 credits daily</p></div>
+                        <div class="text-right"><span class="text-slate-400 line-through text-xs mr-1">₩7,900</span><br><span class="text-slate-800 font-black text-lg">₩3,900</span><span class="text-xs text-slate-400">/mo</span></div>
+                    </button>
+                    <button onclick="processPayment('premium')" class="w-full border-2 border-indigo-200 hover:border-indigo-500 bg-indigo-50/50 rounded-2xl p-4 flex items-center justify-between transition-all relative overflow-hidden">
+                        <div class="absolute top-0 right-0 bg-indigo-500 text-white text-[10px] font-black px-2 py-0.5 rounded-bl-lg shadow-sm">BEST</div>
+                        <div><h3 class="text-indigo-800 font-bold text-lg">Premium Plan</h3><p class="text-xs text-indigo-500 font-medium">300 credits daily</p></div>
+                        <div class="text-right"><span class="text-slate-400 line-through text-xs mr-1">₩15,900</span><br><span class="text-indigo-600 font-black text-lg">₩7,900</span><span class="text-xs text-slate-400">/mo</span></div>
+                    </button>
+                    <button onclick="processPayment('vip')" class="w-full border-2 border-amber-200 hover:border-amber-400 bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-4 flex items-center justify-between transition-all relative overflow-hidden">
+                        <div class="absolute top-0 right-0 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[10px] font-black px-2 py-0.5 rounded-bl-lg shadow-sm">Unlimited</div>
+                        <div><h3 class="text-amber-800 font-bold text-lg">VIP Plan</h3><p class="text-xs text-amber-600 font-medium">400 credits daily</p></div>
+                        <div class="text-right"><span class="text-amber-400 line-through text-xs mr-1">₩19,900</span><br><span class="text-amber-700 font-black text-lg">₩9,900</span><span class="text-xs text-slate-400">/mo</span></div>
                     </button>
                 </div>
             </div>
@@ -607,8 +598,7 @@ window.showSubscriptionModal = function(reason) {
     </div>`;
     document.body.insertAdjacentHTML('beforeend', modalHtml);
     if(window.stopSpeaking) window.stopSpeaking();
-};
-
+}
 // 4. 앱 내부의 진짜 일일 한도 수치 업데이트 (130 / 300 / 400)
 window.checkUsageLimit = function() {
     const PLAN_LIMITS = { free: 50, basic: 130, premium: 300, vip: 400 }; 
