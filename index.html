@@ -240,19 +240,6 @@
                         </div>
                     </div>
                 </div>
-
-                
-                    
-                    <!-- 구글 TTS API로 가져올 프리미엄 목소리 더미 리스트 -->
-                    <div id="drop-voice-premium" class="hidden bg-white border-t border-amber-200 flex-col max-h-40 overflow-y-auto shadow-inner">
-                        <div class="flex flex-col">
-                            <button class="w-full text-left px-4 py-2.5 text-[11px] font-bold text-amber-700 hover:bg-amber-50 border-b border-amber-100 transition-colors" onclick="window.selectPremiumVoice('en-US-Journey-F', '미국 (여성 1)')">🇺🇸 미국 (여성 1) - 차분함</button>
-                            <button class="w-full text-left px-4 py-2.5 text-[11px] font-bold text-amber-700 hover:bg-amber-50 border-b border-amber-100 transition-colors" onclick="window.selectPremiumVoice('en-US-Journey-D', '미국 (남성 1)')">🇺🇸 미국 (남성 1) - 신뢰감</button>
-                            <button class="w-full text-left px-4 py-2.5 text-[11px] font-bold text-amber-700 hover:bg-amber-50 border-b border-amber-100 transition-colors" onclick="window.selectPremiumVoice('en-GB-News-G', '영국 (여성 1)')">🇬🇧 영국 (여성 1) - 아나운서</button>
-                            <button class="w-full text-left px-4 py-2.5 text-[11px] font-bold text-amber-700 hover:bg-amber-50 transition-colors" onclick="window.selectPremiumVoice('en-AU-Standard-B', '호주 (남성 1)')">🇦🇺 호주 (남성 1) - 유쾌함</button>
-                        </div>
-                    </div>
-                </div>
                 <!-- 고객 지원 및 정책 메뉴 -->
 <div class="settings-section" style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
     <h3 style="font-size: 16px; margin-bottom: 10px; color: #333;">고객 지원 및 정책</h3>
@@ -295,7 +282,21 @@
     </ul>
 </div>
 
-            
+                
+                    
+                    <!-- 구글 TTS API로 가져올 프리미엄 목소리 더미 리스트 -->
+                    <div id="drop-voice-premium" class="hidden bg-white border-t border-amber-200 flex-col max-h-40 overflow-y-auto shadow-inner">
+                        <div class="flex flex-col">
+                            <button class="w-full text-left px-4 py-2.5 text-[11px] font-bold text-amber-700 hover:bg-amber-50 border-b border-amber-100 transition-colors" onclick="window.selectPremiumVoice('en-US-Journey-F', '미국 (여성 1)')">🇺🇸 미국 (여성 1) - 차분함</button>
+                            <button class="w-full text-left px-4 py-2.5 text-[11px] font-bold text-amber-700 hover:bg-amber-50 border-b border-amber-100 transition-colors" onclick="window.selectPremiumVoice('en-US-Journey-D', '미국 (남성 1)')">🇺🇸 미국 (남성 1) - 신뢰감</button>
+                            <button class="w-full text-left px-4 py-2.5 text-[11px] font-bold text-amber-700 hover:bg-amber-50 border-b border-amber-100 transition-colors" onclick="window.selectPremiumVoice('en-GB-News-G', '영국 (여성 1)')">🇬🇧 영국 (여성 1) - 아나운서</button>
+                            <button class="w-full text-left px-4 py-2.5 text-[11px] font-bold text-amber-700 hover:bg-amber-50 transition-colors" onclick="window.selectPremiumVoice('en-AU-Standard-B', '호주 (남성 1)')">🇦🇺 호주 (남성 1) - 유쾌함</button>
+                        </div>
+                    </div>
+                </div>
+                
+
+            </div>
 
         <!-- Home 스크린 -->
         <div id="screen-home" class="absolute top-0 left-0 w-full h-full z-10 sm:rounded-3xl transition-transform duration-300 bg-[#e0f2fe] overflow-hidden flex flex-col">
