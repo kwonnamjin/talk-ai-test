@@ -2058,3 +2058,15 @@ if (typeof UI_DICTIONARY !== 'undefined') {
         Object.assign(UI_DICTIONARY[lang], HELP_TOOLTIP_TRANSLATIONS[lang]);
     });
 }
+
+// 🚨 언어 사전 안전 장치 (data.js 맨 아래에 추가하세요)
+if (typeof window.UI_DICTIONARY !== 'undefined') {
+    const supportedLangs = ['ko', 'ja', 'zh', 'en', 'es', 'th']; // 번역이 완료된 언어들
+    
+    for (const lang in window.UI_DICTIONARY) {
+        // 번역이 완벽하지 않은 나머지 언어들은 영어(en) 사전 데이터를 통째로 복사해서 채워넣습니다.
+        if (!supportedLangs.includes(lang)) {
+            window.UI_DICTIONARY[lang] = Object.assign({}, window.UI_DICTIONARY['en'], window.UI_DICTIONARY[lang]);
+        }
+    }
+}
