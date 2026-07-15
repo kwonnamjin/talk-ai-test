@@ -553,21 +553,33 @@ window.showSubscriptionModal = function(reason) {
                 </div>
 
                 <div class="space-y-3 text-left">
+                    <!-- 베이직 -->
                     <button onclick="processPayment('basic')" class="w-full border-2 border-slate-100 hover:border-indigo-400 bg-slate-50 rounded-2xl p-4 flex items-center justify-between transition-all">
                         <div><h3 class="text-slate-700 font-bold text-lg">${p.b_title}</h3><p class="text-xs text-slate-500 font-medium">${p.b_desc}</p></div>
-                        <div class="text-right"><span class="text-slate-800 font-black text-lg">₩3,900</span><span class="text-xs text-slate-400">/mo</span></div>
+                        <div class="text-right">
+                            <div class="text-xs text-slate-400 line-through mb-0.5">₩7,900</div>
+                            <span class="text-slate-800 font-black text-lg">₩3,900</span><span class="text-xs text-slate-400">/mo</span>
+                        </div>
                     </button>
 
+                    <!-- 프리미엄 -->
                     <button onclick="processPayment('premium')" class="w-full border-2 border-indigo-200 hover:border-indigo-500 bg-indigo-50/50 rounded-2xl p-4 flex items-center justify-between transition-all relative overflow-hidden">
                         <div class="absolute top-0 right-0 bg-indigo-500 text-white text-[10px] font-black px-2 py-0.5 rounded-bl-lg shadow-sm">BEST</div>
                         <div><h3 class="text-indigo-800 font-bold text-lg">${p.p_title}</h3><p class="text-xs text-indigo-500 font-medium">${p.p_desc}</p></div>
-                        <div class="text-right"><span class="text-indigo-600 font-black text-lg">₩7,900</span><span class="text-xs text-slate-400">/mo</span></div>
+                        <div class="text-right">
+                            <div class="text-xs text-indigo-400 line-through mb-0.5">₩15,900</div>
+                            <span class="text-indigo-600 font-black text-lg">₩7,900</span><span class="text-xs text-slate-400">/mo</span>
+                        </div>
                     </button>
 
+                    <!-- VIP -->
                     <button onclick="processPayment('vip')" class="w-full border-2 border-amber-200 hover:border-amber-400 bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-4 flex items-center justify-between transition-all relative overflow-hidden">
                         <div class="absolute top-0 right-0 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[10px] font-black px-2 py-0.5 rounded-bl-lg shadow-sm">${p.unl}</div>
                         <div><h3 class="text-amber-800 font-bold text-lg">${p.v_title}</h3><p class="text-xs text-amber-600 font-medium">${p.v_desc}</p></div>
-                        <div class="text-right"><span class="text-amber-700 font-black text-lg">₩9,900</span><span class="text-xs text-slate-400">/mo</span></div>
+                        <div class="text-right">
+                            <div class="text-xs text-amber-500/70 line-through mb-0.5">₩19,900</div>
+                            <span class="text-amber-700 font-black text-lg">₩9,900</span><span class="text-xs text-slate-400">/mo</span>
+                        </div>
                     </button>
                 </div>
             </div>
@@ -576,12 +588,14 @@ window.showSubscriptionModal = function(reason) {
     document.body.insertAdjacentHTML('beforeend', modalHtml);
     if(window.stopSpeaking) window.stopSpeaking();
 };
+
 window.forceOpenModal = function(e) {
     e.preventDefault();
     e.stopPropagation();
     console.log("배너 클릭 이벤트 감지!");
     window.showSubscriptionModal('upgrade');
 };
+
 window.triggerBannerClick = function(e) {
     e.stopPropagation(); // 부모 레이어의 이벤트 간섭을 원천 차단
     window.showSubscriptionModal('upgrade');
