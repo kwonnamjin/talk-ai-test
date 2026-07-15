@@ -281,70 +281,23 @@
 
 </div>
             <div class="absolute inset-0 z-0 pointer-events-none bg-[#e0f2fe]">
-    <div class="absolute inset-0 bg-[url('app-bg-02.jpg')] bg-[length:100%_auto] bg-center bg-no-repeat opacity-[0.90] mix-blend-multiply"></div>
-    <div class="absolute inset-0 bg-gradient-to-b from-[#e0f2fe] from-25% via-transparent via-50% to-[#e0f2fe] to-75%"></div>
-</div>
-
-<div class="relative z-10 w-full h-full pb-6 px-1 overflow-y-auto no-scrollbar" id="homeScrollContainer">
-    <div class="absolute bottom-4 left-4 right-4 z-50 pointer-events-none">
-        
-        <!-- 🎁 디자인이 강화된 프리미엄 배너 -->
-        <div id="premiumBanner" class="bg-gradient-to-r from-indigo-600/95 via-blue-600/95 to-blue-500/95 backdrop-blur-md rounded-2xl p-3 shadow-lg cursor-pointer transform transition hover:-translate-y-1 border border-white/20 pointer-events-auto relative overflow-hidden" onclick="window.showSubscriptionModal('upgrade')">
-            
-            <!-- 반짝이는 빛 효과 (애니메이션) -->
-            <div class="absolute inset-0 bg-white/20 skew-x-12 translate-x-[-150%] animate-[shine_3s_infinite]"></div>
-
-            <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-yellow-300 border border-white/30 shrink-0 shadow-inner">
-                    <i class="fa-solid fa-crown text-sm"></i>
+                <div class="absolute inset-0 bg-[url('app-bg-02.jpg')] bg-[length:100%_auto] bg-center bg-no-repeat opacity-[0.90] mix-blend-multiply"></div>
+                <div class="absolute inset-0 bg-gradient-to-b from-[#e0f2fe] from-25% via-transparent via-50% to-[#e0f2fe] to-75%"></div>
+            </div>
+            <div class="relative z-10 w-full h-full pb-6 px-1 overflow-y-auto no-scrollbar" id="homeScrollContainer">
+                <div class="absolute bottom-4 left-4 right-4 z-50 pointer-events-none">
+                    <div id="premiumBanner" class="bg-gradient-to-r from-indigo-600/95 via-blue-600/95 to-blue-500/95 backdrop-blur-md rounded-2xl p-3 shadow-lg cursor-pointer transform transition hover:-translate-y-1 border border-white/20 pointer-events-auto" onclick="window.showSubscriptionModal('upgrade')">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-yellow-300 border border-white/30 shrink-0 shadow-inner"><i class="fa-solid fa-crown text-sm"></i></div>
+                            <div>
+                                <p id="ui_home_premium_title" class="text-white font-bold text-sm tracking-tight">멤버십 업그레이드 ✨</p>
+                                <p id="ui_home_premium_desc" class="text-blue-100 text-[9px] mt-0.5 font-medium">베이직 / 프리미엄 요금제로 한도를 늘려보세요!</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="flex-1">
-                    <p id="ui_home_premium_title" class="text-white font-bold text-sm tracking-tight">🚀 멤버십 50% 특가 진행 중!</p>
-                    <p id="ui_home_premium_desc" class="text-blue-100 text-[9px] mt-0.5 font-medium">베이직 / 프리미엄 / VIP 혜택을 만나보세요!</p>
-                </div>
-                <!-- 클릭 유도 화살표 -->
-                <div class="text-white/50 text-xs mr-1"><i class="fa-solid fa-chevron-right"></i></div>
             </div>
         </div>
-
-    </div>
-</div>
-
-<!-- 🌐 기존 사전 파일 없이 이 배너만 즉시 번역해주는 미니 스크립트 -->
-<script>
-function applyBannerTranslation() {
-    // 1. 현재 선택된 언어 가져오기 ('en', 'ko', 'ja', 'th' 등)
-    const lang = (document.getElementById('explanationLanguage')?.value || 'ko-KR').split('-')[0];
-    
-    // 2. 바꿀 텍스트 위치 찾기
-    const titleEl = document.getElementById('ui_home_premium_title');
-    const descEl = document.getElementById('ui_home_premium_desc');
-    
-    if (!titleEl || !descEl) return;
-
-    // 3. 언어별 텍스트 강제 덮어쓰기 (여기에 필요한 언어를 추가하시면 됩니다)
-    if (lang === 'en') {
-        titleEl.innerText = "🚀 50% OFF Membership Sale!";
-        descEl.innerText = "Check out Basic / Premium / VIP plans!";
-    } else if (lang === 'ja') {
-        titleEl.innerText = "🚀 メンバーシップ50％特大セール！";
-        descEl.innerText = "ベーシック / プレミアム / VIPプランをチェック！";
-    } else if (lang === 'th') {
-        titleEl.innerText = "🚀 ลด 50% สมาชิกพิเศษ!";
-        descEl.innerText = "ตรวจสอบแผน Basic / Premium / VIP!";
-    } else if (lang === 'zh') {
-        titleEl.innerText = "🚀 会员50%特价活动进行中！";
-        descEl.innerText = "快来了解 Basic / Premium / VIP 计划！";
-    } else {
-        // 기본 한국어
-        titleEl.innerText = "🚀 멤버십 50% 특가 진행 중!";
-        descEl.innerText = "베이직 / 프리미엄 / VIP 혜택을 만나보세요!";
-    }
-}
-
-// HTML이 로드될 때 바로 한 번 실행시킵니다.
-setTimeout(applyBannerTranslation, 100);
-</script>
 
         <!-- Main 채팅 스크린 -->
         <div id="screen-main" class="absolute top-0 left-0 w-full h-full flex flex-col z-20 bg-white overflow-hidden sm:rounded-3xl shadow-[0_0_20px_rgba(0,0,0,0.15)]" style="transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);">
