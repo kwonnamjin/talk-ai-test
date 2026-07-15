@@ -170,20 +170,12 @@ window.toggleDropdown = function(dropId) {
 
 
 window.changeUILanguage = function(langCode) {
+    localStorage.setItem('explanation_language', langCode); // 1. 언어 설정 저장
     const baseLang = langCode.split('-')[0];
-    
-    // 1. 사전 안전하게 불러오기 (에러 방지)
-    const dictionary = window.UI_DICTIONARY || (typeof UI_DICTIONARY !== 'undefined' ? UI_DICTIONARY : null);
-    if (!dictionary) {
-        console.error("번역 사전을 찾을 수 없습니다.");
-        return;
-    }
+    const dict = window.UI_DICTIONARY ? (window.UI_DICTIONARY[baseLang] || window.UI_DICTIONARY['en']) : {};
 
-    const currentDict = dictionary[baseLang] || dictionary["en"];
-    if (!currentDict) return;
-
-    // 2. 기존 ID 기반 텍스트 변경 (회원님 기존 코드)
-    for (const [id, text] of Object.entries(currentDict)) {
+    // 2. ID 기반 텍스트 변경 (회원님 기존 방식 보존)
+    for (const [id, text] of Object.entries(dict)) {
         const element = document.getElementById(id);
         if (element) {
             if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
@@ -194,33 +186,24 @@ window.changeUILanguage = function(langCode) {
         }
     }
 
-    // 3. 앱 핵심 기능을 망가뜨리지 않는 안전한 번역 적용 방식
+    // 3. data-i18n 속성 요소 강제 교체
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
-        if (currentDict[key]) el.innerHTML = currentDict[key];
-    });
-    document.querySelectorAll('[data-i18n-ph]').forEach(el => {
-        const key = el.getAttribute('data-i18n-ph');
-        if (currentDict[key]) el.placeholder = currentDict[key];
+        if (dict[key]) el.innerHTML = dict[key];
     });
 
-    // 4. 앱 모드(select 옵션) 텍스트 변경
-    const tutorOpt = document.querySelector("#appMode option[value='tutor']");
-    const transOpt = document.querySelector("#appMode option[value='translate']");
-    if (tutorOpt) tutorOpt.text = currentDict["appMode_tutor"] || "Tutor";
-    if (transOpt) transOpt.text = currentDict["appMode_translate"] || "Translate";
-
-    // 5. 화면 업데이트 및 렌더링 (회원님 기존 핵심 코드 복구)
-    if (typeof window.populateDropdowns === 'function') window.populateDropdowns();
-    if (typeof window.renderScripts === 'function') window.renderScripts();
-    if (typeof window.renderVocabs === 'function') window.renderVocabs();
+    // 4. 배너 및 외부 UI 갱신 (에러 방어 로직 추가)
+    if (typeof window.applyBannerTranslation === 'function') window.applyBannerTranslation();
     if (typeof window.updateLangDisplays === 'function') window.updateLangDisplays();
     if (typeof window.updateExtraUI === 'function') window.updateExtraUI();
-
-    // 6. 언어 선택 시 열려있던 모든 드롭다운 메뉴 닫기 (메뉴 닫힘 버그 해결)
-    document.querySelectorAll('#drop-exp, #drop-target, #drop-stt, #drop-gender').forEach(drop => {
-        if (drop) drop.classList.add('hidden');
-    });
+    
+    // 5. 결제 팝업이 켜져 있으면 언어 반영해서 다시 띄우기
+    const openModal = document.getElementById('subscriptionModal');
+    if (openModal && typeof window.showSubscriptionModal === 'function') {
+        window.showSubscriptionModal(openModal.getAttribute('data-reason') || 'upgrade');
+    }
+    
+    console.log("✅ 언어 변경 적용 완료:", langCode);
 };
 
 // 🌟 2. 언어 및 UI 디스플레이 업데이트 (에러 방지 완벽 적용)
