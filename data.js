@@ -2038,3 +2038,40 @@ if (typeof window.UI_DICTIONARY !== 'undefined') {
         }
     }
 }
+
+// 🌟 21개 언어 요금제 통합 사전
+const SUBSCRIPTION_TRANS = {
+    // [기본 키값]
+    // ui_plan_basic, ui_plan_premium, ui_plan_vip
+    // ui_plan_basic_desc, ui_plan_premium_desc, ui_plan_vip_desc
+    // ui_price_basic, ui_price_premium, ui_price_vip
+    
+    "ko": { ui_plan_basic: "베이직 (Basic)", ui_plan_basic_desc: "매일 130건 충전", ui_plan_premium: "프리미엄 (Premium)", ui_plan_premium_desc: "매일 300건 충전", ui_plan_vip: "브이아이피 (VIP)", ui_plan_vip_desc: "매일 400건 충전" },
+    "en": { ui_plan_basic: "Basic Plan", ui_plan_basic_desc: "130 credits daily", ui_plan_premium: "Premium Plan", ui_plan_premium_desc: "300 credits daily", ui_plan_vip: "VIP Plan", ui_plan_vip_desc: "400 credits daily" },
+    "ja": { ui_plan_basic: "ベーシック", ui_plan_basic_desc: "毎日 130回チャージ", ui_plan_premium: "プレミアム", ui_plan_premium_desc: "毎日 300回チャージ", ui_plan_vip: "VIPプラン", ui_plan_vip_desc: "毎日 400回チャージ" },
+    "zh": { ui_plan_basic: "基础套餐", ui_plan_basic_desc: "每日130次充值", ui_plan_premium: "高级套餐", ui_plan_premium_desc: "每日300次充值", ui_plan_vip: "VIP套餐", ui_plan_vip_desc: "每日400次充值" },
+    "es": { ui_plan_basic: "Plan Básico", ui_plan_basic_desc: "130 créditos diarios", ui_plan_premium: "Plan Premium", ui_plan_premium_desc: "300 créditos diarios", ui_plan_vip: "Plan VIP", ui_plan_vip_desc: "400 créditos diarios" },
+    "th": { ui_plan_basic: "แผนพื้นฐาน", ui_plan_basic_desc: "ชาร์จ 130 ครั้ง/วัน", ui_plan_premium: "แผนพรีเมียม", ui_plan_premium_desc: "ชาร์จ 300 ครั้ง/วัน", ui_plan_vip: "แผน VIP", ui_plan_vip_desc: "ชาร์จ 400 ครั้ง/วัน" },
+    "vi": { ui_plan_basic: "Gói Cơ bản", ui_plan_basic_desc: "130 lượt/ngày", ui_plan_premium: "Gói Premium", ui_plan_premium_desc: "300 lượt/ngày", ui_plan_vip: "Gói VIP", ui_plan_vip_desc: "400 lượt/ngày" },
+    "ar": { ui_plan_basic: "خطة أساسية", ui_plan_basic_desc: "130 رصيد يومياً", ui_plan_premium: "خطة مميزة", ui_plan_premium_desc: "300 رصيد يومياً", ui_plan_vip: "خطة VIP", ui_plan_vip_desc: "400 رصيد يومياً" },
+    "fr": { ui_plan_basic: "Plan Basique", ui_plan_basic_desc: "130 crédits/jour", ui_plan_premium: "Plan Premium", ui_plan_premium_desc: "300 crédits/jour", ui_plan_vip: "Plan VIP", ui_plan_vip_desc: "400 crédits/jour" },
+    "de": { ui_plan_basic: "Basis-Plan", ui_plan_basic_desc: "130 Credits täglich", ui_plan_premium: "Premium-Plan", ui_plan_premium_desc: "300 Credits täglich", ui_plan_vip: "VIP-Plan", ui_plan_vip_desc: "400 Credits täglich" },
+    "ru": { ui_plan_basic: "Базовый", ui_plan_basic_desc: "130 кредитов в день", ui_plan_premium: "Премиум", ui_plan_premium_desc: "300 кредитов в день", ui_plan_vip: "VIP", ui_plan_vip_desc: "400 кредитов в день" },
+    "id": { ui_plan_basic: "Paket Dasar", ui_plan_basic_desc: "130 kredit/hari", ui_plan_premium: "Paket Premium", ui_plan_premium_desc: "300 kredit/hari", ui_plan_vip: "Paket VIP", ui_plan_vip_desc: "400 kredit/hari" },
+    "hi": { ui_plan_basic: "बेसिक प्लान", ui_plan_basic_desc: "130 क्रेडिट प्रतिदिन", ui_plan_premium: "प्रीमियम प्लान", ui_plan_premium_desc: "300 क्रेडिट प्रतिदिन", ui_plan_vip: "VIP प्लान", ui_plan_vip_desc: "400 क्रेडिट प्रतिदिन" },
+    "pl": { ui_plan_basic: "Podstawowy", ui_plan_basic_desc: "130 kredytów dziennie", ui_plan_premium: "Premium", ui_plan_premium_desc: "300 kredytów dziennie", ui_plan_vip: "VIP", ui_plan_vip_desc: "400 kredytów dziennie" },
+    "gd": { ui_plan_basic: "Bunasach", ui_plan_basic_desc: "130 faclan gach latha", ui_plan_premium: "Premium", ui_plan_premium_desc: "300 faclan gach latha", ui_plan_vip: "VIP", ui_plan_vip_desc: "400 faclan gach latha" },
+    "la": { ui_plan_basic: "Planum Basic", ui_plan_basic_desc: "130 credita cotidie", ui_plan_premium: "Planum Premium", ui_plan_premium_desc: "300 credita cotidie", ui_plan_vip: "Planum VIP", ui_plan_vip_desc: "400 credita cotidie" },
+    "he": { ui_plan_basic: "תוכנית בסיסית", ui_plan_basic_desc: "130 קרדיטים ביום", ui_plan_premium: "תוכנית פרימיום", ui_plan_premium_desc: "300 קרדיטים ביום", ui_plan_vip: "תוכנית VIP", ui_plan_vip_desc: "400 קרדיטים ביום" },
+    "ne": { ui_plan_basic: "आधारभूत", ui_plan_basic_desc: "१३० क्रेडिट प्रतिदिन", ui_plan_premium: "प्रीमियम", ui_plan_premium_desc: "३०० क्रेडिट प्रतिदिन", ui_plan_vip: "VIP", ui_plan_vip_desc: "४०० क्रेडिट प्रतिदिन" },
+    "mn": { ui_plan_basic: "Үндсэн", ui_plan_basic_desc: "Өдөрт 130 кредит", ui_plan_premium: "Дээд", ui_plan_premium_desc: "Өдөрт 300 кредит", ui_plan_vip: "VIP", ui_plan_vip_desc: "Өдөрт 400 кредит" },
+    "bo": { ui_plan_basic: "གཞི་རིམ།", ui_plan_basic_desc: "ཉིན་རེར་ཐོབ་ཆ་ 130", ui_plan_premium: "མཆོག་རིམ།", ui_plan_premium_desc: "ཉིན་རེར་ཐོབ་ཆ་ 300", ui_plan_vip: "VIP", ui_plan_vip_desc: "ཉིན་རེར་ཐོབ་ཆ་ 400" },
+    "sw": { ui_plan_basic: "Mpango Msingi", ui_plan_basic_desc: "Krediti 130 kila siku", ui_plan_premium: "Mpango Premium", ui_plan_premium_desc: "Krediti 300 kila siku", ui_plan_vip: "Mpango VIP", ui_plan_vip_desc: "Krediti 400 kila siku" }
+};
+
+// 사전 병합
+Object.keys(SUBSCRIPTION_TRANS).forEach(lang => {
+    if (window.UI_DICTIONARY[lang]) {
+        Object.assign(window.UI_DICTIONARY[lang], SUBSCRIPTION_TRANS[lang]);
+    }
+});
