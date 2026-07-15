@@ -317,6 +317,7 @@ window.populateDropdowns = function() {
                 if (setup.target === 'sttInputLanguage') {
                     localStorage.setItem('stt_input_language', lang.code);
                 }
+                window.refreshAllTranslations();
                 
                 window.updateLangDisplays();
                 window.toggleDropdown(setup.id);
@@ -3561,5 +3562,28 @@ window.updateUiLanguage = function(newLang) {
         applyBannerTranslation();
     }
 }
-
+// 🌟 언어 변경 시 화면 전체를 즉시 번역하는 강제 갱신 함수
+window.refreshAllTranslations = function() {
+    const lang = window.getAppLang(); // 현재 설정된 언어 가져오기
+    
+    // 1. 배너 텍스트 갱신
+    if (typeof window.applyBannerTranslation === 'function') {
+        window.applyBannerTranslation();
+    }
+    
+    // 2. 기존 HTML의 [data-i18n] 속성을 가진 모든 요소 갱신
+    const dict = window.UI_DICTIONARY[lang] || window.UI_DICTIONARY['en'];
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (dict[key]) el.innerHTML = dict[key];
+    });
+    
+    // 3. 결제 모달창이 열려있다면 즉시 언어 적용
+    const openModal = document.getElementById('subscriptionModal');
+    if (openModal) {
+        window.showSubscriptionModal(openModal.getAttribute('data-reason') || 'upgrade');
+    }
+    
+    console.log("🎨 UI 언어 강제 갱신 완료:", lang);
+};
 
