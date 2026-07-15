@@ -552,16 +552,54 @@ window.showSubscriptionModal = function(reason) {
             <button onclick="document.getElementById('subscriptionModal').remove()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-2xl"></i></button>
             <div class="p-6 text-center">
                 <div class="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-indigo-100"><i class="fa-solid fa-crown text-3xl text-indigo-500"></i></div>
-                <h2 class="text-xl font-black text-slate-800 mb-2">${titleText}</h2><p class="text-sm text-slate-500 mb-6">${descText}</p>
+                <h2 class="text-xl font-black text-slate-800 mb-2">${titleText}</h2>
+                <p class="text-sm text-slate-500 mb-4">${descText}</p>
+                
+                <!-- 🎁 할인 강조 배너 -->
+                <div class="bg-rose-50 text-rose-600 text-sm font-black p-2 rounded-xl mb-4 border border-rose-100 animate-pulse">
+                    🎉 출시 기념! 3개월간 50% 반값 할인
+                </div>
+
                 <div class="space-y-3 text-left">
-                    <button onclick="processPayment('basic')" class="w-full border-2 border-indigo-100 hover:border-indigo-500 bg-indigo-50/50 rounded-2xl p-4 flex items-center justify-between transition-all">
-                        <div><h3 class="text-indigo-800 font-bold text-lg">${dict.ui_plan_basic || "베이직 (Basic)"}</h3><p class="text-xs text-indigo-500 font-medium">${dict.ui_plan_basic_desc || "매일 150건 충전"}</p></div>
-                        <div class="text-right"><span class="text-slate-800 font-black text-lg">₩3,900</span><span class="text-xs text-slate-400">/월</span></div>
+                    <!-- 1. 베이직 플랜 -->
+                    <button onclick="processPayment('basic')" class="w-full border-2 border-slate-100 hover:border-indigo-400 bg-slate-50 rounded-2xl p-4 flex items-center justify-between transition-all">
+                        <div>
+                            <h3 class="text-slate-700 font-bold text-lg">${dict.ui_plan_basic || "베이직 (Basic)"}</h3>
+                            <p class="text-xs text-slate-500 font-medium">${dict.ui_plan_basic_desc || "매일 130건 충전"}</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-slate-400 line-through text-xs mr-1">₩7,900</span>
+                            <br>
+                            <span class="text-slate-800 font-black text-lg">₩3,900</span><span class="text-xs text-slate-400">/월</span>
+                        </div>
                     </button>
-                    <button onclick="processPayment('premium')" class="w-full border-2 border-amber-200 hover:border-amber-400 bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-4 flex items-center justify-between transition-all relative overflow-hidden">
-                        <div class="absolute top-0 right-0 bg-amber-400 text-white text-[10px] font-black px-2 py-0.5 rounded-bl-lg shadow-sm">무제한급</div>
-                        <div><h3 class="text-amber-700 font-bold text-lg">${dict.ui_plan_premium || "프리미엄 (Premium)"}</h3><p class="text-xs text-amber-600 font-medium">${dict.ui_plan_premium_desc || "매일 400건 충전"}</p></div>
-                        <div class="text-right"><span class="text-slate-800 font-black text-lg">₩7,900</span><span class="text-xs text-slate-400">/월</span></div>
+
+                    <!-- 2. 프리미엄 플랜 -->
+                    <button onclick="processPayment('premium')" class="w-full border-2 border-indigo-200 hover:border-indigo-500 bg-indigo-50/50 rounded-2xl p-4 flex items-center justify-between transition-all relative overflow-hidden">
+                        <div class="absolute top-0 right-0 bg-indigo-500 text-white text-[10px] font-black px-2 py-0.5 rounded-bl-lg shadow-sm">BEST</div>
+                        <div>
+                            <h3 class="text-indigo-800 font-bold text-lg">${dict.ui_plan_premium || "프리미엄 (Premium)"}</h3>
+                            <p class="text-xs text-indigo-500 font-medium">${dict.ui_plan_premium_desc || "매일 300건 충전"}</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-slate-400 line-through text-xs mr-1">₩15,900</span>
+                            <br>
+                            <span class="text-indigo-600 font-black text-lg">₩7,900</span><span class="text-xs text-slate-400">/월</span>
+                        </div>
+                    </button>
+
+                    <!-- 3. VIP 플랜 -->
+                    <button onclick="processPayment('vip')" class="w-full border-2 border-amber-200 hover:border-amber-400 bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-4 flex items-center justify-between transition-all relative overflow-hidden">
+                        <div class="absolute top-0 right-0 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[10px] font-black px-2 py-0.5 rounded-bl-lg shadow-sm">무제한급</div>
+                        <div>
+                            <h3 class="text-amber-800 font-bold text-lg">${dict.ui_plan_vip || "브이아이피 (VIP)"}</h3>
+                            <p class="text-xs text-amber-600 font-medium">${dict.ui_plan_vip_desc || "매일 400건 충전"}</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-amber-400 line-through text-xs mr-1">₩19,900</span>
+                            <br>
+                            <span class="text-amber-700 font-black text-lg">₩9,900</span><span class="text-xs text-slate-400">/월</span>
+                        </div>
                     </button>
                 </div>
             </div>
@@ -570,12 +608,12 @@ window.showSubscriptionModal = function(reason) {
     document.body.insertAdjacentHTML('beforeend', modalHtml);
     if(window.stopSpeaking) window.stopSpeaking();
 }
+
 window.processPayment = function(plan) {
     if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
-        // 실제 앱의 결제 로직 호출
+        // 실제 앱의 결제 로직 호출 (plan 변수에 'basic', 'premium', 'vip'가 전달됨)
         window.flutter_inappwebview.callHandler('purchase', plan);
     } else {
-        // 혹시 모를 에러 방어
         alert("앱 내에서만 결제가 가능합니다.");
     }
 }
