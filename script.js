@@ -585,6 +585,10 @@ window.showSubscriptionModal = function(reason) {
     document.body.insertAdjacentHTML('beforeend', modalHtml);
     if(window.stopSpeaking) window.stopSpeaking();
 }
+window.triggerBannerClick = function(e) {
+    e.stopPropagation(); // 부모 레이어의 이벤트 간섭을 원천 차단
+    window.showSubscriptionModal('upgrade');
+};
 
 window.processPayment = function(plan) {
     if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
