@@ -530,10 +530,12 @@ window.showSubscriptionModal = function(reason) {
     const existingModal = document.getElementById('subscriptionModal');
     if (existingModal) existingModal.remove();
 
-    const lang = window.getAppLang(); // 현재 언어 감지
+    // 🌟 안전장치: window.getAppLang 함수가 없어도 작동하도록 직접 구현
+    const lang = (typeof window.getAppLang === 'function') ? window.getAppLang() : (localStorage.getItem('explanation_language') || 'ko-KR').split('-')[0];
     
-    // 1. 번역 텍스트 객체 정의 (이게 없어서 에러가 났던 겁니다)
-    const dict = window.UI_DICTIONARY[lang] || window.UI_DICTIONARY['en'];
+    // 사전 데이터 안전하게 가져오기
+    const dict = (typeof UI_DICTIONARY !== 'undefined') ? (UI_DICTIONARY[lang] || UI_DICTIONARY['en']) : {};
+    
     const p = {
         b_title: dict.ui_plan_basic || "Basic Plan",
         b_desc: dict.ui_plan_basic_desc || "130 credits daily",
@@ -584,7 +586,7 @@ window.showSubscriptionModal = function(reason) {
     </div>`;
     document.body.insertAdjacentHTML('beforeend', modalHtml);
     if(window.stopSpeaking) window.stopSpeaking();
-}
+};
 window.forceOpenModal = function(e) {
     e.preventDefault();
     e.stopPropagation();
