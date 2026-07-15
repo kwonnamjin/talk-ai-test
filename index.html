@@ -74,8 +74,8 @@
                 <!-- 기존 기초발음 버튼 아래에 추가 -->
                 <div class="h-px bg-slate-200 my-1 w-full"></div> <!-- 구분선 -->
                 <button onclick="navigate('screen-archive'); window.closeAllPanels();" class="w-full flex items-center justify-between p-3 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition-colors shadow-sm">
-                    <span class="text-xs font-black text-amber-700 whitespace-nowrap"><i class="fa-solid fa-box-archive mr-1.5"></i>내 보관함</span>
-                    <span class="text-[10px] text-slate-500 font-bold text-right ml-3 break-keep">초승달 소장 및 오답노트</span>
+                    <span class="text-xs font-black text-amber-700 whitespace-nowrap"><i class="fa-solid fa-box-archive mr-1.5"></i><span data-i18n="ui_archive_title">내 보관함</span>
+                    <span data-i18n="ui_archive_desc" class="text-[10px] text-slate-500 font-bold text-right ml-3 break-keep">문장 및 단어 보관</span>
                 </button>
             </div>
 
@@ -403,8 +403,8 @@
             </button>
         </div>
         <div id="translateModeMenu" class="hidden absolute bottom-20 left-4 right-4 bg-white rounded-2xl shadow-2xl border border-slate-200 p-2 z-[9999]">
-    <button onclick="window.openInterpreter(); window.toggleTranslateMenu()" class="w-full text-left p-3 text-xs font-black text-blue-600 hover:bg-blue-50 rounded-lg">🎙️ 실시간 대면 통역</button>
-    <button onclick="window.activateSmartTranslate(); window.toggleTranslateMenu()" class="w-full text-left p-3 text-xs font-black text-indigo-600 hover:bg-indigo-50 rounded-lg">🧠스마트 번역</button>
+    <button onclick="window.openInterpreter(); window.toggleTranslateMenu()" class="w-full text-left p-3 text-xs font-black text-blue-600 hover:bg-blue-50 rounded-lg"data-i18n="ui_interp_live">🎙️ 실시간 대면 통역</button>
+    <button onclick="window.activateSmartTranslate(); window.toggleTranslateMenu()" class="w-full text-left p-3 text-xs font-black text-indigo-600 hover:bg-indigo-50 rounded-lg"data-i18n="ui_interp_smart">🧠 스마트 번역</button>
 </div>
     </div>
     
@@ -422,7 +422,7 @@
             <!-- 자동 전송 (남는 공간 꽉 채움) -->
             <button id="autoSendToggleBtn" onclick="window.toggleAutoSend()" class="flex-1 h-12 rounded-xl bg-slate-100 text-slate-500 font-bold flex items-center justify-center gap-1.5 hover:bg-slate-200 transition-colors shadow-sm outline-none border border-slate-200 min-w-0">
                 <i id="autoSendIcon" class="fa-solid fa-toggle-off text-[14px]"></i>
-                <span class="text-[10px] sm:text-[11px] truncate mt-0.5">자동 전송</span>
+                <span class="text-[10px] sm:text-[11px] truncate mt-0.5" data-i18n="ui_auto_send">자동 전송</span>
             </button>
             <!-- 스피커 중지 (고정 크기) -->
             <button id="stopAudioBtn" class="w-12 h-12 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-slate-200 transition-colors shadow-sm outline-none border border-slate-200 shrink-0" onclick="stopSpeaking()" disabled>
@@ -617,9 +617,9 @@
             <!-- 1. 상단 서브 탭 (글로벌 네비게이션에 가리지 않도록 상단 여백 pt-[115px] 추가!) -->
 <div class="flex-none bg-white pt-[115px] px-4 py-3 border-b border-gray-200 shadow-sm z-10">
                 <div class="flex gap-2">
-                    <button id="tab_script" class="flex-1 bg-amber-50 border border-amber-400 text-amber-700 text-xs font-bold py-2.5 rounded-xl shadow-sm transition-all" onclick="window.switchArchiveTab('script')">대본</button>
-                    <button id="tab_vocab" class="flex-1 bg-white border border-slate-200 text-slate-500 text-xs font-bold py-2.5 rounded-xl hover:bg-slate-50 transition-all" onclick="window.switchArchiveTab('vocab')">단어장</button>
-                    <button id="tab_freetalk" class="flex-1 bg-white border border-slate-200 text-slate-500 text-xs font-bold py-2.5 rounded-xl hover:bg-slate-50 transition-all" onclick="window.switchArchiveTab('freetalk')">프리토킹</button>
+                    <button id="tab_script" class="flex-1 bg-amber-50 border border-amber-400 text-amber-700 text-xs font-bold py-2.5 rounded-xl shadow-sm transition-all" onclick="window.switchArchiveTab('script')"data-i18n="ui_archive_tab_script">대본</button>
+                    <button id="tab_vocab" class="flex-1 bg-white border border-slate-200 text-slate-500 text-xs font-bold py-2.5 rounded-xl hover:bg-slate-50 transition-all" onclick="window.switchArchiveTab('vocab')"data-i18n="ui_archive_tab_vocab">단어장</button>
+                    <button id="tab_freetalk" class="flex-1 bg-white border border-slate-200 text-slate-500 text-xs font-bold py-2.5 rounded-xl hover:bg-slate-50 transition-all" onclick="window.switchArchiveTab('freetalk')"data-i18n="ui_archive_tab_freetalk">프리토킹</button>
                 </div>
             </div>
 

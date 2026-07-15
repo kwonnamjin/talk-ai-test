@@ -2878,25 +2878,31 @@ window.addEventListener('flutterInAppWebViewPlatformReady', function(event) {
 // ==========================================
 window.isAutoSend = false; // 기본값: 안전하게 텍스트창에서 검토하는 모드
 
+// 🌟 1. 다국어 번역 도우미 함수 (맨 위에 하나 추가)
+window.getTrans = function(key, defaultStr) {
+    const lang = (typeof window.getAppLang === 'function') ? window.getAppLang() : 'ko';
+    const dict = window.UI_DICTIONARY ? window.UI_DICTIONARY[lang] : null;
+    return (dict && dict[key]) ? dict[key] : defaultStr;
+};
+
+// 🌟 2. toggleAutoSend 함수 덮어쓰기
 window.toggleAutoSend = function() {
-    window.isAutoSend = !window.isAutoSend; // 상태 반전
+    window.isAutoSend = !window.isAutoSend;
     const btn = document.getElementById('autoSendToggleBtn');
     const icon = document.getElementById('autoSendIcon');
     
     if(window.isAutoSend) {
-        // ON 상태 디자인 (파란색 불 켜짐)
         btn.classList.replace('bg-slate-100', 'bg-blue-50');
         btn.classList.replace('text-slate-500', 'text-blue-600');
         btn.classList.replace('border-slate-200', 'border-blue-200');
         icon.classList.replace('fa-toggle-off', 'fa-toggle-on');
-        window.updateStatus("자동 전송 ON");
+        window.updateStatus(window.getTrans('ui_auto_send_on', "자동 전송 ON"));
     } else {
-        // OFF 상태 디자인 (회색 불 꺼짐)
         btn.classList.replace('bg-blue-50', 'bg-slate-100');
         btn.classList.replace('text-blue-600', 'text-slate-500');
         btn.classList.replace('border-blue-200', 'border-slate-200');
         icon.classList.replace('fa-toggle-on', 'fa-toggle-off');
-        window.updateStatus("자동 전송 OFF");
+        window.updateStatus(window.getTrans('ui_auto_send_off', "자동 전송 OFF"));
     }
 };
 
@@ -3235,10 +3241,9 @@ window.hasSpoken = false;
 // ==========================================
 // 1. 언어 변경 시 처리 로직 (양방향 동기화 완벽 적용)
 // ==========================================
+// 🌟 3. changeInterpLang 함수 덮어쓰기
 window.changeInterpLang = function(settingKey, langCode) {
     localStorage.setItem(settingKey, langCode);
-    
-    // 설정창 ID와 정확히 일치시켜 동기화
     const targetId = (settingKey === 'target_language') ? 'targetLanguage' : 'sttInputLanguage';
     const originSelect = document.getElementById(targetId);
     if(originSelect) {
@@ -3255,7 +3260,7 @@ window.changeInterpLang = function(settingKey, langCode) {
     window.resetMicUI();
     
     const status = document.getElementById('interp-status');
-    if(status) status.innerHTML = "언어가 변경되었습니다 🎙️";
+    if(status) status.innerHTML = window.getTrans('ui_interp_lang_changed', "언어가 변경되었습니다 🎙️");
 };
 
 // ==========================================
@@ -3327,24 +3332,27 @@ window.closeInterpreter = function() {
 window.resetMicUI = function() {
     const btnTop = document.getElementById('btn-mic-top');
     const btnBottom = document.getElementById('btn-mic-bottom');
-    
+    const otherMicText = window.getTrans('ui_interp_mic_other', "상대방 마이크 (터치하여 말하기)");
+    const myMicText = window.getTrans('ui_interp_mic_me', "내 마이크 (터치하여 말하기)");
+
     if(btnTop) {
         btnTop.className = "w-full py-3.5 rounded-xl bg-orange-100 text-orange-600 border border-orange-200 flex items-center justify-center gap-2 shadow-sm transition-all duration-300 active:scale-[0.98]";
-        btnTop.innerHTML = `<i class="fa-solid fa-microphone text-lg"></i><span class="text-sm font-bold">상대방 마이크 (터치하여 말하기)</span>`;
+        btnTop.innerHTML = `<i class="fa-solid fa-microphone text-lg"></i><span class="text-sm font-bold">${otherMicText}</span>`;
     }
     if(btnBottom) {
         btnBottom.className = "w-full py-3.5 rounded-xl bg-blue-100 text-blue-600 border border-blue-200 flex items-center justify-center gap-2 shadow-sm transition-all duration-300 active:scale-[0.98]";
-        btnBottom.innerHTML = `<i class="fa-solid fa-microphone text-lg"></i><span class="text-sm font-bold">내 마이크 (터치하여 말하기)</span>`;
+        btnBottom.innerHTML = `<i class="fa-solid fa-microphone text-lg"></i><span class="text-sm font-bold">${myMicText}</span>`;
     }
     
     const status = document.getElementById('interp-status');
-    if(status) status.innerHTML = "마이크를 선택하세요 🎙️";
+    if(status) status.innerHTML = window.getTrans('ui_interp_select_mic', "마이크를 선택하세요 🎙️");
     window.activeMicSpeaker = null;
 };
 
 // ==========================================
 // 5. 버튼 터치 시 턴 뺏기 / 수동 제어
 // ==========================================
+// 🌟 5. toggleMic 함수 덮어쓰기
 window.toggleMic = function(speaker) {
     const status = document.getElementById('interp-status');
 
@@ -3356,7 +3364,7 @@ window.toggleMic = function(speaker) {
             try { window.interpRec.abort(); } catch(e) {} 
         }
         window.resetMicUI();
-        if(status) status.innerHTML = "대기 중 (마이크를 눌러 재개) ⏸️";
+        if(status) status.innerHTML = window.getTrans('ui_interp_paused', "대기 중 (마이크를 눌러 재개) ⏸️");
         return; 
     }
 
@@ -3367,13 +3375,14 @@ window.toggleMic = function(speaker) {
         try { window.interpRec.abort(); } catch(e) {} 
     }
 
-    if(status) status.innerHTML = "턴을 가져오는 중... ⚡";
+    if(status) status.innerHTML = window.getTrans('ui_interp_getting_turn', "턴을 가져오는 중... ⚡");
     setTimeout(() => { window.startPingPongMic(speaker); }, 250);
 };
 
 // ==========================================
 // 6. 핑퐁 사이클 핵심 엔진 (대표님이 원하시는 오리지널 방식 복구!)
 // ==========================================
+// 🌟 6. startPingPongMic 함수 덮어쓰기
 window.startPingPongMic = function(speaker) {
     window.manualStop = false; 
     window.hasSpoken = false; 
@@ -3381,9 +3390,11 @@ window.startPingPongMic = function(speaker) {
     window.activeMicSpeaker = speaker;
 
     const activeBtn = speaker === 'OTHER' ? document.getElementById('btn-mic-top') : document.getElementById('btn-mic-bottom');
+    const listeningText = window.getTrans('ui_interp_listening', "듣는 중... (터치 시 턴 뺏기)");
+
     if (activeBtn) {
         activeBtn.className = "w-full py-3.5 rounded-xl bg-red-500 text-white border border-red-600 flex items-center justify-center gap-2 shadow-md transition-all duration-300 animate-pulse scale-[1.02]";
-        activeBtn.innerHTML = `<i class="fa-solid fa-bolt text-lg"></i><span class="text-sm font-bold">듣는 중... (터치 시 턴 뺏기)</span>`;
+        activeBtn.innerHTML = `<i class="fa-solid fa-bolt text-lg"></i><span class="text-sm font-bold">${listeningText}</span>`;
     }
 
     const langCode = speaker === 'ME' ? (localStorage.getItem('stt_input_language') || 'ko-KR') : (localStorage.getItem('target_language') || 'en-US');
@@ -3397,7 +3408,9 @@ window.startPingPongMic = function(speaker) {
         const status = document.getElementById('interp-status');
 
         window.interpRec.onstart = () => {
-            if(status) status.innerHTML = speaker === 'ME' ? `<span class="text-blue-600 font-bold">내 차례입니다 🎙️</span>` : `<span class="text-orange-600 font-bold">상대방 차례입니다 🎙️</span>`;
+            const myTurnTxt = window.getTrans('ui_interp_my_turn', "내 차례입니다 🎙️");
+            const otherTurnTxt = window.getTrans('ui_interp_other_turn', "상대방 차례입니다 🎙️");
+            if(status) status.innerHTML = speaker === 'ME' ? `<span class="text-blue-600 font-bold">${myTurnTxt}</span>` : `<span class="text-orange-600 font-bold">${otherTurnTxt}</span>`;
         };
 
         window.interpRec.onresult = (e) => {
@@ -3412,7 +3425,7 @@ window.startPingPongMic = function(speaker) {
             if (e.error !== 'no-speech' && e.error !== 'aborted') {
                 window.manualStop = true; 
                 window.resetMicUI();
-                if(status) status.innerHTML = "오류 발생. 마이크를 다시 누르세요.";
+                if(status) status.innerHTML = window.getTrans('ui_interp_error', "오류 발생. 마이크를 다시 누르세요.");
             }
         };
 
@@ -3420,13 +3433,11 @@ window.startPingPongMic = function(speaker) {
             if (window.manualStop) {
                 // 수동으로 멈췄을 때는 가만히 있음
             } else if (window.hasSpoken) {
-                // 🌟 말을 성공적으로 마침 -> 빠릿빠릿하게 반대쪽 턴으로 넘김! (원본의 300ms 딜레이 유지)
                 const nextSpeaker = speaker === 'ME' ? 'OTHER' : 'ME';
-                if(status) status.innerHTML = "턴 교체 중... 🏓";
+                if(status) status.innerHTML = window.getTrans('ui_interp_changing_turn', "턴 교체 중... 🏓");
                 setTimeout(() => { window.startPingPongMic(nextSpeaker); }, 300);
             } else {
-                // 🌟 말을 안 하고 끊겼을 때 -> 끄지 말고 내 차례 마이크를 다시 강제로 켬! (원본의 100ms 딜레이 유지)
-                if(status) status.innerHTML = "계속 듣고 있습니다... 👂";
+                if(status) status.innerHTML = window.getTrans('ui_interp_keep_listening', "계속 듣고 있습니다... 👂");
                 setTimeout(() => { window.startPingPongMic(speaker); }, 100);
             }
         };

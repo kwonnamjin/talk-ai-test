@@ -2070,3 +2070,159 @@ Object.keys(SUBSCRIPTION_TRANS).forEach(lang => {
         Object.assign(window.UI_DICTIONARY[lang], SUBSCRIPTION_TRANS[lang]);
     }
 });
+
+
+// ==========================================
+// 🚨 보관함 & 통역기 & 자동 전송 추가 번역 (data.js 맨 아래 추가)
+// ==========================================
+const EXTRA_TRANS = {
+    "ko": {
+        ui_archive_title: "내 보관함", ui_archive_desc: "문장 및 단어 보관",
+        ui_archive_tab_script: "대본", ui_archive_tab_vocab: "단어장", ui_archive_tab_freetalk: "프리토킹",
+        ui_auto_send: "자동 전송", ui_auto_send_on: "자동 전송 ON", ui_auto_send_off: "자동 전송 OFF",
+        ui_interp_live: "🎙️ 실시간 대면 통역", ui_interp_smart: "🧠 스마트 번역",
+        ui_interp_mic_other: "상대방 마이크 (터치하여 말하기)", ui_interp_mic_me: "내 마이크 (터치하여 말하기)",
+        ui_interp_listening: "듣는 중... (터치 시 턴 뺏기)", ui_interp_select_mic: "마이크를 선택하세요 🎙️",
+        ui_interp_my_turn: "내 차례입니다 🎙️", ui_interp_other_turn: "상대방 차례입니다 🎙️",
+        ui_interp_paused: "대기 중 (마이크를 눌러 재개) ⏸️",
+        ui_interp_lang_changed: "언어가 변경되었습니다 🎙️", ui_interp_getting_turn: "턴을 가져오는 중... ⚡",
+        ui_interp_error: "오류 발생. 마이크를 다시 누르세요.", ui_interp_changing_turn: "턴 교체 중... 🏓",
+        ui_interp_keep_listening: "계속 듣고 있습니다... 👂"
+    },
+    "en": {
+        ui_archive_title: "My Archive", ui_archive_desc: "Saved Sentences & Words",
+        ui_archive_tab_script: "Scripts", ui_archive_tab_vocab: "Vocab", ui_archive_tab_freetalk: "Free Talk",
+        ui_auto_send: "Auto Send", ui_auto_send_on: "Auto Send ON", ui_auto_send_off: "Auto Send OFF",
+        ui_interp_live: "🎙️ Live Interpreter", ui_interp_smart: "🧠 Smart Translate",
+        ui_interp_mic_other: "Other's Mic (Touch to speak)", ui_interp_mic_me: "My Mic (Touch to speak)",
+        ui_interp_listening: "Listening... (Touch to take turn)", ui_interp_select_mic: "Select a microphone 🎙️",
+        ui_interp_my_turn: "My turn 🎙️", ui_interp_other_turn: "Other's turn 🎙️",
+        ui_interp_paused: "Paused (Press mic to resume) ⏸️",
+        ui_interp_lang_changed: "Language changed 🎙️", ui_interp_getting_turn: "Taking turn... ⚡",
+        ui_interp_error: "Error. Press mic again.", ui_interp_changing_turn: "Changing turn... 🏓",
+        ui_interp_keep_listening: "Still listening... 👂"
+    },
+    "ja": {
+        ui_archive_title: "保管箱", ui_archive_desc: "文章と単語の保存",
+        ui_archive_tab_script: "台本", ui_archive_tab_vocab: "単語帳", ui_archive_tab_freetalk: "フリートーク",
+        ui_auto_send: "自動送信", ui_auto_send_on: "自動送信 ON", ui_auto_send_off: "自動送信 OFF",
+        ui_interp_live: "🎙️ リアルタイム通訳", ui_interp_smart: "🧠 スマート翻訳",
+        ui_interp_mic_other: "相手のマイク (タッチして話す)", ui_interp_mic_me: "自分のマイク (タッチして話す)",
+        ui_interp_listening: "リスニング中... (タッチでターンを奪う)", ui_interp_select_mic: "マイクを選択してください 🎙️",
+        ui_interp_my_turn: "私のターンです 🎙️", ui_interp_other_turn: "相手のターンです 🎙️",
+        ui_interp_paused: "待機中 (マイクを押して再開) ⏸️",
+        ui_interp_lang_changed: "言語が変更されました 🎙️", ui_interp_getting_turn: "ターンを取得中... ⚡",
+        ui_interp_error: "エラー発生。再度押してください。", ui_interp_changing_turn: "ターン交替中... 🏓",
+        ui_interp_keep_listening: "継続してリスニング中... 👂"
+    },
+    "zh": {
+        ui_archive_title: "我的收藏", ui_archive_desc: "句子和单词保存",
+        ui_archive_tab_script: "剧本", ui_archive_tab_vocab: "单词本", ui_archive_tab_freetalk: "自由对话",
+        ui_auto_send: "自动发送", ui_auto_send_on: "自动发送开启", ui_auto_send_off: "自动发送关闭",
+        ui_interp_live: "🎙️ 实时同传", ui_interp_smart: "🧠 智能翻译",
+        ui_interp_mic_other: "对方麦克风 (点击说话)", ui_interp_mic_me: "我的麦克风 (点击说话)",
+        ui_interp_listening: "聆听中... (点击抢占回合)", ui_interp_select_mic: "请选择麦克风 🎙️",
+        ui_interp_my_turn: "到我了 🎙️", ui_interp_other_turn: "对方回合 🎙️",
+        ui_interp_paused: "暂停中 (点击麦克风恢复) ⏸️",
+        ui_interp_lang_changed: "语言已更改 🎙️", ui_interp_getting_turn: "正在抢占回合... ⚡",
+        ui_interp_error: "发生错误，请重新点击。", ui_interp_changing_turn: "回合切换中... 🏓",
+        ui_interp_keep_listening: "继续聆听中... 👂"
+    },
+    "es": {
+        ui_archive_title: "Mi Archivo", ui_archive_desc: "Oraciones y palabras guardadas",
+        ui_archive_tab_script: "Guion", ui_archive_tab_vocab: "Vocabulario", ui_archive_tab_freetalk: "Charla Libre",
+        ui_auto_send: "Envío Auto", ui_auto_send_on: "Envío Auto ON", ui_auto_send_off: "Envío Auto OFF",
+        ui_interp_live: "🎙️ Intérprete en Vivo", ui_interp_smart: "🧠 Traducción Inteligente",
+        ui_interp_mic_other: "Mic. del Otro (Toca para hablar)", ui_interp_mic_me: "Mi Mic (Toca para hablar)",
+        ui_interp_listening: "Escuchando... (Toca para tu turno)", ui_interp_select_mic: "Selecciona un micrófono 🎙️",
+        ui_interp_my_turn: "Mi turno 🎙️", ui_interp_other_turn: "Turno del otro 🎙️",
+        ui_interp_paused: "En espera (Presiona el mic) ⏸️",
+        ui_interp_lang_changed: "Idioma cambiado 🎙️", ui_interp_getting_turn: "Tomando el turno... ⚡",
+        ui_interp_error: "Error. Presiona el micrófono.", ui_interp_changing_turn: "Cambiando turno... 🏓",
+        ui_interp_keep_listening: "Sigo escuchando... 👂"
+    },
+    "fr": {
+        ui_archive_title: "Mon Archive", ui_archive_desc: "Phrases et mots",
+        ui_archive_tab_script: "Script", ui_archive_tab_vocab: "Vocabulaire", ui_archive_tab_freetalk: "Disc. Libre",
+        ui_auto_send: "Envoi Auto", ui_auto_send_on: "Envoi Auto ON", ui_auto_send_off: "Envoi Auto OFF",
+        ui_interp_live: "🎙️ Interprète en Direct", ui_interp_smart: "🧠 Traduction Intelligente",
+        ui_interp_mic_other: "Mic. Autre (Toucher pour parler)", ui_interp_mic_me: "Mon Mic (Toucher pour parler)",
+        ui_interp_listening: "Écoute... (Toucher pour votre tour)", ui_interp_select_mic: "Sélectionnez un micro 🎙️",
+        ui_interp_my_turn: "Mon tour 🎙️", ui_interp_other_turn: "Tour de l'autre 🎙️",
+        ui_interp_paused: "En attente (Appuyez sur le micro) ⏸️",
+        ui_interp_lang_changed: "Langue changée 🎙️", ui_interp_getting_turn: "Prise du tour... ⚡",
+        ui_interp_error: "Erreur. Appuyez à nouveau.", ui_interp_changing_turn: "Changement de tour... 🏓",
+        ui_interp_keep_listening: "Je continue d'écouter... 👂"
+    },
+    "de": {
+        ui_archive_title: "Mein Archiv", ui_archive_desc: "Gespeicherte Sätze & Wörter",
+        ui_archive_tab_script: "Skript", ui_archive_tab_vocab: "Vokabeln", ui_archive_tab_freetalk: "Freies Gespräch",
+        ui_auto_send: "Auto-Senden", ui_auto_send_on: "Auto-Senden AN", ui_auto_send_off: "Auto-Senden AUS",
+        ui_interp_live: "🎙️ Live-Dolmetscher", ui_interp_smart: "🧠 Smart-Übersetzer",
+        ui_interp_mic_other: "Anderes Mikro (Tippen zum Sprechen)", ui_interp_mic_me: "Mein Mikro (Tippen zum Sprechen)",
+        ui_interp_listening: "Höre zu... (Tippen für deinen Zug)", ui_interp_select_mic: "Mikrofon auswählen 🎙️",
+        ui_interp_my_turn: "Ich bin dran 🎙️", ui_interp_other_turn: "Anderer ist dran 🎙️",
+        ui_interp_paused: "Pausiert (Mikrofon drücken) ⏸️",
+        ui_interp_lang_changed: "Sprache geändert 🎙️", ui_interp_getting_turn: "Zug wird übernommen... ⚡",
+        ui_interp_error: "Fehler. Mikrofon erneut drücken.", ui_interp_changing_turn: "Zugwechsel... 🏓",
+        ui_interp_keep_listening: "Höre weiterhin zu... 👂"
+    },
+    "vi": {
+        ui_archive_title: "Lưu trữ của tôi", ui_archive_desc: "Lưu câu và từ vựng",
+        ui_archive_tab_script: "Kịch bản", ui_archive_tab_vocab: "Từ vựng", ui_archive_tab_freetalk: "Trò chuyện",
+        ui_auto_send: "Gửi tự động", ui_auto_send_on: "Gửi tự động BẬT", ui_auto_send_off: "Gửi tự động TẮT",
+        ui_interp_live: "🎙️ Phiên dịch trực tiếp", ui_interp_smart: "🧠 Dịch thông minh",
+        ui_interp_mic_other: "Mic đối phương (Chạm để nói)", ui_interp_mic_me: "Mic của tôi (Chạm để nói)",
+        ui_interp_listening: "Đang nghe... (Chạm để giành lượt)", ui_interp_select_mic: "Chọn micro 🎙️",
+        ui_interp_my_turn: "Lượt của tôi 🎙️", ui_interp_other_turn: "Lượt đối phương 🎙️",
+        ui_interp_paused: "Tạm dừng (Nhấn mic để tiếp tục) ⏸️",
+        ui_interp_lang_changed: "Đã thay đổi ngôn ngữ 🎙️", ui_interp_getting_turn: "Đang chuyển lượt... ⚡",
+        ui_interp_error: "Có lỗi. Nhấn lại mic.", ui_interp_changing_turn: "Đang đổi lượt... 🏓",
+        ui_interp_keep_listening: "Vẫn đang nghe... 👂"
+    },
+    "ru": {
+        ui_archive_title: "Мой архив", ui_archive_desc: "Сохраненные предложения и слова",
+        ui_archive_tab_script: "Сценарий", ui_archive_tab_vocab: "Словарь", ui_archive_tab_freetalk: "Общение",
+        ui_auto_send: "Автоотправка", ui_auto_send_on: "Автоотправка ВКЛ", ui_auto_send_off: "Автоотправка ВЫКЛ",
+        ui_interp_live: "🎙️ Живой переводчик", ui_interp_smart: "🧠 Умный перевод",
+        ui_interp_mic_other: "Микр. собеседника (Нажмите, чтобы говорить)", ui_interp_mic_me: "Мой микр. (Нажмите, чтобы говорить)",
+        ui_interp_listening: "Слушаю... (Нажмите, чтобы перебить)", ui_interp_select_mic: "Выберите микрофон 🎙️",
+        ui_interp_my_turn: "Моя очередь 🎙️", ui_interp_other_turn: "Очередь собеседника 🎙️",
+        ui_interp_paused: "Ожидание (Нажмите микрофон) ⏸️",
+        ui_interp_lang_changed: "Язык изменен 🎙️", ui_interp_getting_turn: "Беру слово... ⚡",
+        ui_interp_error: "Ошибка. Нажмите микрофон еще раз.", ui_interp_changing_turn: "Смена очереди... 🏓",
+        ui_interp_keep_listening: "Продолжаю слушать... 👂"
+    },
+    "th": {
+        ui_archive_title: "ที่เก็บข้อมูล", ui_archive_desc: "บันทึกประโยคและคำศัพท์",
+        ui_archive_tab_script: "สคริปต์", ui_archive_tab_vocab: "คำศัพท์", ui_archive_tab_freetalk: "คุยอิสระ",
+        ui_auto_send: "ส่งอัตโนมัติ", ui_auto_send_on: "เปิดส่งอัตโนมัติ", ui_auto_send_off: "ปิดส่งอัตโนมัติ",
+        ui_interp_live: "🎙️ ล่ามสด", ui_interp_smart: "🧠 แปลอัจฉริยะ",
+        ui_interp_mic_other: "ไมค์อีกฝ่าย (แตะเพื่อพูด)", ui_interp_mic_me: "ไมค์ของฉัน (แตะเพื่อพูด)",
+        ui_interp_listening: "กำลังฟัง... (แตะเพื่อแย่งคิว)", ui_interp_select_mic: "เลือกไมโครโฟน 🎙️",
+        ui_interp_my_turn: "ตาฉันแล้ว 🎙️", ui_interp_other_turn: "ตาอีกฝ่าย 🎙️",
+        ui_interp_paused: "หยุดชั่วคราว (กดไมค์เพื่อทำต่อ) ⏸️",
+        ui_interp_lang_changed: "เปลี่ยนภาษาแล้ว 🎙️", ui_interp_getting_turn: "กำลังรับคิว... ⚡",
+        ui_interp_error: "เกิดข้อผิดพลาด โปรดกดไมค์อีกครั้ง", ui_interp_changing_turn: "กำลังเปลี่ยนคิว... 🏓",
+        ui_interp_keep_listening: "กำลังฟังอยู่... 👂"
+    },
+    "ar": {
+        ui_archive_title: "أرشيفي", ui_archive_desc: "حفظ الجمل والكلمات",
+        ui_archive_tab_script: "سيناريو", ui_archive_tab_vocab: "مفردات", ui_archive_tab_freetalk: "محادثة حرة",
+        ui_auto_send: "إرسال تلقائي", ui_auto_send_on: "تشغيل الإرسال التلقائي", ui_auto_send_off: "إيقاف الإرسال التلقائي",
+        ui_interp_live: "🎙️ مترجم مباشر", ui_interp_smart: "🧠 ترجمة ذكية",
+        ui_interp_mic_other: "ميكروفون الطرف الآخر (المس للتحدث)", ui_interp_mic_me: "ميكروفوني (المس للتحدث)",
+        ui_interp_listening: "أستمع... (المس لأخذ الدور)", ui_interp_select_mic: "اختر الميكروفون 🎙️",
+        ui_interp_my_turn: "دوري 🎙️", ui_interp_other_turn: "دور الطرف الآخر 🎙️",
+        ui_interp_paused: "قيد الانتظار (اضغط على الميكروفون) ⏸️",
+        ui_interp_lang_changed: "تم تغيير اللغة 🎙️", ui_interp_getting_turn: "أخذ الدور... ⚡",
+        ui_interp_error: "حدث خطأ. اضغط على الميكروفون مرة أخرى.", ui_interp_changing_turn: "جاري تبديل الدور... 🏓",
+        ui_interp_keep_listening: "ما زلت أستمع... 👂"
+    }
+};
+
+Object.keys(EXTRA_TRANS).forEach(lang => {
+    if (window.UI_DICTIONARY && window.UI_DICTIONARY[lang]) {
+        Object.assign(window.UI_DICTIONARY[lang], EXTRA_TRANS[lang]);
+    }
+});
