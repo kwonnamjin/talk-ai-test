@@ -2841,13 +2841,38 @@ window.saveCustomCharacter = function() {
 // 🌟 3. 커스텀 캐릭터 삭제
 window.deleteCustomCharacter = function(id, event) {
     event.stopPropagation(); 
-    if(!confirm("이 캐릭터를 삭제하시겠습니까?")) return;
+    
     let chars = JSON.parse(localStorage.getItem('my_custom_characters') || '[]');
+    
+    // 💡 방어막 추가: 남은 캐릭터가 1명일 때는 삭제 불가!
+    if (chars.length <= 1) {
+        alert("최소 1명의 AI 튜터는 남겨두어야 합니다!");
+        return; 
+    }
+    
+    if(!confirm("이 캐릭터를 삭제하시겠습니까?")) return;
+    
     chars = chars.filter(c => c.id !== id);
     localStorage.setItem('my_custom_characters', JSON.stringify(chars));
     
+    // 💡 추가된 부분: 해당 캐릭터의 500자 기억력 데이터 영구 삭제 (가비지 컬렉션)
+    localStorage.removeItem('user_memory_custom_' + id);
+    
     let currentUserCustom = JSON.parse(localStorage.getItem('user_custom_persona') || '{}');
-    if(window.currentPersona === 'custom' && currentUserCustom.id === id) window.selectPersona('friend');
+    
+    // 삭제한 캐릭터가 '현재 선택된 캐릭터'일 경우의 처리
+    if(window.currentPersona === 'custom' && currentUserCustom.id === id) {
+        // 💡 수정된 부분: 'friend'는 이제 없으므로, 다른 캐릭터가 남아있으면 그걸 선택하고 없으면 초기화
+        if (chars.length > 0) {
+            window.selectPersona('custom', chars[0].id);
+        } else {
+            // 남은 캐릭터가 하나도 없을 때의 깔끔한 초기화
+            localStorage.removeItem('user_custom_persona');
+            localStorage.removeItem('active_system_prompt');
+            window.currentPersona = null; // 선택 해제
+        }
+    }
+    
     window.renderCustomCharacters();
 };
 
