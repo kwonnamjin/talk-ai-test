@@ -1,5 +1,5 @@
 // 🌟 1. 전역 변수 초기화
-const WORKER_URL = "https://holy-tree-32c5.thin770.workers.dev/";
+const WORKER_URL = "https://talkaitest.thin770.workers.dev/";
 
 let isListening = false, isSpeaking = false, recognition = null;
 const synthesis = window.speechSynthesis;
@@ -19,7 +19,12 @@ const avatarWrap = document.getElementById('avatarWrap'), stopAudioBtn = documen
 const selectionTooltip = document.getElementById('selectionTooltip');
 
 localStorage.removeItem('is_test_mode');
-
+// script.js 파일 가장 상단에 추가
+window.getAppLang = function() {
+    // 여기서 현재 앱의 언어 설정을 반환하도록 만드세요.
+    // 예: localStorage에 저장된 값을 가져오거나 기본값 반환
+    return localStorage.getItem('appLang') || 'ko';
+};
 // ==========================================
 // 💖 AI 친밀도 & 감성 시스템 모듈
 // ==========================================
