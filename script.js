@@ -2613,7 +2613,33 @@ window.loadVoicesToUI = function(voicesJson) {
 };
 
 window.onload = function() {
+    // 1. 기존에 있던 로컬 음성 엔진 준비 요청
     window.requestVoicesFromApp();
+
+    // 2. 첫 실행 시 '기본 캐릭터' 자동 생성
+    let chars = JSON.parse(localStorage.getItem('my_custom_characters') || '[]');
+    let isFirstRun = localStorage.getItem('is_first_run_done');
+
+    if (chars.length === 0 && !isFirstRun) {
+        const defaultId = Date.now().toString();
+        chars.push({ 
+            id: defaultId, 
+            name: '가이드', 
+            age: '20', 
+            gender: 'Female', 
+            prompt: '사용자의 앱 적응과 영어 학습을 돕는 친절하고 다정한 안내원입니다.' 
+        });
+        localStorage.setItem('my_custom_characters', JSON.stringify(chars));
+        localStorage.setItem('is_first_run_done', 'true'); 
+        
+        // 💡 화면에 방금 만든 캐릭터 버튼을 그려주고, 바로 선택된 상태로 만듭니다.
+        if (typeof window.renderCustomCharacters === 'function') {
+            window.renderCustomCharacters();
+        }
+        if (typeof window.selectPersona === 'function') {
+            window.selectPersona('custom', defaultId); 
+        }
+    }
 };
 
 window.updateVoiceDisplay = function(voiceName) {
