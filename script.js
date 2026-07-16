@@ -2623,12 +2623,13 @@ window.onload = function() {
     if (chars.length === 0 && !isFirstRun) {
         const defaultId = Date.now().toString();
         chars.push({ 
-            id: defaultId, 
-            name: '가이드', 
-            age: '20', 
-            gender: 'Female', 
-            prompt: '사용자의 앱 적응과 영어 학습을 돕는 친절하고 다정한 안내원입니다.' 
-        });
+        id: defaultId, 
+        name: '제인', // 가이드 대신 친근한 이름으로
+        age: '25', 
+        gender: 'Female', 
+        // 💡 프롬프트에서 '앱 안내'를 빼고 '영어 대화'에만 집중시킵니다.
+        prompt: '사용자의 첫 영어 스터디 메이트입니다. 친절하고 밝은 성격이며, 일상적인 대화나 영어 연습을 편안하게 이끌어줍니다. 앱 기능에 대해 물어보면 모른다고 하세요.' 
+    });
         localStorage.setItem('my_custom_characters', JSON.stringify(chars));
         localStorage.setItem('is_first_run_done', 'true'); 
         
