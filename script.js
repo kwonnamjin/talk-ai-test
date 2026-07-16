@@ -19,7 +19,12 @@ const avatarWrap = document.getElementById('avatarWrap'), stopAudioBtn = documen
 const selectionTooltip = document.getElementById('selectionTooltip');
 
 localStorage.removeItem('is_test_mode');
-
+// window.getAppLang 함수 선언 추가
+window.getAppLang = function() {
+    // 앱에서 사용할 언어 값을 반환하세요. 
+    // 예: 'ko', 'en' 등 (일단 'ko'로 고정해서 테스트해 보세요)
+    return 'ko'; 
+};
 // ==========================================
 // 💖 AI 친밀도 & 감성 시스템 모듈
 // ==========================================
