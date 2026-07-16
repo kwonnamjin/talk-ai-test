@@ -2733,9 +2733,18 @@ window.selectPersona = function(mode, customId = null) {
         localStorage.setItem('custom_id', customId);
         let chars = JSON.parse(localStorage.getItem('my_custom_characters') || '[]');
         let selectedChar = chars.find(c => c.id === customId);
-        if (selectedChar) localStorage.setItem('user_custom_persona', JSON.stringify(selectedChar));
+        
+        if (selectedChar) {
+            // 1. 기존처럼 데이터 객체 저장
+            localStorage.setItem('user_custom_persona', JSON.stringify(selectedChar));
+            
+            // 💡 2. AI에게 주입할 '완성형 메모장(프롬프트)'을 여기서 미리 조합해서 저장합니다!
+            const fullPersona = `[캐릭터 정체성] 당신의 이름은 '${selectedChar.name}'이고, 나이는 ${selectedChar.age}세, 성별은 ${selectedChar.gender}입니다. 당신의 성격과 역할은 다음과 같습니다: ${selectedChar.prompt}. 당신은 AI라는 것을 밝히지 말고, 완벽하게 이 캐릭터로서 사용자와 대화하세요.`;
+            localStorage.setItem('active_system_prompt', fullPersona);
+        }
     } else {
         localStorage.removeItem('user_custom_persona'); 
+        localStorage.removeItem('active_system_prompt'); // 다른 모드일 땐 지워주기
     }
 
     // 스타일 초기화 후 선택된 것만 불 켜기
@@ -2752,38 +2761,50 @@ window.selectPersona = function(mode, customId = null) {
     }
 
     //window.clearChatSession();
-    window.updateStatus(`${mode === 'custom' ? '나만의 AI' : mode} 모드 적용!`);
+    window.updateStatus(`나만의 AI 도감 적용!`);
 };
-
 // 🌟 2. 커스텀 캐릭터 생성 (슬롯 제한 및 클릭 방지)
 window.saveCustomCharacter = function() {
     const nameInput = document.getElementById('newCharName');
+    const ageInput = document.getElementById('newCharAge');
+    const genderInput = document.getElementById('newCharGender');
     const promptInput = document.getElementById('newCharPrompt');
-    if(!nameInput || !promptInput) return;
+
+    if(!nameInput || !ageInput || !genderInput || !promptInput) return;
 
     const name = nameInput.value.trim();
+    const age = ageInput.value.trim();
+    const gender = genderInput.value.trim();
     const prompt = promptInput.value.trim();
     
-    if (!name || !prompt) return alert("이름과 성격을 모두 입력해주세요!");
+    if (!name || !age || !gender || !prompt) return alert("모든 항목을 입력해주세요!");
 
-    // 💡 핵심 1: 글자 수 50자 철벽 방어
-    if (prompt.length > 50) {
-        return alert("서버 쾌적화를 위해 캐릭터 성격은 50자 이내로 굵고 짧게 적어주세요!");
+    // 캐릭터 성격 길이를 200자까지 확장 (UI에서 200자로 늘리셨으니)
+    if (prompt.length > 200) {
+        return alert("성격은 200자 이내로 입력해주세요!");
     }
 
     let chars = JSON.parse(localStorage.getItem('my_custom_characters') || '[]');
     
-    // 💡 핵심 2: 슬롯을 3개에서 1개로 축소 (1개 이상이면 기존 것 덮어쓰기)
-    if (chars.length >= 1) {
-        alert("커스텀 AI는 1명만 생성 가능합니다. 기존 AI가 새로운 AI로 교체됩니다.");
-        chars = []; // 기존 배열을 아예 비워버림
+    // 💡 수정: 슬롯 제한을 3개로 변경
+    if (chars.length >= 3) {
+        return alert("캐릭터는 최대 3개까지만 생성 가능합니다. 하나를 삭제하고 다시 생성해주세요.");
     }
 
     const newId = Date.now().toString();
-    chars.push({ id: newId, name: name, prompt: prompt });
+    // 💡 수정: 저장하는 데이터 객체에 나이와 성별 추가
+    chars.push({ 
+        id: newId, 
+        name: name, 
+        age: age, 
+        gender: gender, 
+        prompt: prompt 
+    });
+    
     localStorage.setItem('my_custom_characters', JSON.stringify(chars));
 
-    nameInput.value = ''; promptInput.value = '';
+    // 입력값 초기화
+    nameInput.value = ''; ageInput.value = ''; genderInput.value = ''; promptInput.value = '';
     document.getElementById('newCharacterForm').classList.add('hidden');
 
     window.renderCustomCharacters();
@@ -2822,13 +2843,18 @@ window.renderCustomCharacters = function() {
     }
 
     chars.forEach(char => {
-        // 💡 버튼 디자인 수정: 높이를 대폭 줄이고(py-1.5), 성격(prompt) 텍스트는 숨김 처리
+        // 💡 버튼 디자인 수정: flex-col을 써서 이름과(나이/성별)을 위아래로 예쁘게 정렬합니다.
         listArea.insertAdjacentHTML('beforeend', `
-            <button id="btn_persona_custom_${char.id}" onclick="window.selectPersona('custom', '${char.id}')" class="persona-btn relative flex items-center justify-center w-full py-1.5 px-2 border border-slate-200 bg-white rounded-lg transition-all shadow-sm group">
-                <span class="text-[10px] font-black text-slate-700 truncate w-full text-center mr-2">${char.name}</span>
+            <button id="btn_persona_custom_${char.id}" onclick="window.selectPersona('custom', '${char.id}')" class="persona-btn relative flex flex-col items-center justify-center w-full py-2 px-1.5 border border-slate-200 bg-white rounded-lg transition-all shadow-sm group overflow-hidden">
                 
-                <!-- 💡 삭제 버튼: 우측 상단에 작게 엑스(X) 마크로 변경 -->
-                <div onclick="window.deleteCustomCharacter('${char.id}', event)" class="absolute top-0 right-0 p-1 text-rose-300 hover:text-rose-500 transition-colors z-10">
+                <!-- 텍스트 영역 (우측 엑스 버튼과 겹치지 않게 pr-2 추가) -->
+                <div class="w-full pr-2 flex flex-col items-center justify-center gap-[2px]">
+                    <span class="text-[10px] font-black text-slate-700 truncate w-full text-center leading-tight">${char.name}</span>
+                    <span class="text-[8px] font-bold text-slate-400 truncate w-full text-center leading-tight">${char.age} · ${char.gender}</span>
+                </div>
+                
+                <!-- 💡 삭제 버튼: 기존과 동일 (우측 상단) -->
+                <div onclick="window.deleteCustomCharacter('${char.id}', event)" class="absolute top-0 right-0 p-1 text-slate-300 hover:text-rose-500 transition-colors z-10">
                     <i class="fa-solid fa-xmark text-[9px]"></i>
                 </div>
             </button>
