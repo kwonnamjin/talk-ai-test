@@ -3579,7 +3579,8 @@ window.updateUiLanguage = function(newLang) {
 }
 // 🌟 언어 변경 시 화면 전체를 즉시 번역하는 강제 갱신 함수
 window.refreshAllTranslations = function() {
-    const lang = window.getAppLang(); // 현재 설정된 언어 가져오기
+    const langCode = localStorage.getItem('explanation_language') || 'ko-KR';
+    const lang = langCode.split('-')[0];
     
     // 1. 배너 텍스트 갱신
     if (typeof window.applyBannerTranslation === 'function') {
