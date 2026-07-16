@@ -118,7 +118,21 @@
                 </div>
             </div>
 
-            <div id="inlineSparePanel" class="hidden panel-popup bg-white/95 backdrop-blur-md border-b border-x border-slate-200 rounded-b-xl shadow-lg p-3 mb-4 z-10 relative flex flex-col gap-2">
+            <!-- AI Mind 패널 -->
+            <div id="inlineMemoryPanel" class="hidden panel-popup bg-white/95 backdrop-blur-md border-b border-x border-slate-200 rounded-b-xl shadow-lg p-4 mb-4 z-10 relative">
+    <div class="flex items-center gap-1.5 border-b border-slate-100 pb-2 mb-2">
+        <div class="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center border border-purple-200">
+            <i class="fa-solid fa-robot text-xs text-purple-600"></i>
+        </div>
+        <p id="ui_home_memory_title" class="text-[11px] font-black text-slate-700">AI의 기억 🧠</p>
+    </div>
+    <!-- 💡 수정된 부분: max-h-[250px]와 overflow-y-auto를 삭제하여 스크롤을 없애고 창이 내용에 맞춰 늘어나게 함 -->
+    <div id="ai_memory_display" class="text-[11px] text-slate-700 font-bold leading-relaxed whitespace-pre-wrap mt-2 pl-1">
+    데이터 로딩 중...
+</div>
+</div>
+
+<div id="inlineSparePanel" class="hidden panel-popup bg-white/95 backdrop-blur-md border-b border-x border-slate-200 rounded-b-xl shadow-lg p-3 mb-4 z-10 relative flex flex-col gap-2">
     
     <!-- 기본 AI 선택 영역 삭제 완료 -->
 
