@@ -2756,29 +2756,39 @@ window.selectPersona = function(mode, customId = null) {
     localStorage.setItem('ai_persona', mode);
     localStorage.setItem('current_persona', mode);
 
-    if (mode === 'custom' && customId) {
-    localStorage.setItem('custom_id', customId);
-    let chars = JSON.parse(localStorage.getItem('my_custom_characters') || '[]');
-    let selectedChar = chars.find(c => c.id === customId);
-    
-    if (selectedChar) {
-        localStorage.setItem('user_custom_persona', JSON.stringify(selectedChar));
-        const fullPersona = `[캐릭터 정체성] 당신의 이름은 '${selectedChar.name}'이고, 나이는 ${selectedChar.age}세, 성별은 ${selectedChar.gender}입니다. 당신의 성격과 역할은 다음과 같습니다: ${selectedChar.prompt}. 당신은 AI라는 것을 밝히지 말고, 완벽하게 이 캐릭터로서 사용자와 대화하세요.`;
-        localStorage.setItem('active_system_prompt', fullPersona);
+    // 💡 유니티 iframe 미리 찾기
+    const iframe = document.getElementById('unity-iframe');
 
-        // 🌟 추가된 부분: 저장해둔 유니티 캐릭터 ID(Char_01 등)를 유니티로 전송 🌟
-        const iframe = document.getElementById('unity-iframe');
-        if (iframe && iframe.contentWindow && iframe.contentWindow.myUnityInstance) {
-            // 대표님이 유니티 내에 만들어둔 '특정 캐릭터 바로 불러오기' 함수를 호출합니다.
-            // 예: iframe.contentWindow.myUnityInstance.SendMessage('CharacterManager', 'LoadSpecificCharacter', selectedChar.unityChar);
+    if (mode === 'custom' && customId) {
+        localStorage.setItem('custom_id', customId);
+        let chars = JSON.parse(localStorage.getItem('my_custom_characters') || '[]');
+        let selectedChar = chars.find(c => c.id === customId);
+        
+        if (selectedChar) {
+            localStorage.setItem('user_custom_persona', JSON.stringify(selectedChar));
+            const fullPersona = `[캐릭터 정체성] 당신의 이름은 '${selectedChar.name}'이고, 나이는 ${selectedChar.age}세, 성별은 ${selectedChar.gender}입니다. 당신의 성격과 역할은 다음과 같습니다: ${selectedChar.prompt}. 당신은 AI라는 것을 밝히지 말고, 완벽하게 이 캐릭터로서 사용자와 대화하세요.`;
+            localStorage.setItem('active_system_prompt', fullPersona);
+
+            // 🚀 핵심: 유니티로 선택된 캐릭터 ID(예: Avatar 04) 강제 쏘기!
+            if (iframe && iframe.contentWindow && iframe.contentWindow.myUnityInstance) {
+                // 저장된 unityChar가 없으면 기본값 Avatar 01 사용
+                const targetAvatar = selectedChar.unityChar ? selectedChar.unityChar : "Avatar 01";
+                
+                // 유니티 하이라키의 'CharacterManager' 오브젝트에 있는 LoadSpecificCharacter 함수 실행
+                iframe.contentWindow.myUnityInstance.SendMessage('CharacterManager', 'LoadSpecificCharacter', targetAvatar);
+            }
         }
-    }
     } else {
         localStorage.removeItem('user_custom_persona'); 
-        localStorage.removeItem('active_system_prompt'); // 다른 모드일 땐 지워주기
+        localStorage.removeItem('active_system_prompt');
+        
+        // 🚀 핵심: 기본 AI(비서, 가이드 등)를 골랐을 때는 무조건 1번 캐릭터로 돌아가게 세팅
+        if (iframe && iframe.contentWindow && iframe.contentWindow.myUnityInstance) {
+            iframe.contentWindow.myUnityInstance.SendMessage('CharacterManager', 'LoadSpecificCharacter', 'Avatar 01');
+        }
     }
 
-    // 스타일 초기화 후 선택된 것만 불 켜기
+    // 아래는 기존에 있던 버튼 디자인 변경 코드 (그대로 유지)
     document.querySelectorAll('.persona-btn').forEach(btn => {
         btn.classList.remove('bg-gradient-to-r', 'from-blue-500', 'to-indigo-500', 'text-white', 'border-transparent', 'scale-105');
         btn.classList.add('bg-white', 'text-slate-400', 'border-slate-200');
@@ -2791,8 +2801,7 @@ window.selectPersona = function(mode, customId = null) {
         activeBtn.classList.add('bg-gradient-to-r', 'from-blue-500', 'to-indigo-500', 'text-white', 'border-transparent', 'scale-105');
     }
 
-    //window.clearChatSession();
-    window.updateStatus(`나만의 AI 도감 적용!`);
+    window.updateStatus(`페르소나 변경 완료!`);
 };
 // 🌟 2. 커스텀 캐릭터 생성 (슬롯 제한 및 클릭 방지)
 window.saveCustomCharacter = function() {
