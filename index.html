@@ -152,21 +152,35 @@
         </button>
         
         <div id="newCharacterForm" class="hidden mt-2 p-2.5 bg-white border border-rose-100 rounded-xl shadow-inner flex flex-col gap-2 relative">
-            <div class="absolute top-0 right-0 bg-rose-400 text-white text-[9px] px-2 py-0.5 rounded-bl-lg font-black z-10">SLOT: 3</div>
-            
-            <!-- 이름, 나이, 성별 입력 필드 세분화 -->
-            <div class="flex gap-1.5 mt-3">
-                <input type="text" id="newCharName" maxlength="10" placeholder="Name" class="w-1/2 p-1.5 text-[11px] border border-slate-200 rounded-lg outline-none focus:border-rose-400 bg-slate-50">
-                <input type="text" id="newCharAge" maxlength="3" placeholder="Age" class="w-1/4 p-1.5 text-[11px] border border-slate-200 rounded-lg outline-none focus:border-rose-400 bg-slate-50">
-                <input type="text" id="newCharGender" maxlength="6" placeholder="Gender" class="w-1/4 p-1.5 text-[11px] border border-slate-200 rounded-lg outline-none focus:border-rose-400 bg-slate-50">
-            </div>
-            
-            <textarea id="newCharPrompt" maxlength="200" placeholder="Personality/Role (예: 10년차 영어 강사...)" class="w-full p-1.5 text-[11px] border border-slate-200 rounded-lg outline-none focus:border-rose-400 h-10 resize-none bg-slate-50"></textarea>
-            
-            <button onclick="window.saveCustomCharacter();" class="w-full bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs py-2 rounded-lg transition-colors shadow-sm">
-                <span data-i18n="ui_save_custom_char">생성하기</span>
-            </button>
+    <div class="absolute top-0 right-0 bg-rose-400 text-white text-[9px] px-2 py-0.5 rounded-bl-lg font-black z-10">SLOT: 3</div>
+    
+    <!-- 🌟 새롭게 추가된 3D 캐릭터 선택 UI 🌟 -->
+    <div class="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-lg p-2 mt-3">
+        <button onclick="window.changeUnityChar(-1)" class="w-8 h-8 rounded-full bg-white shadow-sm border border-slate-200 text-slate-500 font-bold hover:bg-slate-100 flex items-center justify-center transition-all">
+            <i class="fa-solid fa-chevron-left text-xs"></i>
+        </button>
+        <div class="flex flex-col items-center">
+            <span class="text-[9px] font-bold text-rose-400 mb-0.5">3D 외형 선택</span>
+           <span id="newCharModelDisplay" class="text-xs font-black text-slate-700" data-char-id="Avatar 01">캐릭터 1</span>
         </div>
+        <button onclick="window.changeUnityChar(1)" class="w-8 h-8 rounded-full bg-white shadow-sm border border-slate-200 text-slate-500 font-bold hover:bg-slate-100 flex items-center justify-center transition-all">
+            <i class="fa-solid fa-chevron-right text-xs"></i>
+        </button>
+    </div>
+    
+    <!-- 기존 이름, 나이, 성별 입력 필드 (마진 mt-3을 제거해 간격 조절) -->
+    <div class="flex gap-1.5 mt-1">
+        <input type="text" id="newCharName" maxlength="10" placeholder="Name" class="w-1/2 p-1.5 text-[11px] border border-slate-200 rounded-lg outline-none focus:border-rose-400 bg-slate-50">
+        <input type="text" id="newCharAge" maxlength="3" placeholder="Age" class="w-1/4 p-1.5 text-[11px] border border-slate-200 rounded-lg outline-none focus:border-rose-400 bg-slate-50">
+        <input type="text" id="newCharGender" maxlength="6" placeholder="Gender" class="w-1/4 p-1.5 text-[11px] border border-slate-200 rounded-lg outline-none focus:border-rose-400 bg-slate-50">
+    </div>
+    
+    <textarea id="newCharPrompt" maxlength="200" placeholder="Personality/Role (예: 10년차 영어 강사...)" class="w-full p-1.5 text-[11px] border border-slate-200 rounded-lg outline-none focus:border-rose-400 h-10 resize-none bg-slate-50"></textarea>
+    
+    <button onclick="window.saveCustomCharacter();" class="w-full bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs py-2 rounded-lg transition-colors shadow-sm">
+        <span data-i18n="ui_save_custom_char">생성하기</span>
+    </button>
+</div>
     </div>
 </div>
 
@@ -306,11 +320,7 @@
 
     
 <div id="home-tab-content">
-   <div id="character-ui">
-  <button class="char-btn" onclick="document.getElementById('unity-iframe').contentWindow.clickPrev()">◁</button>
-  <button class="select-btn" onclick="document.getElementById('unity-iframe').contentWindow.clickSelect()">select</button>
-  <button class="char-btn" onclick="document.getElementById('unity-iframe').contentWindow.clickNext()">▷</button>
-</div>
+   
 </div>
     
 

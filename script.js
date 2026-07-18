@@ -2757,18 +2757,22 @@ window.selectPersona = function(mode, customId = null) {
     localStorage.setItem('current_persona', mode);
 
     if (mode === 'custom' && customId) {
-        localStorage.setItem('custom_id', customId);
-        let chars = JSON.parse(localStorage.getItem('my_custom_characters') || '[]');
-        let selectedChar = chars.find(c => c.id === customId);
-        
-        if (selectedChar) {
-            // 1. 기존처럼 데이터 객체 저장
-            localStorage.setItem('user_custom_persona', JSON.stringify(selectedChar));
-            
-            // 💡 2. AI에게 주입할 '완성형 메모장(프롬프트)'을 여기서 미리 조합해서 저장합니다!
-            const fullPersona = `[캐릭터 정체성] 당신의 이름은 '${selectedChar.name}'이고, 나이는 ${selectedChar.age}세, 성별은 ${selectedChar.gender}입니다. 당신의 성격과 역할은 다음과 같습니다: ${selectedChar.prompt}. 당신은 AI라는 것을 밝히지 말고, 완벽하게 이 캐릭터로서 사용자와 대화하세요.`;
-            localStorage.setItem('active_system_prompt', fullPersona);
+    localStorage.setItem('custom_id', customId);
+    let chars = JSON.parse(localStorage.getItem('my_custom_characters') || '[]');
+    let selectedChar = chars.find(c => c.id === customId);
+    
+    if (selectedChar) {
+        localStorage.setItem('user_custom_persona', JSON.stringify(selectedChar));
+        const fullPersona = `[캐릭터 정체성] 당신의 이름은 '${selectedChar.name}'이고, 나이는 ${selectedChar.age}세, 성별은 ${selectedChar.gender}입니다. 당신의 성격과 역할은 다음과 같습니다: ${selectedChar.prompt}. 당신은 AI라는 것을 밝히지 말고, 완벽하게 이 캐릭터로서 사용자와 대화하세요.`;
+        localStorage.setItem('active_system_prompt', fullPersona);
+
+        // 🌟 추가된 부분: 저장해둔 유니티 캐릭터 ID(Char_01 등)를 유니티로 전송 🌟
+        const iframe = document.getElementById('unity-iframe');
+        if (iframe && iframe.contentWindow && iframe.contentWindow.myUnityInstance) {
+            // 대표님이 유니티 내에 만들어둔 '특정 캐릭터 바로 불러오기' 함수를 호출합니다.
+            // 예: iframe.contentWindow.myUnityInstance.SendMessage('CharacterManager', 'LoadSpecificCharacter', selectedChar.unityChar);
         }
+    }
     } else {
         localStorage.removeItem('user_custom_persona'); 
         localStorage.removeItem('active_system_prompt'); // 다른 모드일 땐 지워주기
@@ -2818,14 +2822,18 @@ window.saveCustomCharacter = function() {
         return alert("캐릭터는 최대 3개까지만 생성 가능합니다. 하나를 삭제하고 다시 생성해주세요.");
     }
 
-    const newId = Date.now().toString();
+    
     // 💡 수정: 저장하는 데이터 객체에 나이와 성별 추가
+    const newId = Date.now().toString();
+    const selectedUnityModel = document.getElementById('newCharModelDisplay').getAttribute('data-char-id');
+
     chars.push({ 
         id: newId, 
         name: name, 
         age: age, 
         gender: gender, 
-        prompt: prompt 
+        prompt: prompt,
+        unityChar: selectedUnityModel // 💡 추가된 부분: 선택한 유니티 외형 ID 저장
     });
     
     localStorage.setItem('my_custom_characters', JSON.stringify(chars));
@@ -3892,5 +3900,30 @@ window.restorePurchase = function() {
         window.flutter_inappwebview.callHandler('restorePurchase');
     } else {
         alert("앱 환경에서만 결제 복원이 가능합니다.");
+    }
+};
+
+
+window.currentUnityCharIndex = 1; // 기본 1번 캐릭터부터 시작
+
+// 생성창 안에서 << >> 버튼을 누를 때 유니티 캐릭터를 회전시키는 함수
+window.changeUnityChar = function(dir) {
+    window.currentUnityCharIndex += dir;
+    
+    // 12개의 캐릭터가 있다고 하셨으므로 1~12 사이클 강제
+    if (window.currentUnityCharIndex > 12) window.currentUnityCharIndex = 1;
+    if (window.currentUnityCharIndex < 1) window.currentUnityCharIndex = 12;
+    
+    // UI 텍스트 및 데이터 속성 업데이트
+    const display = document.getElementById('newCharModelDisplay');
+    display.innerText = '캐릭터 ' + window.currentUnityCharIndex;
+    // 유니티 프리팹이나 ID 매칭을 위해 01, 02 포맷으로 저장 (예: Char_01)
+    display.setAttribute('data-char-id', 'Avatar ' + window.currentUnityCharIndex.toString().padStart(2, '0'));
+
+    // 유니티에 기존처럼 이전/다음 명령 전달
+    const iframe = document.getElementById('unity-iframe');
+    if (iframe && iframe.contentWindow) {
+        if (dir === -1 && typeof iframe.contentWindow.clickPrev === 'function') iframe.contentWindow.clickPrev();
+        if (dir === 1 && typeof iframe.contentWindow.clickNext === 'function') iframe.contentWindow.clickNext();
     }
 };
