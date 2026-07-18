@@ -2625,18 +2625,26 @@ window.onload = function() {
             name: '제인', 
             age: '25', 
             gender: 'Female', 
-            prompt: '사용자의 첫 영어 스터디 메이트입니다. 친절하고 밝은 성격이며, 일상적인 대화나 영어 연습을 편안하게 이끌어줍니다.',
-            unityChar: 'Avatar_01' // 🌟 핵심 1: 최초 생성 페르소나에 1번 캐릭터 강제 주입!
+            prompt: '사용자의 첫 영어 스터디 메이트입니다.',
+            // 💡 여기를 수정하세요! 경로를 다 지우고 'Avatar_01'만 남기세요.
+            unityChar: 'Avatar_01' 
         });
         localStorage.setItem('my_custom_characters', JSON.stringify(chars));
         localStorage.setItem('is_first_run_done', 'true'); 
         
         if (typeof window.renderCustomCharacters === 'function') window.renderCustomCharacters();
         
-        // 🌟 핵심 2: 유니티가 완전히 로딩될 시간을 1초 벌어준 뒤 캐릭터를 쏘도록 수정
+        // 0.3초 뒤에 유니티가 준비되면 캐릭터 호출
         setTimeout(() => {
             if (typeof window.selectPersona === 'function') window.selectPersona('custom', defaultId); 
         }, 1000);
+    } else if (chars.length > 0) {
+        // 💡 앱을 껐다 켜도 마지막에 썼던 캐릭터를 바로 띄워주려면 이 로직이 필요합니다.
+        let savedMode = localStorage.getItem('current_persona');
+        let customId = localStorage.getItem('custom_id');
+        if (savedMode === 'custom' && customId) {
+            setTimeout(() => { window.selectPersona('custom', customId); }, 1000);
+        }
     }
 };
 
