@@ -3904,29 +3904,17 @@ window.currentUnityCharIndex = 1; // 기본 1번 캐릭터부터 시작
 
 // 생성창 안에서 << >> 버튼을 누를 때 유니티 캐릭터를 회전시키는 함수
 window.changeUnityChar = function(dir) {
-    const display = document.getElementById('newCharModelDisplay');
-    
-    // 🛡️ [방어막] 만약 화면에 'newCharModelDisplay'가 없다면 함수를 즉시 종료합니다.
-    if (!display) {
-        console.warn("캐릭터 선택 UI를 찾을 수 없습니다. (현재 화면이 생성창이 아님)");
-        return;
-    }
-
     window.currentUnityCharIndex += dir;
     if (window.currentUnityCharIndex > 12) window.currentUnityCharIndex = 1;
     if (window.currentUnityCharIndex < 1) window.currentUnityCharIndex = 12;
 
+    // 💡 01, 02 포맷 유지 (유니티 Addressables 주소랑 이름이 같아야 함)
     const numStr = window.currentUnityCharIndex.toString().padStart(2, '0');
-    const fullAddress = 'Avatar_' + numStr;
+    const keyName = 'Avatar_' + numStr; 
 
+    const display = document.getElementById('newCharModelDisplay');
     display.innerText = '캐릭터 ' + window.currentUnityCharIndex;
-    display.setAttribute('data-char-id', fullAddress);
-
-    const iframe = document.getElementById('unity-iframe');
-    if (iframe && iframe.contentWindow) {
-        if (dir === -1 && typeof iframe.contentWindow.clickPrev === 'function') iframe.contentWindow.clickPrev();
-        if (dir === 1 && typeof iframe.contentWindow.clickNext === 'function') iframe.contentWindow.clickNext();
-    }
+    display.setAttribute('data-char-id', keyName); // 💡 경로 제거, 키 이름만!
 };
 
 console.log("유니티로 보내는 캐릭터 키값:", targetAvatar);
