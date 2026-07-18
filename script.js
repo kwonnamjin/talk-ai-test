@@ -2766,6 +2766,18 @@ window.selectPersona = function(mode, customId = null) {
     if (customId) {
         localStorage.setItem('custom_id', customId);
         let chars = JSON.parse(localStorage.getItem('my_custom_characters') || '[]');
+        
+        // 👇👇 [여기에 추가!] 잘못된 과거 캐시 강제 정화 로직 👇👇
+        chars.forEach(c => {
+            // 만약 unityChar에 'Assets/' 같은 파일 경로가 묻어있다면?
+            if (c.unityChar && c.unityChar.includes('Assets/')) {
+                c.unityChar = 'Avatar_01'; // 무조건 깔끔한 이름으로 고쳐버립니다!
+            }
+        });
+        // 고친 상태로 다시 로컬스토리지에 덮어쓰기 (영구 치료)
+        localStorage.setItem('my_custom_characters', JSON.stringify(chars));
+        // 👆👆 ------------------------------------------ 👆👆
+
         let selectedChar = chars.find(c => c.id === customId);
         
         if (selectedChar) {
