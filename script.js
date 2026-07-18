@@ -3910,7 +3910,7 @@ window.changeUnityChar = function(dir) {
 
     const numStr = window.currentUnityCharIndex.toString().padStart(2, '0');
     // 💡 유니티 주소록에 있는 경로를 그대로 복사해서 넣으세요!
-    const fullAddress = 'Avatar_' + numStr;
+    const fullAddress = `Avatar_${numStr}.prefab`;
 
     const display = document.getElementById('newCharModelDisplay');
     display.innerText = '캐릭터 ' + window.currentUnityCharIndex;
