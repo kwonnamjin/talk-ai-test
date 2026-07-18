@@ -2626,7 +2626,7 @@ window.onload = function() {
             age: '25', 
             gender: 'Female', 
             prompt: '사용자의 첫 영어 스터디 메이트입니다. 친절하고 밝은 성격이며, 일상적인 대화나 영어 연습을 편안하게 이끌어줍니다.',
-            unityChar: 'Avatar 01' // 🌟 핵심 1: 최초 생성 페르소나에 1번 캐릭터 강제 주입!
+            unityChar: 'Avatar_01' // 🌟 핵심 1: 최초 생성 페르소나에 1번 캐릭터 강제 주입!
         });
         localStorage.setItem('my_custom_characters', JSON.stringify(chars));
         localStorage.setItem('is_first_run_done', 'true'); 
@@ -2765,8 +2765,8 @@ window.selectPersona = function(mode, customId = null) {
             const fullPersona = `[캐릭터 정체성] 당신의 이름은 '${selectedChar.name}'이고, 나이는 ${selectedChar.age}세, 성별은 ${selectedChar.gender}입니다. 당신의 성격과 역할은 다음과 같습니다: ${selectedChar.prompt}. 당신은 AI라는 것을 밝히지 말고, 완벽하게 이 캐릭터로서 사용자와 대화하세요.`;
             localStorage.setItem('active_system_prompt', fullPersona);
 
-            // 🚀 핵심: 저장된 캐릭터 ID가 혹시라도 없으면 무조건 'Avatar 01'로 방어!
-            const targetAvatar = selectedChar.unityChar ? selectedChar.unityChar : "Avatar 01";
+            // 🚀 핵심: 저장된 캐릭터 ID가 혹시라도 없으면 무조건 'Avatar_01'로 방어!
+            const targetAvatar = selectedChar.unityChar ? selectedChar.unityChar : "Avatar_01";
             
             // 유니티로 이름 쏘기
             if (iframe && iframe.contentWindow && iframe.contentWindow.myUnityInstance) {
