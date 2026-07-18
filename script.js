@@ -3928,3 +3928,5 @@ window.changeUnityChar = function(dir) {
         if (dir === 1 && typeof iframe.contentWindow.clickNext === 'function') iframe.contentWindow.clickNext();
     }
 };
+
+console.log("유니티로 보내는 캐릭터 키값:", targetAvatar);
