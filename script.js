@@ -3905,16 +3905,16 @@ window.currentUnityCharIndex = 10; // 기본 1번 캐릭터부터 시작
 // 생성창 안에서 << >> 버튼을 누를 때 유니티 캐릭터를 회전시키는 함수
 window.changeUnityChar = function(dir) {
     window.currentUnityCharIndex += dir;
-    
-    // 12개의 캐릭터가 있다고 하셨으므로 1~12 사이클 강제
     if (window.currentUnityCharIndex > 12) window.currentUnityCharIndex = 1;
     if (window.currentUnityCharIndex < 1) window.currentUnityCharIndex = 12;
-    
-    // UI 텍스트 및 데이터 속성 업데이트
+
+    const numStr = window.currentUnityCharIndex.toString().padStart(2, '0');
+    // 💡 유니티 주소록에 있는 경로를 그대로 복사해서 넣으세요!
+    const fullAddress = 'Avatar_' + numStr;
+
     const display = document.getElementById('newCharModelDisplay');
     display.innerText = '캐릭터 ' + window.currentUnityCharIndex;
-    // 유니티 프리팹이나 ID 매칭을 위해 01, 02 포맷으로 저장 (예: Char_01)
-    display.setAttribute('data-char-id', 'Avatar ' + window.currentUnityCharIndex.toString().padStart(2, '0'));
+    display.setAttribute('data-char-id', fullAddress);
 
     // 유니티에 기존처럼 이전/다음 명령 전달
     const iframe = document.getElementById('unity-iframe');
