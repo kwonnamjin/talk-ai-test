@@ -2840,16 +2840,16 @@ window.saveCustomCharacter = function() {
 
     
     // 💡 수정: 저장하는 데이터 객체에 나이와 성별 추가
-    const newId = Date.now().toString();
-    const selectedUnityModel = document.getElementById('newCharModelDisplay').getAttribute('data-char-id');
+    const numStr = window.currentUnityCharIndex.toString().padStart(2, '0');
+    const selectedUnityModel = `Assets/Prefabs/Avatar ${numStr}.prefab`; // 유니티가 좋아하는 그 주소 형태!
 
     chars.push({ 
-        id: newId, 
+        id: Date.now().toString(), 
         name: name, 
         age: age, 
         gender: gender, 
         prompt: prompt,
-        unityChar: selectedUnityModel // 💡 추가된 부분: 선택한 유니티 외형 ID 저장
+        unityChar: selectedUnityModel // 💡 이렇게 계산된 값을 저장합니다.
     });
     
     localStorage.setItem('my_custom_characters', JSON.stringify(chars));
