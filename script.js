@@ -3900,7 +3900,7 @@ window.restorePurchase = function() {
 };
 
 
-window.currentUnityCharIndex = 1; // 기본 1번 캐릭터부터 시작
+window.currentUnityCharIndex = 10; // 기본 1번 캐릭터부터 시작
 
 // 생성창 안에서 << >> 버튼을 누를 때 유니티 캐릭터를 회전시키는 함수
 window.changeUnityChar = function(dir) {
