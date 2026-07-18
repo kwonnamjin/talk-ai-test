@@ -2861,7 +2861,15 @@ window.saveCustomCharacter = function() {
 
     // 💡 4. 화면 갱신 후, 방금 만든 newId를 넣어 즉시 호출!
     window.renderCustomCharacters();
-    window.selectPersona('custom', newId); 
+    // 강제로 02번이 저장된 데이터를 찾아보거나, 
+    // 혹은 로직상 '5번'을 계속 부르는 원인을 찾기 위해 아래처럼 강제로 호출해 보세요.
+    console.log("생성 완료, 강제 로드 시도:", selectedUnityModel);
+    
+    const iframe = document.getElementById('unity-iframe');
+    if (iframe && iframe.contentWindow && iframe.contentWindow.myUnityInstance) {
+        // 무조건 생성한 캐릭터(selectedUnityModel)를 쏘도록 강제
+        iframe.contentWindow.myUnityInstance.SendMessage('CharacterManager', 'LoadSpecificCharacter', selectedUnityModel);
+    }
 };
 
 // 🌟 3. 커스텀 캐릭터 삭제
