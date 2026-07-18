@@ -2626,8 +2626,8 @@ window.onload = function() {
             age: '25', 
             gender: 'Female', 
             prompt: '사용자의 첫 영어 스터디 메이트입니다.',
-            // 💡 여기를 수정하세요! 경로를 다 지우고 'Avatar_01'만 남기세요.
-            unityChar: 'Avatar_01' 
+            // 💡 여기를 수정하세요! 경로를 다 지우고 'Assets/Prefabs/Avatar 05.prefab'만 남기세요.
+            unityChar: 'Assets/Prefabs/Avatar 05.prefab' 
         });
         localStorage.setItem('my_custom_characters', JSON.stringify(chars));
         localStorage.setItem('is_first_run_done', 'true'); 
@@ -2771,7 +2771,7 @@ window.selectPersona = function(mode, customId = null) {
         chars.forEach(c => {
             // 만약 unityChar에 'Assets/' 같은 파일 경로가 묻어있다면?
             if (c.unityChar && c.unityChar.includes('Assets/')) {
-                c.unityChar = 'Avatar_01'; // 무조건 깔끔한 이름으로 고쳐버립니다!
+                c.unityChar = 'Assets/Prefabs/Avatar 05.prefab'; // 무조건 깔끔한 이름으로 고쳐버립니다!
             }
         });
         // 고친 상태로 다시 로컬스토리지에 덮어쓰기 (영구 치료)
@@ -2785,8 +2785,8 @@ window.selectPersona = function(mode, customId = null) {
             const fullPersona = `[캐릭터 정체성] 당신의 이름은 '${selectedChar.name}'이고, 나이는 ${selectedChar.age}세, 성별은 ${selectedChar.gender}입니다. 당신의 성격과 역할은 다음과 같습니다: ${selectedChar.prompt}. 당신은 AI라는 것을 밝히지 말고, 완벽하게 이 캐릭터로서 사용자와 대화하세요.`;
             localStorage.setItem('active_system_prompt', fullPersona);
 
-            // 🚀 핵심: 저장된 캐릭터 ID가 혹시라도 없으면 무조건 'Avatar_01'로 방어!
-            const targetAvatar = selectedChar.unityChar ? selectedChar.unityChar : "Avatar_01";
+            // 🚀 핵심: 저장된 캐릭터 ID가 혹시라도 없으면 무조건 'Assets/Prefabs/Avatar 05.prefab'로 방어!
+            const targetAvatar = selectedChar.unityChar ? selectedChar.unityChar : "Assets/Prefabs/Avatar 05.prefab";
             
             // 유니티로 이름 쏘기
             if (iframe && iframe.contentWindow && iframe.contentWindow.myUnityInstance) {
@@ -3932,15 +3932,16 @@ window.changeUnityChar = function(dir) {
     if (window.currentUnityCharIndex < 1) window.currentUnityCharIndex = 12;
 
     const numStr = window.currentUnityCharIndex.toString().padStart(2, '0');
-    const keyName = 'Avatar_' + numStr; // 💡 띄어쓰기 없는 Avatar_01 형태
+    // 💡 유니티가 잘 먹는 그 경로를 그대로 만듭니다.
+    const fullPath = `Assets/Prefabs/Avatar ${numStr}.prefab`; 
 
     display.innerText = '캐릭터 ' + window.currentUnityCharIndex;
-    display.setAttribute('data-char-id', keyName);
+    display.setAttribute('data-char-id', fullPath);
 
-    // 🚀 핵심 수정: 화살표를 누를 때마다 유니티에게 실시간으로 캐릭터를 띄우라고 명령!
     const iframe = document.getElementById('unity-iframe');
     if (iframe && iframe.contentWindow && iframe.contentWindow.myUnityInstance) {
-        iframe.contentWindow.myUnityInstance.SendMessage('CharacterManager', 'LoadSpecificCharacter', keyName);
+        // 💡 이제 이 fullPath를 쏘면 에러 없이 로드될 것입니다!
+        iframe.contentWindow.myUnityInstance.SendMessage('CharacterManager', 'LoadSpecificCharacter', fullPath);
     }
 };
 
