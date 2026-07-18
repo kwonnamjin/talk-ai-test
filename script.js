@@ -383,7 +383,7 @@ window.checkUsageLimit = function() {
     else if (rawTier.includes('premium')) currentTier = 'premium';
     
     // 💡 수정된 부분: VIP를 400으로 맞췄습니다. (베이직, 프리미엄 숫자는 기획에 맞게 수정해 쓰시면 됩니다)
-    const PLAN_LIMITS = { free: 50, basic: 150, premium: 300, vip: 400 }; 
+    const PLAN_LIMITS = { free: 50, basic: 130, premium: 300, vip: 400 }; 
     const maxLimit = PLAN_LIMITS[currentTier] || 50;
 
     const todayStr = new Date().toLocaleDateString();
