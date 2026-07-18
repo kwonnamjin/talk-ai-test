@@ -2613,33 +2613,30 @@ window.loadVoicesToUI = function(voicesJson) {
 };
 
 window.onload = function() {
-    // 1. 기존에 있던 로컬 음성 엔진 준비 요청
     window.requestVoicesFromApp();
 
-    // 2. 첫 실행 시 '기본 캐릭터' 자동 생성
     let chars = JSON.parse(localStorage.getItem('my_custom_characters') || '[]');
     let isFirstRun = localStorage.getItem('is_first_run_done');
 
     if (chars.length === 0 && !isFirstRun) {
         const defaultId = Date.now().toString();
         chars.push({ 
-        id: defaultId, 
-        name: '제인', // 가이드 대신 친근한 이름으로
-        age: '25', 
-        gender: 'Female', 
-        // 💡 프롬프트에서 '앱 안내'를 빼고 '영어 대화'에만 집중시킵니다.
-        prompt: '사용자의 첫 영어 스터디 메이트입니다. 친절하고 밝은 성격이며, 일상적인 대화나 영어 연습을 편안하게 이끌어줍니다. 앱 기능에 대해 물어보면 모른다고 하세요.' 
-    });
+            id: defaultId, 
+            name: '제인', 
+            age: '25', 
+            gender: 'Female', 
+            prompt: '사용자의 첫 영어 스터디 메이트입니다. 친절하고 밝은 성격이며, 일상적인 대화나 영어 연습을 편안하게 이끌어줍니다.',
+            unityChar: 'Avatar 5' // 🌟 핵심 1: 최초 생성 페르소나에 1번 캐릭터 강제 주입!
+        });
         localStorage.setItem('my_custom_characters', JSON.stringify(chars));
         localStorage.setItem('is_first_run_done', 'true'); 
         
-        // 💡 화면에 방금 만든 캐릭터 버튼을 그려주고, 바로 선택된 상태로 만듭니다.
-        if (typeof window.renderCustomCharacters === 'function') {
-            window.renderCustomCharacters();
-        }
-        if (typeof window.selectPersona === 'function') {
-            window.selectPersona('custom', defaultId); 
-        }
+        if (typeof window.renderCustomCharacters === 'function') window.renderCustomCharacters();
+        
+        // 🌟 핵심 2: 유니티가 완전히 로딩될 시간을 1초 벌어준 뒤 캐릭터를 쏘도록 수정
+        setTimeout(() => {
+            if (typeof window.selectPersona === 'function') window.selectPersona('custom', defaultId); 
+        }, 1000);
     }
 };
 
@@ -2752,14 +2749,13 @@ window.closeAllPanels = function() {
 
 // 🌟 1. 통합 페르소나 선택 함수
 window.selectPersona = function(mode, customId = null) {
-    window.currentPersona = mode;
-    localStorage.setItem('ai_persona', mode);
-    localStorage.setItem('current_persona', mode);
+    window.currentPersona = 'custom'; // 이제 무조건 커스텀 모드
+    localStorage.setItem('ai_persona', 'custom');
+    localStorage.setItem('current_persona', 'custom');
 
-    // 💡 유니티 iframe 미리 찾기
     const iframe = document.getElementById('unity-iframe');
 
-    if (mode === 'custom' && customId) {
+    if (customId) {
         localStorage.setItem('custom_id', customId);
         let chars = JSON.parse(localStorage.getItem('my_custom_characters') || '[]');
         let selectedChar = chars.find(c => c.id === customId);
@@ -2769,32 +2765,23 @@ window.selectPersona = function(mode, customId = null) {
             const fullPersona = `[캐릭터 정체성] 당신의 이름은 '${selectedChar.name}'이고, 나이는 ${selectedChar.age}세, 성별은 ${selectedChar.gender}입니다. 당신의 성격과 역할은 다음과 같습니다: ${selectedChar.prompt}. 당신은 AI라는 것을 밝히지 말고, 완벽하게 이 캐릭터로서 사용자와 대화하세요.`;
             localStorage.setItem('active_system_prompt', fullPersona);
 
-            // 🚀 핵심: 유니티로 선택된 캐릭터 ID(예: Avatar 04) 강제 쏘기!
+            // 🚀 핵심: 저장된 캐릭터 ID가 혹시라도 없으면 무조건 'Avatar 01'로 방어!
+            const targetAvatar = selectedChar.unityChar ? selectedChar.unityChar : "Avatar 01";
+            
+            // 유니티로 이름 쏘기
             if (iframe && iframe.contentWindow && iframe.contentWindow.myUnityInstance) {
-                // 저장된 unityChar가 없으면 기본값 Avatar 01 사용
-                const targetAvatar = selectedChar.unityChar ? selectedChar.unityChar : "Avatar 01";
-                
-                // 유니티 하이라키의 'CharacterManager' 오브젝트에 있는 LoadSpecificCharacter 함수 실행
-                iframe.contentWindow.myUnityInstance.SendMessage('CharacterManager', 'LoadSpecificCharacter', targetAvatar);
+                iframe.contentWindow.myUnityInstance.SendMessage('CharManager', 'LoadSpecificCharacter', targetAvatar);
             }
         }
-    } else {
-        localStorage.removeItem('user_custom_persona'); 
-        localStorage.removeItem('active_system_prompt');
-        
-        // 🚀 핵심: 기본 AI(비서, 가이드 등)를 골랐을 때는 무조건 1번 캐릭터로 돌아가게 세팅
-        if (iframe && iframe.contentWindow && iframe.contentWindow.myUnityInstance) {
-            iframe.contentWindow.myUnityInstance.SendMessage('CharacterManager', 'LoadSpecificCharacter', 'Avatar 01');
-        }
     }
-
-    // 아래는 기존에 있던 버튼 디자인 변경 코드 (그대로 유지)
+    
+    // 버튼 UI 불 켜기/끄기
     document.querySelectorAll('.persona-btn').forEach(btn => {
         btn.classList.remove('bg-gradient-to-r', 'from-blue-500', 'to-indigo-500', 'text-white', 'border-transparent', 'scale-105');
         btn.classList.add('bg-white', 'text-slate-400', 'border-slate-200');
     });
 
-    let targetId = (mode === 'custom') ? `btn_persona_custom_${customId}` : `btn_persona_${mode}`;
+    let targetId = `btn_persona_custom_${customId}`;
     let activeBtn = document.getElementById(targetId);
     if (activeBtn) {
         activeBtn.classList.remove('bg-white', 'text-slate-400', 'border-slate-200');
