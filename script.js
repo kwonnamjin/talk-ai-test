@@ -2626,7 +2626,7 @@ window.onload = function() {
             age: '25', 
             gender: 'Female', 
             prompt: '사용자의 첫 영어 스터디 메이트입니다. 친절하고 밝은 성격이며, 일상적인 대화나 영어 연습을 편안하게 이끌어줍니다.',
-            unityChar: 'Avatar 5' // 🌟 핵심 1: 최초 생성 페르소나에 1번 캐릭터 강제 주입!
+            unityChar: 'Avatar 10' // 🌟 핵심 1: 최초 생성 페르소나에 1번 캐릭터 강제 주입!
         });
         localStorage.setItem('my_custom_characters', JSON.stringify(chars));
         localStorage.setItem('is_first_run_done', 'true'); 
