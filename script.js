@@ -374,16 +374,16 @@ window.updateStatus = function(txt) {
 };
 
 // 1. 내부 계산기 (에러 방어막 완벽 적용)
+// 1. 요금제 체크 및 변환 함수 (VIP 한도 400으로 수정)
 window.checkUsageLimit = function() {
-    // 플러터 상품 ID를 웹 등급으로 자동 변환
     let rawTier = localStorage.getItem('subscription_tier') || 'free';
     let currentTier = 'free';
     if (rawTier.includes('basic')) currentTier = 'basic';
     else if (rawTier.includes('vip')) currentTier = 'vip';
     else if (rawTier.includes('premium')) currentTier = 'premium';
     
-    // VIP 한도 추가
-    const PLAN_LIMITS = { free: 50, basic: 150, premium: 400, vip: 9999 }; 
+    // 💡 수정된 부분: VIP를 400으로 맞췄습니다. (베이직, 프리미엄 숫자는 기획에 맞게 수정해 쓰시면 됩니다)
+    const PLAN_LIMITS = { free: 50, basic: 150, premium: 300, vip: 400 }; 
     const maxLimit = PLAN_LIMITS[currentTier] || 50;
 
     const todayStr = new Date().toLocaleDateString();
@@ -396,6 +396,10 @@ window.checkUsageLimit = function() {
     if (usageObj.count >= maxLimit) return { allowed: false, reason: 'limit_reached', tier: currentTier, count: usageObj.count, maxLimit };
     return { allowed: true, tier: currentTier, count: usageObj.count, maxLimit };
 };
+
+function checkUsageLimit() {
+    return window.checkUsageLimit();
+}
 
 // 위에 덮어쓴 함수와 같은 역할을 하는 중복 선언도 통일
 function checkUsageLimit() {
@@ -439,13 +443,13 @@ window.updateBadgeUI = function() {
         remainingDaily = Math.max(0, status.maxLimit - currentCount);
     }
 
+    // 💡 수정된 부분: VIP라도 남은 횟수(번개 수)가 정상적으로 계산되어 표시됩니다.
     let totalLightning = remainingDaily + savedLightning;
-    if (status.tier === 'vip') totalLightning = "무제한"; // VIP는 무제한 표시
 
     const moonHtml = `<div class="bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-full text-[11px] font-black border border-indigo-200 shadow-sm flex items-center gap-1.5"><i class="fa-solid fa-moon"></i> <span>${currentMoons}</span></div>`;
     let badgeContent = '';
 
-    // 💡 VIP 뱃지 디자인 추가!
+    // 💡 VIP 뱃지 디자인 유지, 숫자만 정상 반영
     if (status.tier === 'vip') {
         badgeContent = moonHtml + `<div class="bg-gradient-to-r from-purple-600 to-pink-500 text-white px-2.5 py-1 rounded-full text-[9px] font-black border border-purple-400 shadow-sm flex items-center gap-1.5 transition hover:scale-105"><i class="fa-solid fa-gem text-pink-200"></i> <span class="text-[9px] tracking-wide mt-[1px]">VIP</span> <span class="text-pink-200 opacity-60 font-normal mx-0.5 text-[10px]">|</span> <i class="fa-solid fa-bolt text-pink-200"></i> ${totalLightning}</div>`;
     } else if (status.tier === 'premium') {
