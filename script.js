@@ -3924,17 +3924,23 @@ window.currentUnityCharIndex = 1; // 기본 1번 캐릭터부터 시작
 
 // 생성창 안에서 << >> 버튼을 누를 때 유니티 캐릭터를 회전시키는 함수
 window.changeUnityChar = function(dir) {
+    const display = document.getElementById('newCharModelDisplay');
+    if (!display) return;
+
     window.currentUnityCharIndex += dir;
     if (window.currentUnityCharIndex > 12) window.currentUnityCharIndex = 1;
     if (window.currentUnityCharIndex < 1) window.currentUnityCharIndex = 12;
 
-    // 💡 01, 02 포맷 유지 (유니티 Addressables 주소랑 이름이 같아야 함)
     const numStr = window.currentUnityCharIndex.toString().padStart(2, '0');
-    const keyName = 'Avatar_' + numStr; 
+    const keyName = 'Avatar_' + numStr; // 💡 띄어쓰기 없는 Avatar_01 형태
 
-    const display = document.getElementById('newCharModelDisplay');
     display.innerText = '캐릭터 ' + window.currentUnityCharIndex;
-    display.setAttribute('data-char-id', keyName); // 💡 경로 제거, 키 이름만!
+    display.setAttribute('data-char-id', keyName);
+
+    // 🚀 핵심 수정: 화살표를 누를 때마다 유니티에게 실시간으로 캐릭터를 띄우라고 명령!
+    const iframe = document.getElementById('unity-iframe');
+    if (iframe && iframe.contentWindow && iframe.contentWindow.myUnityInstance) {
+        iframe.contentWindow.myUnityInstance.SendMessage('CharacterManager', 'LoadSpecificCharacter', keyName);
+    }
 };
 
-console.log("유니티로 보내는 캐릭터 키값:", targetAvatar);
