@@ -375,26 +375,18 @@ window.updateStatus = function(txt) {
 
 // 1. 내부 계산기 (에러 방어막 완벽 적용)
 window.checkUsageLimit = function() {
-    // 🌟 안전장치 1: 요금제 한도를 함수 안에 직접 명시해서 절대 못 잃어버리게 함!
-    const PLAN_LIMITS = { free: 50, basic: 150, premium: 400 }; 
-    const isTestMode = localStorage.getItem('is_test_mode') === 'true';
-    let currentTier = localStorage.getItem('subscription_tier') || 'free';
+    // 플러터 상품 ID를 웹 등급으로 자동 변환
+    let rawTier = localStorage.getItem('subscription_tier') || 'free';
+    let currentTier = 'free';
+    if (rawTier.includes('basic')) currentTier = 'basic';
+    else if (rawTier.includes('vip')) currentTier = 'vip';
+    else if (rawTier.includes('premium')) currentTier = 'premium';
     
-    if (isTestMode) currentTier = 'premium'; 
-    
+    // VIP 한도 추가
+    const PLAN_LIMITS = { free: 50, basic: 150, premium: 400, vip: 9999 }; 
     const maxLimit = PLAN_LIMITS[currentTier] || 50;
 
-    // 무료 유저 3일 만료 체크
-    if (currentTier === 'free') {
-        const firstUseDate = localStorage.getItem('free_trial_start');
-        if (firstUseDate) {
-            const daysPassed = (Date.now() - parseInt(firstUseDate)) / (1000 * 60 * 60 * 24);
-            if (daysPassed > 3) return { allowed: false, reason: 'trial_expired', tier: currentTier, maxLimit };
-        }
-    }
-
-    // 🌟 안전장치 2: 날짜 함수 못 찾을까봐 방어 로직 추가
-    const todayStr = (typeof getResetDateStr === 'function') ? getResetDateStr() : new Date().toLocaleDateString();
+    const todayStr = new Date().toLocaleDateString();
     let usageObj = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}');
     if (usageObj.date !== todayStr) {
         usageObj = { date: todayStr, count: 0 };
@@ -402,9 +394,13 @@ window.checkUsageLimit = function() {
     }
 
     if (usageObj.count >= maxLimit) return { allowed: false, reason: 'limit_reached', tier: currentTier, count: usageObj.count, maxLimit };
-    
     return { allowed: true, tier: currentTier, count: usageObj.count, maxLimit };
 };
+
+// 위에 덮어쓴 함수와 같은 역할을 하는 중복 선언도 통일
+function checkUsageLimit() {
+    return window.checkUsageLimit();
+}
 
 window.checkAndBlockAPI = function() {
     const status = window.checkUsageLimit(); 
@@ -429,12 +425,13 @@ window.checkAndBlockAPI = function() {
 };
 
 // 3. UI 거울 
+// 2. 뱃지 UI 업데이트 함수 덮어쓰기
 window.updateBadgeUI = function() {
     if (typeof window.checkUsageLimit !== 'function') return;
     
     const status = window.checkUsageLimit();
     let currentMoons = parseInt(localStorage.getItem('moon_coins')) || 0;
-    let savedLightning = parseInt(localStorage.getItem('lightning_coins')) || 0; // 퀘스트로 모은 번개
+    let savedLightning = parseInt(localStorage.getItem('lightning_coins')) || 0; 
     
     let remainingDaily = 0;
     if (status.allowed) {
@@ -442,13 +439,16 @@ window.updateBadgeUI = function() {
         remainingDaily = Math.max(0, status.maxLimit - currentCount);
     }
 
-    // ⚡ 번개 표시: (오늘 남은 기본량 + 모아둔 번개) 합산하여 표시
     let totalLightning = remainingDaily + savedLightning;
+    if (status.tier === 'vip') totalLightning = "무제한"; // VIP는 무제한 표시
 
     const moonHtml = `<div class="bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-full text-[11px] font-black border border-indigo-200 shadow-sm flex items-center gap-1.5"><i class="fa-solid fa-moon"></i> <span>${currentMoons}</span></div>`;
     let badgeContent = '';
 
-    if (status.tier === 'premium') {
+    // 💡 VIP 뱃지 디자인 추가!
+    if (status.tier === 'vip') {
+        badgeContent = moonHtml + `<div class="bg-gradient-to-r from-purple-600 to-pink-500 text-white px-2.5 py-1 rounded-full text-[9px] font-black border border-purple-400 shadow-sm flex items-center gap-1.5 transition hover:scale-105"><i class="fa-solid fa-gem text-pink-200"></i> <span class="text-[9px] tracking-wide mt-[1px]">VIP</span> <span class="text-pink-200 opacity-60 font-normal mx-0.5 text-[10px]">|</span> <i class="fa-solid fa-bolt text-pink-200"></i> ${totalLightning}</div>`;
+    } else if (status.tier === 'premium') {
         badgeContent = moonHtml + `<div class="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2.5 py-1 rounded-full text-[9px] font-black border border-amber-400 shadow-sm flex items-center gap-1.5 transition hover:scale-105"><i class="fa-solid fa-crown text-amber-200"></i> <span class="text-[9px] tracking-wide mt-[1px]">PREMIUM</span> <span class="text-amber-200 opacity-60 font-normal mx-0.5 text-[10px]">|</span> <i class="fa-solid fa-bolt text-amber-200"></i> ${totalLightning}</div>`;
     } else if (status.tier === 'basic') {
         badgeContent = moonHtml + `<div class="bg-gradient-to-r from-indigo-500 to-blue-500 text-white px-2.5 py-1 rounded-full text-[9px] font-black border border-indigo-400 shadow-sm flex items-center gap-1.5 transition hover:scale-105"><i class="fa-solid fa-star text-indigo-200"></i> <span class="text-[9px] tracking-wide mt-[1px]">BASIC</span> <span class="text-indigo-200 opacity-60 font-normal mx-0.5 text-[10px]">|</span> <i class="fa-solid fa-bolt text-indigo-200"></i> ${totalLightning}</div>`;
