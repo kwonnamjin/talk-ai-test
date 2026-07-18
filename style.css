@@ -109,8 +109,8 @@ button#modeTutorBtn, button#modeTranslateBtn {
     transform: translateX(-50%) !important; /* 가로 정중앙 맞춤 */
     
     /* 🔥 크기 설정: 화면의 50% 크기로 축소 */
-    width: 40vw !important;  /* 화면 가로 넓이의 50% */
-    height: 40vh !important; /* 화면 세로 높이의 50% */
+    width: 100vw !important;  /* 화면 가로 넓이의 50% */
+    height: 30vh !important; /* 화면 세로 높이의 50% */
     max-width: 250px !important; /* 모바일에서 너무 뚱뚱해지지 않게 최대치 제한 */
     max-height: 400px !important;
     
