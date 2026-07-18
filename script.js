@@ -2768,12 +2768,21 @@ window.selectPersona = function(mode, customId = null) {
         let chars = JSON.parse(localStorage.getItem('my_custom_characters') || '[]');
         
         // 👇👇 [여기에 추가!] 잘못된 과거 캐시 강제 정화 로직 👇👇
-        chars.forEach(c => {
-            // 만약 unityChar에 'Assets/' 같은 파일 경로가 묻어있다면?
-            if (c.unityChar && c.unityChar.includes('Assets/')) {
-                c.unityChar = 'Assets/Prefabs/Avatar 05.prefab'; // 무조건 깔끔한 이름으로 고쳐버립니다!
-            }
-        });
+       chars.forEach(c => {
+    // 1. 만약 경로가 포함되어 있다면?
+    if (c.unityChar && c.unityChar.includes('Assets/')) {
+        // 2. 경로에서 숫자 부분(01, 02 등)만 추출해서 올바른 경로로 재조립
+        // 예: "Assets/Prefabs/Avatar 05.prefab"에서 "05"만 추출
+        const match = c.unityChar.match(/Avatar (\d+)/);
+        if (match && match[1]) {
+            const num = match[1]; // "05" 등 추출
+            c.unityChar = `Assets/Prefabs/Avatar ${num}.prefab`; // 정확한 경로로 복구
+        } else {
+            // 번호를 못 찾으면 안전하게 01로 설정
+            c.unityChar = 'Assets/Prefabs/Avatar 01.prefab';
+        }
+    }
+});
         // 고친 상태로 다시 로컬스토리지에 덮어쓰기 (영구 치료)
         localStorage.setItem('my_custom_characters', JSON.stringify(chars));
         // 👆👆 ------------------------------------------ 👆👆
