@@ -2770,7 +2770,7 @@ window.selectPersona = function(mode, customId = null) {
             
             // 유니티로 이름 쏘기
             if (iframe && iframe.contentWindow && iframe.contentWindow.myUnityInstance) {
-                iframe.contentWindow.myUnityInstance.SendMessage('CharManager', 'LoadSpecificCharacter', targetAvatar);
+                iframe.contentWindow.myUnityInstance.SendMessage('CharacterManager', 'LoadSpecificCharacter', targetAvatar);
             }
         }
     }
