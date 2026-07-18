@@ -3900,23 +3900,28 @@ window.restorePurchase = function() {
 };
 
 
-window.currentUnityCharIndex = 10; // 기본 1번 캐릭터부터 시작
+window.currentUnityCharIndex = 1; // 기본 1번 캐릭터부터 시작
 
 // 생성창 안에서 << >> 버튼을 누를 때 유니티 캐릭터를 회전시키는 함수
 window.changeUnityChar = function(dir) {
+    const display = document.getElementById('newCharModelDisplay');
+    
+    // 🛡️ [방어막] 만약 화면에 'newCharModelDisplay'가 없다면 함수를 즉시 종료합니다.
+    if (!display) {
+        console.warn("캐릭터 선택 UI를 찾을 수 없습니다. (현재 화면이 생성창이 아님)");
+        return;
+    }
+
     window.currentUnityCharIndex += dir;
     if (window.currentUnityCharIndex > 12) window.currentUnityCharIndex = 1;
     if (window.currentUnityCharIndex < 1) window.currentUnityCharIndex = 12;
 
     const numStr = window.currentUnityCharIndex.toString().padStart(2, '0');
-    // 💡 유니티 주소록에 있는 경로를 그대로 복사해서 넣으세요!
-    const fullAddress = `Avatar_${numStr}.prefab`;
+    const fullAddress = 'Avatar_' + numStr;
 
-    const display = document.getElementById('newCharModelDisplay');
     display.innerText = '캐릭터 ' + window.currentUnityCharIndex;
     display.setAttribute('data-char-id', fullAddress);
 
-    // 유니티에 기존처럼 이전/다음 명령 전달
     const iframe = document.getElementById('unity-iframe');
     if (iframe && iframe.contentWindow) {
         if (dir === -1 && typeof iframe.contentWindow.clickPrev === 'function') iframe.contentWindow.clickPrev();
