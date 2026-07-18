@@ -2826,30 +2826,31 @@ window.saveCustomCharacter = function() {
     
     if (!name || !age || !gender || !prompt) return alert("모든 항목을 입력해주세요!");
 
-    // 캐릭터 성격 길이를 200자까지 확장 (UI에서 200자로 늘리셨으니)
     if (prompt.length > 200) {
         return alert("성격은 200자 이내로 입력해주세요!");
     }
 
     let chars = JSON.parse(localStorage.getItem('my_custom_characters') || '[]');
     
-    // 💡 수정: 슬롯 제한을 3개로 변경
     if (chars.length >= 3) {
         return alert("캐릭터는 최대 3개까지만 생성 가능합니다. 하나를 삭제하고 다시 생성해주세요.");
     }
 
+    // 💡 1. 여기서 고유한 ID 생성
+    const newId = Date.now().toString(); 
     
-    // 💡 수정: 저장하는 데이터 객체에 나이와 성별 추가
+    // 💡 2. 현재 선택된 인덱스를 기반으로 경로 생성
     const numStr = window.currentUnityCharIndex.toString().padStart(2, '0');
-    const selectedUnityModel = `Assets/Prefabs/Avatar ${numStr}.prefab`; // 유니티가 좋아하는 그 주소 형태!
+    const selectedUnityModel = `Assets/Prefabs/Avatar ${numStr}.prefab`;
 
+    // 💡 3. 저장
     chars.push({ 
-        id: Date.now().toString(), 
+        id: newId, 
         name: name, 
         age: age, 
         gender: gender, 
         prompt: prompt,
-        unityChar: selectedUnityModel // 💡 이렇게 계산된 값을 저장합니다.
+        unityChar: selectedUnityModel 
     });
     
     localStorage.setItem('my_custom_characters', JSON.stringify(chars));
@@ -2858,8 +2859,9 @@ window.saveCustomCharacter = function() {
     nameInput.value = ''; ageInput.value = ''; genderInput.value = ''; promptInput.value = '';
     document.getElementById('newCharacterForm').classList.add('hidden');
 
+    // 💡 4. 화면 갱신 후, 방금 만든 newId를 넣어 즉시 호출!
     window.renderCustomCharacters();
-    window.selectPersona('custom', newId);
+    window.selectPersona('custom', newId); 
 };
 
 // 🌟 3. 커스텀 캐릭터 삭제
