@@ -2643,7 +2643,7 @@ window.onload = function() {
             name: '제인', 
             age: '25', 
             gender: 'Female', 
-            prompt: '...',
+            prompt: '당신은 언어 학습 파트너입니다. 사용자에게 밝고 친절하게 대화하세요.',
             unityChar: 'Avatar_01' 
         });
         localStorage.setItem('my_custom_characters', JSON.stringify(chars));
