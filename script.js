@@ -2629,9 +2629,9 @@ window.onload = function() {
     // 💡 좀비 캐릭터 현상이 계속되면 여기서 강제로 데이터를 초기화하세요.
     // 한번만 실행하고 싶으시다면 이 if문 안의 내용을 한 번만 주석 해제해서 실행하고 다시 주석 처리하세요.
     
-    localStorage.removeItem('my_custom_characters');
+    /*localStorage.removeItem('my_custom_characters');
     localStorage.removeItem('is_first_run_done');
-    chars = [];
+    chars = [];*/
     
 
     if (chars.length === 0 && !isFirstRun) {
