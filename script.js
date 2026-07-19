@@ -1,5 +1,5 @@
 // 🌟 1. 전역 변수 초기화
-const WORKER_URL = "https://talkaitest.thin770.workers.dev/";
+const WORKER_URL = "https://holy-tree-32c5.thin770.workers.dev/";
 
 let isListening = false, isSpeaking = false, recognition = null;
 const synthesis = window.speechSynthesis;
