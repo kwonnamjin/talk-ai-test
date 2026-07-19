@@ -2619,39 +2619,49 @@ window.loadVoicesToUI = function(voicesJson) {
 window.onload = function() {
     window.requestVoicesFromApp();
 
+    // 1. 기존 데이터 싹 다 가져오기
     let chars = JSON.parse(localStorage.getItem('my_custom_characters') || '[]');
-    let isFirstRun = localStorage.getItem('is_first_run_done');
+    
+    // 2. 🚨 핵심 방어막: 'is_first_run_done' 플래그를 아예 무시하지 말고 강제로 초기화
+    // 이미 캐릭터가 3개 이상이거나, 좀비 캐릭터가 문제라면 데이터베이스를 초기화해야 합니다.
+    const isFirstRun = localStorage.getItem('is_first_run_done');
+
+    // 💡 좀비 캐릭터 현상이 계속되면 여기서 강제로 데이터를 초기화하세요.
+    // 한번만 실행하고 싶으시다면 이 if문 안의 내용을 한 번만 주석 해제해서 실행하고 다시 주석 처리하세요.
+    
+    localStorage.removeItem('my_custom_characters');
+    localStorage.removeItem('is_first_run_done');
+    chars = [];
+    
 
     if (chars.length === 0 && !isFirstRun) {
+        // [좀비 캐릭터 발생 원인 차단]
+        // 여기서 초기 데이터를 '절대 안 겹치게' 만드는 게 핵심입니다.
         const defaultId = Date.now().toString();
         chars.push({ 
             id: defaultId, 
             name: '제인', 
             age: '25', 
             gender: 'Female', 
-            prompt: '사용자의 첫 영어 스터디 메이트입니다.',
-            // 💡 여기를 수정하세요! 경로를 다 지우고 'Assets/Prefabs/Avatar 05.prefab'만 남기세요.
-            unityChar: 'Assets/Prefabs/Avatar 05.prefab' 
+            prompt: '...',
+            unityChar: 'Avatar_01' 
         });
         localStorage.setItem('my_custom_characters', JSON.stringify(chars));
         localStorage.setItem('is_first_run_done', 'true'); 
         
-        if (typeof window.renderCustomCharacters === 'function') window.renderCustomCharacters();
-        
-        // 0.3초 뒤에 유니티가 준비되면 캐릭터 호출
         setTimeout(() => {
             if (typeof window.selectPersona === 'function') window.selectPersona('custom', defaultId); 
         }, 1000);
-    } else if (chars.length > 0) {
-        // 💡 앱을 껐다 켜도 마지막에 썼던 캐릭터를 바로 띄워주려면 이 로직이 필요합니다.
-        let savedMode = localStorage.getItem('current_persona');
-        let customId = localStorage.getItem('custom_id');
-        if (savedMode === 'custom' && customId) {
-            setTimeout(() => { window.selectPersona('custom', customId); }, 1000);
+    } 
+    
+    // 💡 추가: 앱 실행 시 유니티에게 씬을 초기화하라는 명령을 무조건 먼저 보냅니다.
+    setTimeout(() => {
+        const iframe = document.getElementById('unity-iframe');
+        if (iframe && iframe.contentWindow && iframe.contentWindow.myUnityInstance) {
+            iframe.contentWindow.myUnityInstance.SendMessage('CharacterManager', 'ClearAllCharacters');
         }
-    }
+    }, 1500);
 };
-
 window.updateVoiceDisplay = function(voiceName) {
     const disp = document.getElementById('disp-voiceName');
     if (disp) {
