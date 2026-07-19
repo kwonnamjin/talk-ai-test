@@ -912,8 +912,14 @@
 
 </div>
 
-<div id="unity-container">
+<div id="unity-container" class="relative">
     <iframe id="unity-iframe" src="unity-build_v1/index.html?ver=333" allowtransparency="true" scrolling="no"></iframe>
+    
+    <!-- 💡 캐릭터 끄기 X 버튼 (초기 상태는 hidden으로 숨김) -->
+    <button id="closeCharBtn" onclick="toggleCharacterVisibility(false)" 
+            class="hidden fixed bottom-[360px] right-[10px] z-[10000] w-8 h-8 bg-slate-800/70 text-white rounded-full items-center justify-center shadow-lg border border-white/20 backdrop-blur-sm active:scale-95 transition-all">
+        <i class="fa-solid fa-xmark"></i>
+    </button>
 </div>
 
 
