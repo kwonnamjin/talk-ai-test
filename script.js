@@ -2832,6 +2832,7 @@ window.selectPersona = function(mode, customId = null) {
     }
 
     window.updateStatus(`페르소나 변경 완료!`);
+    if (typeof window.toggleCharacterVisibility === 'function') { window.toggleCharacterVisibility(true); }
 };
 // 🌟 2. 커스텀 캐릭터 생성 (슬롯 제한 및 클릭 방지)
 window.saveCustomCharacter = function() {
