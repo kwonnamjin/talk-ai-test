@@ -4032,6 +4032,17 @@ async function initDeviceID() {
         return;
     }
 
+    // 💡 [최종 해결] 진짜 기기 ID를 localStorage에 영구 박제하는 initDeviceID
+async function initDeviceID() {
+    // 1. 이미 내 폰에 진짜 ID가 박혀있다면 그걸 최우선으로 고정!
+    let savedId = localStorage.getItem('web_device_id');
+    if (savedId && !savedId.startsWith('app-')) {
+        myDeviceId = savedId;
+        console.log("📱 [기기 ID 고정 완료]:", myDeviceId);
+        await window.syncUsageWithServer();
+        return;
+    }
+
     // 2. 저장된 게 없다면 플러터에서 진짜 ID를 가져와서 영구 박제
     if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
         try {
@@ -4079,7 +4090,6 @@ async function fetchAPI(url, options) {
     }
     throw new Error("HTTP_ERROR_" + lastStatus);
 }
-
 // 앱 시작 시 실행
 initDeviceID();
 
