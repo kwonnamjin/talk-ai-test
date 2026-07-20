@@ -685,33 +685,32 @@ window.sendTextMessage = function() {
     }
 }
 
-// 💡 기존 initDeviceID 함수를 찾아서 이것으로 교체!
 async function initDeviceID() {
-    // 1. 플러터에 '진짜 기기 ID'를 달라고 요청
     if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
         try {
             const realId = await window.flutter_inappwebview.callHandler('getRealDeviceId');
             if (realId) {
                 myDeviceId = realId;
-                localStorage.setItem('web_device_id', realId); // 웹에도 저장해두기
+                localStorage.setItem('web_device_id', realId);
+                
+                // 🌟 [핵심] 진짜 ID를 가져오자마자 서버와 사용량 동기화 실행!
+                window.syncUsageWithServer();
+                
                 setTimeout(() => { if(typeof window.updateBadgeUI === 'function') window.updateBadgeUI(); }, 100);
-                return; // 성공하면 여기서 함수 종료
+                return;
             }
-        } catch(e) {
-            console.log("진짜 기기 ID를 가져오는 데 실패했습니다.");
-        }
+        } catch(e) {}
     }
     
-    // 2. 만약 플러터 연동 전이거나 에러가 났다면 기존의 '가짜 웹 ID' 생성 로직 작동
     let localId = localStorage.getItem('web_device_id');
     if (!localId) { 
         localId = 'web-' + Math.random().toString(36).substr(2, 9); 
         localStorage.setItem('web_device_id', localId); 
     }
     myDeviceId = localId; 
+    window.syncUsageWithServer(); // 가짜 ID일 때도 동기화 시도
     setTimeout(() => { if(typeof window.updateBadgeUI === 'function') window.updateBadgeUI(); }, 100);
 }
-initDeviceID();
 
 
 
