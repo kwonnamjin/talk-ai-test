@@ -3994,84 +3994,46 @@ window.toggleCharacterVisibility = function(isVisible) {
 
 
 /// 💡 1. 서버와 사용량을 동기화하는 핵심 함수 (로그 추가)
+// ==========================================
+// 💡 [최종 완성] 서버 동기화 및 API 통신 모듈
+// ==========================================
+
+// 1. 서버 동기화 함수
 window.syncUsageWithServer = async function() {
     if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
         try {
             const currentTier = localStorage.getItem('subscription_tier') || 'free';
-            console.log("🔄 [동기화 시작] 서버에 사용량 요청 중... 기기ID:", myDeviceId, "요금제:", currentTier);
+            console.log("🔄 [동기화 시작] 기기ID:", myDeviceId, "요금제:", currentTier);
             
-            // 플러터 핸들러 호출
             const serverCount = await window.flutter_inappwebview.callHandler('syncUsageFromServer', myDeviceId, currentTier);
-            console.log("📥 [동기화 성공] 서버가 알려준 실제 사용 횟수:", serverCount);
             
-            // 내 폰(localStorage)에 서버 값 반영
             let usageObj = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}');
             usageObj.count = serverCount;
             localStorage.setItem('daily_usage_v4', JSON.stringify(usageObj));
             
-            // 화면 갱신
-            if (typeof window.updateBadgeUI === 'function') {
-                window.updateBadgeUI();
-            }
+            if (typeof window.updateBadgeUI === 'function') window.updateBadgeUI();
+            console.log("📥 [동기화 성공] 현재 횟수:", serverCount);
         } catch(e) {
-            console.log("❌ [동기화 에러 발생]:", e);
+            console.log("❌ [동기화 에러]:", e);
         }
-    } else {
-        console.log("⚠️ 플러터 환경이 아님 (웹 브라우저 테스트 중)");
     }
 };
 
-
-
-   // 💡 [최종 완성] 멈춤 현상(디스에이블)을 완전히 제거하고 무조건 고정된 ID를 사용하는 initDeviceID
-async function initDeviceID() {
-    console.log("🔍 [기기 ID 세팅 중]...");
-
-    // 1. 이미 내 폰에 저장된 ID가 있다면 최우선 사용
-    let savedId = localStorage.getItem('web_device_id');
-    
-    // 만약 저장된 게 없거나 가짜(app-)라면, 플러터에서 진짜 ID를 얻어오거나 고정 ID 생성
-    if (!savedId || savedId.startsWith('app-')) {
-        if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
-            try {
-                const realId = await window.flutter_inappwebview.callHandler('getRealDeviceId');
-                if (realId && realId !== 'unknown_device') {
-                    savedId = realId;
-                }
-            } catch(e) {}
-        }
-        
-        // 플러터에서 못 가져왔다면 최후의 고정 ID 부여
-        if (!savedId || savedId.startsWith('app-')) {
-            savedId = 'BP2A-Device-' + Math.random().toString(36).substr(2, 6);
-        }
-        
-        localStorage.setItem('web_device_id', savedId);
-    }
-
-    myDeviceId = savedId;
-    console.log("📱 [최종 확정된 고정 기기 ID]:", myDeviceId);
-
-    // 버튼 잠금 해제 (혹시 잠겨있던 버튼이 있다면 즉시 풀어줌)
-    const textInput = document.getElementById('textInput');
-    const sendBtn = document.getElementById('sendMsgBtn');
-    if(textInput) textInput.disabled = false;
-    if(sendBtn) sendBtn.disabled = false;
-
-    // 서버와 사용량 동기화 실행
-    await window.syncUsageWithServer();
+// 2. 초기 기기 ID 세팅 (플러터가 onLoadStop에서 주입해주므로 웹은 그냥 읽기만 하면 끝!)
+myDeviceId = localStorage.getItem('web_device_id');
+if (!myDeviceId || myDeviceId === 'unknown') {
+    // 혹시 웹 브라우저 단독 테스트 중일 경우를 위한 예비용 가짜 ID
+    myDeviceId = 'web-' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('web_device_id', myDeviceId);
 }
 
-// 💡 [최종 완성] 대화를 보낼 때(POST)나 조회할 때(GET) 무조건 100% 동일한 ID만 쏘는 fetchAPI
+// 3. API 통신 엔진 (무조건 확정된 진짜 ID만 헤더에 장착)
 async function fetchAPI(url, options) {
     if (!options.headers) options.headers = {};
     
-    // 🌟 서버로 가는 모든 통신은 무조건 이 고정된 ID만 사용! (절대 엇갈리지 않음)
-    const fixedId = localStorage.getItem('web_device_id') || myDeviceId || 'BP2A-Default-ID';
-    options.headers['X-Device-ID'] = fixedId;
-    
-    const currentTier = localStorage.getItem('subscription_tier') || 'free';
-    options.headers['X-Plan-Tier'] = currentTier;
+    // 🌟 대화(POST)나 조회(GET) 모두 100% 동일한 내 진짜 고유 ID만 전송!
+    options.headers['X-Device-ID'] = myDeviceId || localStorage.getItem('web_device_id');
+    options.headers['X-Plan-Tier'] = localStorage.getItem('subscription_tier') || 'free';
     
     let delay = 2000; 
     let lastStatus = "네트워크 오류";
@@ -4089,8 +4051,6 @@ async function fetchAPI(url, options) {
     }
     throw new Error("HTTP_ERROR_" + lastStatus);
 }
-// 앱 시작 시 실행
-initDeviceID();
 
 // 앱 초기화될 때(initDeviceID 끝나고 나서) 이 동기화 함수를 자동 실행!
 // (기존 initDeviceID 함수의 맨 마지막 줄이나 적절한 곳에 window.syncUsageWithServer(); 를 넣어주세요)
