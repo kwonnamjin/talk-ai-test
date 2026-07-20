@@ -4021,51 +4021,41 @@ window.syncUsageWithServer = async function() {
     }
 };
 
-// 💡 [최종 수정] 진짜 기기 ID가 확정될 때까지 대화 전송을 100% 차단하는 initDeviceID
+// 💡 [최종 고정 버전] 껐다 켜도 절대 ID가 바뀌지 않게 붙들어 매는 initDeviceID
 async function initDeviceID() {
-    console.log("🔍 [기기 ID 확정 중] 플러터에서 진짜 ID 가져오는 중...");
+    console.log("🔍 [기기 ID 확인 중]...");
 
-    // 1. 진짜 ID를 가져올 때까지 입력창과 전송 버튼을 강제로 잠금! (오작동 방지)
-    const textInput = document.getElementById('textInput');
-    const sendBtn = document.getElementById('sendMsgBtn');
-    if(textInput) textInput.disabled = true;
-    if(sendBtn) sendBtn.disabled = true;
-
-    // 2. 플러터에 진짜 ID를 달라고 끈질기게 요청 (최대 10번 시도)
-    for (let i = 0; i < 10; i++) {
-        if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
-            try {
-                const realId = await window.flutter_inappwebview.callHandler('getRealDeviceId');
-                if (realId && realId !== 'unknown_device' && !realId.startsWith('app-')) {
-                    // 🌟 진짜 ID 확정! 이제부터 모든 통신(POST, GET)은 무조건 이 번호만 씁니다.
-                    myDeviceId = realId;
-                    localStorage.setItem('web_device_id', realId);
-                    console.log("📱 [진짜 기기 ID 완전 고정 성공!]:", myDeviceId);
-                    
-                    // 입력창 잠금 해제
-                    if(textInput) textInput.disabled = false;
-                    if(sendBtn) sendBtn.disabled = false;
-
-                    // 서버에서 현재 사용량을 곧바로 동기화
-                    await window.syncUsageWithServer();
-                    return;
-                }
-            } catch(e) {}
-        }
-        await new Promise(resolve => setTimeout(resolve, 300));
+    // 1. [최우선] 이미 내 폰(localStorage)에 저장된 고유 ID가 있다면 그걸 무조건 1순위로 사용! (재시작 시 절대 안 바뀜)
+    let storedId = localStorage.getItem('web_device_id');
+    if (storedId && !storedId.startsWith('app-') && !storedId.startsWith('BP2A-random')) {
+        myDeviceId = storedId;
+        console.log("📱 [기존 저장된 고유 ID 재사용 성공!]:", myDeviceId);
+        await window.syncUsageWithServer();
+        return;
     }
-    
-    // 만약 플러터 연동 실패 시 웹용 고정 ID 생성
-    let localId = localStorage.getItem('web_device_id');
-    if (!localId || localId.startsWith('app-')) { 
-        localId = 'BP2A-' + Math.random().toString(36).substr(2, 9); 
-        localStorage.setItem('web_device_id', localId); 
-    }
-    myDeviceId = localId; 
-    
-    if(textInput) textInput.disabled = false;
-    if(sendBtn) sendBtn.disabled = false;
 
+    // 2. 만약 저장된 게 없다면 플러터(진짜 폰 번호)에게 요청
+    if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
+        try {
+            const realId = await window.flutter_inappwebview.callHandler('getRealDeviceId');
+            if (realId && realId !== 'unknown_device' && !realId.startsWith('app-')) {
+                myDeviceId = realId;
+                localStorage.setItem('web_device_id', realId); // 영구 저장!
+                console.log("📱 [플러터 진짜 기기 ID 최초 등록 성공!]:", myDeviceId);
+                await window.syncUsageWithServer();
+                return;
+            }
+        } catch(e) {}
+    }
+
+    // 3. 플러터 연동도 안 되고 저장된 것도 없을 때 딱 한 번만 생성 후 영구 저장
+    if (!storedId) {
+        storedId = 'Device-' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('web_device_id', storedId);
+    }
+    myDeviceId = storedId;
+    console.log("💻 [고정된 웹 기기 ID 생성]:", myDeviceId);
+    
     await window.syncUsageWithServer();
 }
 
