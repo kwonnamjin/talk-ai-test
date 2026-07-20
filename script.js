@@ -711,6 +711,7 @@ async function initDeviceID() {
     window.syncUsageWithServer(); // 가짜 ID일 때도 동기화 시도
     setTimeout(() => { if(typeof window.updateBadgeUI === 'function') window.updateBadgeUI(); }, 100);
 }
+initDeviceID();
 
 
 
