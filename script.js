@@ -1112,7 +1112,12 @@ Respond EXACTLY in JSON:
         if(mode==='tutor') { 
             conversationHistory.push({role:"assistant",content:JSON.stringify(parsed)}); 
             sessionStorage.setItem('llmHistory', JSON.stringify(conversationHistory)); 
-            if(typeof window.compressMemory === 'function') window.compressMemory(); 
+            
+            // ✅ 수정: 5턴에 한 번씩만 기억 압축을 실행하도록 변경 (API 요금 및 차감 폭탄 방지)
+            if (window.conversationTurn > 0 && window.conversationTurn % 5 === 0) {
+                if(typeof window.compressMemory === 'function') window.compressMemory(); 
+            }
+            
             INTIMACY_SYSTEM.clearSulking(); 
             INTIMACY_SYSTEM.addExp('chat'); 
         }
@@ -2266,7 +2271,7 @@ window.compressMemory = async function() {
 
     try {
         let res = await fetchAPI(WORKER_URL, {
-            method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Device-ID': myDeviceId },
+            method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Device-ID': myDeviceId,'X-Is-Background': 'true' },
             body: JSON.stringify({ 
                 model: "deepseek-chat", 
                 messages: [{role: "system", content: sysPrompt}, {role: "user", content: `기존 기억:${oldMemory}\n새로운 대화:${chatLog}`}], 
