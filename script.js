@@ -4025,3 +4025,31 @@ window.toggleCharacterVisibility = function(isVisible) {
         }
     }
 };
+
+
+// 💡 앱이 켜질 때 서버에 물어봐서 로컬스토리지 숫자를 서버와 맞추는 함수
+window.syncUsageWithServer = async function() {
+    if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
+        try {
+            const currentTier = localStorage.getItem('subscription_tier') || 'free';
+            // 플러터를 통해 서버에 저장된 실제 사용 횟수를 가져옴
+            const serverCount = await window.flutter_inappwebview.callHandler('syncUsageFromServer', myDeviceId, currentTier);
+            
+            // 내 폰의 localStorage를 서버 값으로 강제 덮어쓰기!
+            let usageObj = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}');
+            usageObj.count = serverCount;
+            localStorage.setItem('daily_usage_v4', JSON.stringify(usageObj));
+            
+            // 화면의 번개 갯수 갱신
+            if (typeof window.updateBadgeUI === 'function') {
+                window.updateBadgeUI();
+            }
+            console.log("✅ 서버와 사용량 동기화 완료! 현재 사용 횟수:", serverCount);
+        } catch(e) {
+            console.log("동기화 실패:", e);
+        }
+    }
+};
+
+// 앱 초기화될 때(initDeviceID 끝나고 나서) 이 동기화 함수를 자동 실행!
+// (기존 initDeviceID 함수의 맨 마지막 줄이나 적절한 곳에 window.syncUsageWithServer(); 를 넣어주세요)
