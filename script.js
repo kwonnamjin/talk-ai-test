@@ -4022,36 +4022,51 @@ window.syncUsageWithServer = async function() {
 };
 
 // 💡 2. 기기 ID 초기화 및 순서 제어 함수
+// 💡 [최종 수정] 진짜 기기 ID를 완벽하게 고정하고 대기시키는 initDeviceID
 async function initDeviceID() {
-    if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
-        try {
-            const realId = await window.flutter_inappwebview.callHandler('getRealDeviceId');
-            if (realId) {
-                myDeviceId = realId;
-                localStorage.setItem('web_device_id', realId);
-                console.log("📱 [기기 ID 확정]:", myDeviceId);
-                
-                // 🌟 핵심: 서버 동기화가 완전히 끝날 때까지 대기(await) 후 화면 갱신
-                await window.syncUsageWithServer();
-                
-                setTimeout(() => { if(typeof window.updateBadgeUI === 'function') window.updateBadgeUI(); }, 100);
-                return;
-            }
-        } catch(e) {
-            console.log("❌ 진짜 기기 ID 가져오기 실패:", e);
+    console.log("🔍 [기기 ID 확정 중] 플러터 브릿지에서 진짜 ID 가져오는 중...");
+
+    // 입력창 잠그기 (ID 가져오기 전 오작동 방지)
+    const textInput = document.getElementById('textInput');
+    const sendBtn = document.getElementById('sendMsgBtn');
+    if(textInput) textInput.disabled = true;
+    if(sendBtn) sendBtn.disabled = true;
+
+    // 플러터에서 진짜 ID 가져오기 시도 (최대 5번 재시도)
+    for (let i = 0; i < 5; i++) {
+        if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
+            try {
+                const realId = await window.flutter_inappwebview.callHandler('getRealDeviceId');
+                if (realId && realId.startsWith('BP2A') || (realId && realId !== 'unknown_device' && !realId.startsWith('app-'))) {
+                    myDeviceId = realId;
+                    localStorage.setItem('web_device_id', realId);
+                    console.log("📱 [진짜 기기 ID 완전 고정 성공!]:", myDeviceId);
+                    
+                    // 입력창 풀기
+                    if(textInput) textInput.disabled = false;
+                    if(sendBtn) sendBtn.disabled = false;
+
+                    // 서버와 사용량 동기화 실행
+                    await window.syncUsageWithServer();
+                    return;
+                }
+            } catch(e) {}
         }
+        await new Promise(resolve => setTimeout(resolve, 300));
     }
     
-    // 웹 테스트용 가짜 ID fallback
+    // 만약 플러터 연동이 안될 경우 기존 웹스토리지 ID 사용
     let localId = localStorage.getItem('web_device_id');
-    if (!localId) { 
-        localId = 'web-' + Math.random().toString(36).substr(2, 9); 
+    if (!localId || localId.startsWith('app-')) { 
+        localId = 'BP2A-' + Math.random().toString(36).substr(2, 9); 
         localStorage.setItem('web_device_id', localId); 
     }
     myDeviceId = localId; 
     
+    if(textInput) textInput.disabled = false;
+    if(sendBtn) sendBtn.disabled = false;
+
     await window.syncUsageWithServer();
-    setTimeout(() => { if(typeof window.updateBadgeUI === 'function') window.updateBadgeUI(); }, 100);
 }
 
 // 앱 시작 시 실행
