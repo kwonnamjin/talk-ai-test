@@ -4021,32 +4021,32 @@ window.syncUsageWithServer = async function() {
     }
 };
 
-// 💡 2. 기기 ID 초기화 및 순서 제어 함수
-// 💡 [최종 수정] 진짜 기기 ID를 완벽하게 고정하고 대기시키는 initDeviceID
+// 💡 [최종 수정] 진짜 기기 ID가 확정될 때까지 대화 전송을 100% 차단하는 initDeviceID
 async function initDeviceID() {
-    console.log("🔍 [기기 ID 확정 중] 플러터 브릿지에서 진짜 ID 가져오는 중...");
+    console.log("🔍 [기기 ID 확정 중] 플러터에서 진짜 ID 가져오는 중...");
 
-    // 입력창 잠그기 (ID 가져오기 전 오작동 방지)
+    // 1. 진짜 ID를 가져올 때까지 입력창과 전송 버튼을 강제로 잠금! (오작동 방지)
     const textInput = document.getElementById('textInput');
     const sendBtn = document.getElementById('sendMsgBtn');
     if(textInput) textInput.disabled = true;
     if(sendBtn) sendBtn.disabled = true;
 
-    // 플러터에서 진짜 ID 가져오기 시도 (최대 5번 재시도)
-    for (let i = 0; i < 5; i++) {
+    // 2. 플러터에 진짜 ID를 달라고 끈질기게 요청 (최대 10번 시도)
+    for (let i = 0; i < 10; i++) {
         if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
             try {
                 const realId = await window.flutter_inappwebview.callHandler('getRealDeviceId');
-                if (realId && realId.startsWith('BP2A') || (realId && realId !== 'unknown_device' && !realId.startsWith('app-'))) {
+                if (realId && realId !== 'unknown_device' && !realId.startsWith('app-')) {
+                    // 🌟 진짜 ID 확정! 이제부터 모든 통신(POST, GET)은 무조건 이 번호만 씁니다.
                     myDeviceId = realId;
                     localStorage.setItem('web_device_id', realId);
                     console.log("📱 [진짜 기기 ID 완전 고정 성공!]:", myDeviceId);
                     
-                    // 입력창 풀기
+                    // 입력창 잠금 해제
                     if(textInput) textInput.disabled = false;
                     if(sendBtn) sendBtn.disabled = false;
 
-                    // 서버와 사용량 동기화 실행
+                    // 서버에서 현재 사용량을 곧바로 동기화
                     await window.syncUsageWithServer();
                     return;
                 }
@@ -4055,7 +4055,7 @@ async function initDeviceID() {
         await new Promise(resolve => setTimeout(resolve, 300));
     }
     
-    // 만약 플러터 연동이 안될 경우 기존 웹스토리지 ID 사용
+    // 만약 플러터 연동 실패 시 웹용 고정 ID 생성
     let localId = localStorage.getItem('web_device_id');
     if (!localId || localId.startsWith('app-')) { 
         localId = 'BP2A-' + Math.random().toString(36).substr(2, 9); 
@@ -4067,6 +4067,31 @@ async function initDeviceID() {
     if(sendBtn) sendBtn.disabled = false;
 
     await window.syncUsageWithServer();
+}
+
+// 💡 3. 서버로 전송할 때(POST) 무조건 고정된 myDeviceId만 사용하도록 fetchAPI 보완
+async function fetchAPI(url, options) {
+    if (!options.headers) options.headers = {};
+    
+    // 🌟 저장할 때(POST)와 조회할 때(GET) 100% 동일한 기기 ID가 나가도록 강제 주입
+    options.headers['X-Device-ID'] = myDeviceId || localStorage.getItem('web_device_id') || 'unknown';
+    options.headers['X-Plan-Tier'] = localStorage.getItem('subscription_tier') || 'free';
+    
+    let delay = 2000; 
+    let lastStatus = "네트워크 오류";
+    
+    for(let i=0; i<3; i++) { 
+        try { 
+            const res = await fetch(url, options); 
+            if(res.ok) return res; 
+            lastStatus = res.status; 
+            await new Promise(r => setTimeout(r, delay)); 
+            delay *= 2; 
+        } catch(e) { 
+            if(i === 2) throw e; 
+        } 
+    }
+    throw new Error("HTTP_ERROR_" + lastStatus);
 }
 
 // 앱 시작 시 실행
