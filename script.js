@@ -685,33 +685,6 @@ window.sendTextMessage = function() {
     }
 }
 
-async function initDeviceID() {
-    if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
-        try {
-            const realId = await window.flutter_inappwebview.callHandler('getRealDeviceId');
-            if (realId) {
-                myDeviceId = realId;
-                localStorage.setItem('web_device_id', realId);
-                
-                // 🌟 [핵심] 진짜 ID를 가져오자마자 서버와 사용량 동기화 실행!
-                window.syncUsageWithServer();
-                
-                setTimeout(() => { if(typeof window.updateBadgeUI === 'function') window.updateBadgeUI(); }, 100);
-                return;
-            }
-        } catch(e) {}
-    }
-    
-    let localId = localStorage.getItem('web_device_id');
-    if (!localId) { 
-        localId = 'web-' + Math.random().toString(36).substr(2, 9); 
-        localStorage.setItem('web_device_id', localId); 
-    }
-    myDeviceId = localId; 
-    window.syncUsageWithServer(); // 가짜 ID일 때도 동기화 시도
-    setTimeout(() => { if(typeof window.updateBadgeUI === 'function') window.updateBadgeUI(); }, 100);
-}
-initDeviceID();
 
 
 
@@ -4027,29 +4000,60 @@ window.toggleCharacterVisibility = function(isVisible) {
 };
 
 
-// 💡 앱이 켜질 때 서버에 물어봐서 로컬스토리지 숫자를 서버와 맞추는 함수
+// 💡 앱이 켜질 때 서버에 물어봐서 로컬스토리지 숫자를 서버와 맞추는 핵심 함수
 window.syncUsageWithServer = async function() {
     if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
         try {
             const currentTier = localStorage.getItem('subscription_tier') || 'free';
-            // 플러터를 통해 서버에 저장된 실제 사용 횟수를 가져옴
+            
+            // 1. 플러터의 syncUsageFromServer 핸들러를 호출하여 서버에 저장된 실제 사용 횟수를 가져옴
             const serverCount = await window.flutter_inappwebview.callHandler('syncUsageFromServer', myDeviceId, currentTier);
             
-            // 내 폰의 localStorage를 서버 값으로 강제 덮어쓰기!
+            // 2. 내 폰의 localStorage를 서버 값으로 강제 덮어쓰기!
             let usageObj = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}');
             usageObj.count = serverCount;
             localStorage.setItem('daily_usage_v4', JSON.stringify(usageObj));
             
-            // 화면의 번개 갯수 갱신
+            // 3. 화면의 번개 갯수 즉시 갱신
             if (typeof window.updateBadgeUI === 'function') {
                 window.updateBadgeUI();
             }
             console.log("✅ 서버와 사용량 동기화 완료! 현재 사용 횟수:", serverCount);
         } catch(e) {
-            console.log("동기화 실패:", e);
+            console.log("서버 사용량 동기화 실패:", e);
         }
     }
 };
+
+// 💡 4. 기기 ID가 확정되는 순간(initDeviceID 내부) 자동으로 동기화가 실행되도록 연결
+// (만약 기존 initDeviceID 함수가 아래처럼 생겼다면 그대로 덮어쓰거나 안의 내용을 확인해 보세요)
+async function initDeviceID() {
+    if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
+        try {
+            const realId = await window.flutter_inappwebview.callHandler('getRealDeviceId');
+            if (realId) {
+                myDeviceId = realId;
+                localStorage.setItem('web_device_id', realId);
+                
+                // 🌟 [핵심] 진짜 ID를 가져오자마자 서버와 사용량 동기화 실행!
+                window.syncUsageWithServer();
+                
+                setTimeout(() => { if(typeof window.updateBadgeUI === 'function') window.updateBadgeUI(); }, 100);
+                return;
+            }
+        } catch(e) {}
+    }
+    
+    let localId = localStorage.getItem('web_device_id');
+    if (!localId) { 
+        localId = 'web-' + Math.random().toString(36).substr(2, 9); 
+        localStorage.setItem('web_device_id', localId); 
+    }
+    myDeviceId = localId; 
+    window.syncUsageWithServer(); // 가짜 ID일 때도 동기화 시도
+    setTimeout(() => { if(typeof window.updateBadgeUI === 'function') window.updateBadgeUI(); }, 100);
+}
+initDeviceID();
 
 // 앱 초기화될 때(initDeviceID 끝나고 나서) 이 동기화 함수를 자동 실행!
 // (기존 initDeviceID 함수의 맨 마지막 줄이나 적절한 곳에 window.syncUsageWithServer(); 를 넣어주세요)
