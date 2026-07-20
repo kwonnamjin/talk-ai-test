@@ -4021,54 +4021,53 @@ window.syncUsageWithServer = async function() {
     }
 };
 
-// 💡 [최종 해결] 진짜 기기 ID를 localStorage에 영구 박제하는 initDeviceID
-async function initDeviceID() {
-    // 1. 이미 내 폰에 진짜 ID가 박혀있다면 그걸 최우선으로 고정!
-    let savedId = localStorage.getItem('web_device_id');
-    if (savedId && !savedId.startsWith('app-')) {
-        myDeviceId = savedId;
-        console.log("📱 [기기 ID 고정 완료]:", myDeviceId);
-        await window.syncUsageWithServer();
-        return;
-    }
 
-    // 💡 [최종 해결] 진짜 기기 ID를 localStorage에 영구 박제하는 initDeviceID
-async function initDeviceID() {
-    // 1. 이미 내 폰에 진짜 ID가 박혀있다면 그걸 최우선으로 고정!
-    let savedId = localStorage.getItem('web_device_id');
-    if (savedId && !savedId.startsWith('app-')) {
-        myDeviceId = savedId;
-        console.log("📱 [기기 ID 고정 완료]:", myDeviceId);
-        await window.syncUsageWithServer();
-        return;
-    }
 
-    // 2. 저장된 게 없다면 플러터에서 진짜 ID를 가져와서 영구 박제
-    if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
-        try {
-            const realId = await window.flutter_inappwebview.callHandler('getRealDeviceId');
-            if (realId && realId !== 'unknown_device') {
-                myDeviceId = realId;
-                localStorage.setItem('web_device_id', realId); // 🌟 영구 저장!
-                console.log("📱 [플러터 진짜 ID 영구 박제 성공]:", myDeviceId);
-                await window.syncUsageWithServer();
-                return;
-            }
-        } catch(e) {}
-    }
+   // 💡 [최종 완성] 멈춤 현상(디스에이블)을 완전히 제거하고 무조건 고정된 ID를 사용하는 initDeviceID
+async function initDeviceID() {
+    console.log("🔍 [기기 ID 세팅 중]...");
+
+    // 1. 이미 내 폰에 저장된 ID가 있다면 최우선 사용
+    let savedId = localStorage.getItem('web_device_id');
     
-    // 3. 최후의 보루 (가짜 app- 번호가 절대 생기지 않도록 고정 텍스트 부여)
-    myDeviceId = savedId || 'Device-Fixed-ID';
-    localStorage.setItem('web_device_id', myDeviceId);
+    // 만약 저장된 게 없거나 가짜(app-)라면, 플러터에서 진짜 ID를 얻어오거나 고정 ID 생성
+    if (!savedId || savedId.startsWith('app-')) {
+        if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
+            try {
+                const realId = await window.flutter_inappwebview.callHandler('getRealDeviceId');
+                if (realId && realId !== 'unknown_device') {
+                    savedId = realId;
+                }
+            } catch(e) {}
+        }
+        
+        // 플러터에서 못 가져왔다면 최후의 고정 ID 부여
+        if (!savedId || savedId.startsWith('app-')) {
+            savedId = 'BP2A-Device-' + Math.random().toString(36).substr(2, 6);
+        }
+        
+        localStorage.setItem('web_device_id', savedId);
+    }
+
+    myDeviceId = savedId;
+    console.log("📱 [최종 확정된 고정 기기 ID]:", myDeviceId);
+
+    // 버튼 잠금 해제 (혹시 잠겨있던 버튼이 있다면 즉시 풀어줌)
+    const textInput = document.getElementById('textInput');
+    const sendBtn = document.getElementById('sendMsgBtn');
+    if(textInput) textInput.disabled = false;
+    if(sendBtn) sendBtn.disabled = false;
+
+    // 서버와 사용량 동기화 실행
     await window.syncUsageWithServer();
 }
 
-// 💡 [최종 해결] 대화를 보낼 때(POST) 무조건 박제된 진짜 ID만 헤더에 싣는 fetchAPI
+// 💡 [최종 완성] 대화를 보낼 때(POST)나 조회할 때(GET) 무조건 100% 동일한 ID만 쏘는 fetchAPI
 async function fetchAPI(url, options) {
     if (!options.headers) options.headers = {};
     
-    // 🌟 쿼리나 저장할 때나 조회할 때 무조건 100% 동일한 '내 진짜 고유 ID'만 전송!
-    const fixedId = localStorage.getItem('web_device_id') || myDeviceId || 'BP2A-Default';
+    // 🌟 서버로 가는 모든 통신은 무조건 이 고정된 ID만 사용! (절대 엇갈리지 않음)
+    const fixedId = localStorage.getItem('web_device_id') || myDeviceId || 'BP2A-Default-ID';
     options.headers['X-Device-ID'] = fixedId;
     
     const currentTier = localStorage.getItem('subscription_tier') || 'free';
