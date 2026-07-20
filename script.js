@@ -614,26 +614,27 @@ window.processPayment = function(plan) {
     }
 }
 
+// 💡 기존 fetchAPI 함수를 찾아서 이것으로 통째로 교체!
 async function fetchAPI(url, options) {
-    let delay = 2000; // 💡 첫 재시도 대기 시간을 0.5초에서 2초로 대폭 늘림 (AI 서버 과부하 배려)
+    // 💡 [핵심 추가] 모든 워커 통신에 요금제(Tier) 정보를 강제로 꽂아넣습니다.
+    if (!options.headers) options.headers = {};
+    options.headers['X-Plan-Tier'] = localStorage.getItem('subscription_tier') || 'free';
+    
+    let delay = 2000; 
     let lastStatus = "네트워크 오류";
     
     for(let i=0; i<3; i++) { 
         try { 
             const res = await fetch(url, options); 
-            
-            // 정상 응답이면 바로 반환
             if(res.ok) return res; 
             
             lastStatus = res.status; 
             console.warn(`[API 통신 지연] 서버 상태 코드: ${lastStatus}. ${delay/1000}초 후 재시도합니다...`);
             
-            // 💡 429(Too Many Requests)나 5xx(서버 에러)일 때는 더 오래 기다리게 함
             await new Promise(r => setTimeout(r, delay)); 
-            delay *= 2; // 2초 -> 4초 -> 8초 간격으로 지수 백오프(Exponential Backoff)
-            
+            delay *= 2; 
         } catch(e) { 
-            if(i === 2) { // 3번 다 실패했을 때만 최후의 에러를 던짐
+            if(i === 2) { 
                 if (typeof updateStatus === 'function') updateStatus("네트워크 연결 불안정");
                 alert("📡 인터넷 연결이 불안정하여 통신에 실패했습니다.");
                 throw e; 
@@ -641,8 +642,7 @@ async function fetchAPI(url, options) {
         } 
     }
     
-    // 💡 3번의 여유로운 재시도(총 14초 대기) 후에도 실패하면 사용자에게 친절하게 안내
-    alert(`📡 현재 AI 서버에 전 세계적으로 트래픽이 몰려 응답이 지연되고 있습니다.\n(에러 코드: ${lastStatus})\n\n잠시 후 다시 말을 걸어주시면 정상적으로 대화가 이어집니다!`);
+    alert(`📡 현재 AI 서버에 트래픽이 몰려 응답이 지연되고 있습니다.\n(에러 코드: ${lastStatus})\n\n잠시 후 다시 말을 걸어주시면 정상적으로 대화가 이어집니다!`);
     throw new Error("HTTP_ERROR_" + lastStatus);
 }
 
@@ -685,9 +685,29 @@ window.sendTextMessage = function() {
     }
 }
 
+// 💡 기존 initDeviceID 함수를 찾아서 이것으로 교체!
 async function initDeviceID() {
+    // 1. 플러터에 '진짜 기기 ID'를 달라고 요청
+    if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
+        try {
+            const realId = await window.flutter_inappwebview.callHandler('getRealDeviceId');
+            if (realId) {
+                myDeviceId = realId;
+                localStorage.setItem('web_device_id', realId); // 웹에도 저장해두기
+                setTimeout(() => { if(typeof window.updateBadgeUI === 'function') window.updateBadgeUI(); }, 100);
+                return; // 성공하면 여기서 함수 종료
+            }
+        } catch(e) {
+            console.log("진짜 기기 ID를 가져오는 데 실패했습니다.");
+        }
+    }
+    
+    // 2. 만약 플러터 연동 전이거나 에러가 났다면 기존의 '가짜 웹 ID' 생성 로직 작동
     let localId = localStorage.getItem('web_device_id');
-    if (!localId) { localId = 'web-' + Math.random().toString(36).substr(2, 9); localStorage.setItem('web_device_id', localId); }
+    if (!localId) { 
+        localId = 'web-' + Math.random().toString(36).substr(2, 9); 
+        localStorage.setItem('web_device_id', localId); 
+    }
     myDeviceId = localId; 
     setTimeout(() => { if(typeof window.updateBadgeUI === 'function') window.updateBadgeUI(); }, 100);
 }
