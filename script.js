@@ -884,26 +884,9 @@ window.stopSpeaking = function() {
 
 // 🌟 통신 중복 방지를 위한 전역 변수 추가
 window.isProcessingChat = false;
-
 async function handleUserMessage(text) {
     if(!text) return;
-    
-    // 🚨 [추가된 핵심 코드] 1. 이미 처리 중이면 0.2초 뒤 중복 요청을 무조건 튕겨냄!
-    if (window.isProcessingChat) {
-        console.log("⏳ 통신 중복 요청 방지됨 (2중 차감 방어)");
-        return; 
-    }
-    
     if (typeof window.checkAndBlockAPI === 'function' && !window.checkAndBlockAPI()) return;
-
-    // 🚨 [추가된 핵심 코드] 2. 통신 시작 전 잠금 온 (다른 요청 못 들어오게 막음)
-    window.isProcessingChat = true;
-
-    // 전송 버튼과 입력창을 일시적으로 잠가서 사용자 클릭 원천 차단
-    const sendBtn = document.getElementById('sendMsgBtn');
-    const textInput = document.getElementById('textInput');
-    if (sendBtn) sendBtn.disabled = true;
-    if (textInput) textInput.disabled = true;
 
     window.addMessageToChat('user', text);
     if (typeof updateStatus === 'function') updateStatus("생각하는 중..."); 
@@ -1153,22 +1136,10 @@ Respond EXACTLY in JSON:
         console.error(e); 
         if (typeof updateStatus === 'function') updateStatus("AI 서버 통신 에러"); 
         if(avatarWrap) avatarWrap.style.borderColor="#f87171"; 
-    } finally {
-        // 🚨 [추가된 핵심 코드] 3. 통신이 성공하든 에러가 나든 무조건 잠금 해제!
-        window.isProcessingChat = false;
-        
-        // 버튼과 텍스트 입력창 다시 활성화
-        if (typeof window.enableInputs === 'function') window.enableInputs();
-        const sendBtn = document.getElementById('sendMsgBtn');
-        const textInput = document.getElementById('textInput');
-        if (sendBtn) sendBtn.disabled = false;
-        if (textInput) {
-            textInput.disabled = false;
-            textInput.focus(); // 자연스럽게 다시 타이핑할 수 있게 포커스
-        }
     }
 }
 window.handleUserMessage = handleUserMessage;
+
 window.requestExplanationGlobal = function() { 
     let lastAiMsg = "";
     for(let i = uiChatHistory.length - 1; i >= 0; i--) { if(uiChatHistory[i].sender === 'ai') { lastAiMsg = uiChatHistory[i].text; break; } }
