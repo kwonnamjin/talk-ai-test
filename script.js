@@ -4000,53 +4000,56 @@ window.toggleCharacterVisibility = function(isVisible) {
 };
 
 
-// 💡 앱이 켜질 때 서버에 물어봐서 로컬스토리지 숫자를 서버와 맞추는 핵심 함수
+/// 💡 1. 서버와 사용량을 동기화하는 핵심 함수 (로그 추가)
 window.syncUsageWithServer = async function() {
     if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
         try {
             const currentTier = localStorage.getItem('subscription_tier') || 'free';
+            console.log("🔄 [동기화 시작] 서버에 사용량 요청 중... 기기ID:", myDeviceId, "요금제:", currentTier);
             
-            // 1. 플러터의 syncUsageFromServer 핸들러를 호출하여 서버에 저장된 실제 사용 횟수를 가져옴
+            // 플러터 핸들러 호출
             const serverCount = await window.flutter_inappwebview.callHandler('syncUsageFromServer', myDeviceId, currentTier);
+            console.log("📥 [동기화 성공] 서버가 알려준 실제 사용 횟수:", serverCount);
             
-            // 2. 내 폰의 localStorage를 서버 값으로 강제 덮어쓰기!
+            // 내 폰(localStorage)에 서버 값 반영
             let usageObj = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}');
             usageObj.count = serverCount;
             localStorage.setItem('daily_usage_v4', JSON.stringify(usageObj));
             
-            // 3. 화면의 번개 갯수 즉시 갱신
+            // 화면 갱신
             if (typeof window.updateBadgeUI === 'function') {
                 window.updateBadgeUI();
             }
-            console.log("✅ 서버와 사용량 동기화 완료! 현재 사용 횟수:", serverCount);
         } catch(e) {
-            console.log("서버 사용량 동기화 실패:", e);
+            console.log("❌ [동기화 에러 발생]:", e);
         }
+    } else {
+        console.log("⚠️ 플러터 환경이 아님 (웹 브라우저 테스트 중)");
     }
 };
 
-// 💡 4. 기기 ID가 확정되는 순간(initDeviceID 내부) 자동으로 동기화가 실행되도록 연결
-// 💡 기존 initDeviceID 함수를 찾아서 이것으로 통째로 교체하세요!
+// 💡 2. 기기 ID 초기화 및 순서 제어 함수
 async function initDeviceID() {
-    // 1. 가장 먼저 서버와 사용량을 동기화하는 함수를 실행하고 끝날 때까지 기다립니다 (await!)
     if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
         try {
             const realId = await window.flutter_inappwebview.callHandler('getRealDeviceId');
             if (realId) {
                 myDeviceId = realId;
                 localStorage.setItem('web_device_id', realId);
+                console.log("📱 [기기 ID 확정]:", myDeviceId);
                 
-                // 🌟 핵심: 서버에서 진짜 사용 횟수를 받아올 때까지 기다립니다!
+                // 🌟 핵심: 서버 동기화가 완전히 끝날 때까지 대기(await) 후 화면 갱신
                 await window.syncUsageWithServer();
                 
+                setTimeout(() => { if(typeof window.updateBadgeUI === 'function') window.updateBadgeUI(); }, 100);
                 return;
             }
         } catch(e) {
-            console.log("기기 ID 연동 에러:", e);
+            console.log("❌ 진짜 기기 ID 가져오기 실패:", e);
         }
     }
     
-    // 2. 웹 브라우저 테스트 환경일 때
+    // 웹 테스트용 가짜 ID fallback
     let localId = localStorage.getItem('web_device_id');
     if (!localId) { 
         localId = 'web-' + Math.random().toString(36).substr(2, 9); 
@@ -4054,8 +4057,11 @@ async function initDeviceID() {
     }
     myDeviceId = localId; 
     
-    await window.syncUsageWithServer(); // 서버 동기화 완료 대기
+    await window.syncUsageWithServer();
+    setTimeout(() => { if(typeof window.updateBadgeUI === 'function') window.updateBadgeUI(); }, 100);
 }
+
+// 앱 시작 시 실행
 initDeviceID();
 
 // 앱 초기화될 때(initDeviceID 끝나고 나서) 이 동기화 함수를 자동 실행!
