@@ -4063,9 +4063,13 @@ async function initDeviceID() {
 async function fetchAPI(url, options) {
     if (!options.headers) options.headers = {};
     
-    // 🌟 저장할 때(POST)와 조회할 때(GET) 100% 동일한 기기 ID가 나가도록 강제 주입
-    options.headers['X-Device-ID'] = myDeviceId || localStorage.getItem('web_device_id') || 'unknown';
-    options.headers['X-Plan-Tier'] = localStorage.getItem('subscription_tier') || 'free';
+    // 🌟 대화를 보낼 때(POST)나 조회할 때(GET) 무조건 100% 동일한 진짜 기기 ID만 전송!
+    const fixedId = myDeviceId || localStorage.getItem('web_device_id') || 'unknown';
+    options.headers['X-Device-ID'] = fixedId;
+    
+    // 요금제 정보도 확실하게 헤더에 실어줌
+    const currentTier = localStorage.getItem('subscription_tier') || 'free';
+    options.headers['X-Plan-Tier'] = currentTier;
     
     let delay = 2000; 
     let lastStatus = "네트워크 오류";
