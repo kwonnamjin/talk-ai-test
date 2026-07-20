@@ -4026,8 +4026,9 @@ window.syncUsageWithServer = async function() {
 };
 
 // 💡 4. 기기 ID가 확정되는 순간(initDeviceID 내부) 자동으로 동기화가 실행되도록 연결
-// (만약 기존 initDeviceID 함수가 아래처럼 생겼다면 그대로 덮어쓰거나 안의 내용을 확인해 보세요)
+// 💡 기존 initDeviceID 함수를 찾아서 이것으로 통째로 교체하세요!
 async function initDeviceID() {
+    // 1. 가장 먼저 서버와 사용량을 동기화하는 함수를 실행하고 끝날 때까지 기다립니다 (await!)
     if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
         try {
             const realId = await window.flutter_inappwebview.callHandler('getRealDeviceId');
@@ -4035,23 +4036,25 @@ async function initDeviceID() {
                 myDeviceId = realId;
                 localStorage.setItem('web_device_id', realId);
                 
-                // 🌟 [핵심] 진짜 ID를 가져오자마자 서버와 사용량 동기화 실행!
-                window.syncUsageWithServer();
+                // 🌟 핵심: 서버에서 진짜 사용 횟수를 받아올 때까지 기다립니다!
+                await window.syncUsageWithServer();
                 
-                setTimeout(() => { if(typeof window.updateBadgeUI === 'function') window.updateBadgeUI(); }, 100);
                 return;
             }
-        } catch(e) {}
+        } catch(e) {
+            console.log("기기 ID 연동 에러:", e);
+        }
     }
     
+    // 2. 웹 브라우저 테스트 환경일 때
     let localId = localStorage.getItem('web_device_id');
     if (!localId) { 
         localId = 'web-' + Math.random().toString(36).substr(2, 9); 
         localStorage.setItem('web_device_id', localId); 
     }
     myDeviceId = localId; 
-    window.syncUsageWithServer(); // 가짜 ID일 때도 동기화 시도
-    setTimeout(() => { if(typeof window.updateBadgeUI === 'function') window.updateBadgeUI(); }, 100);
+    
+    await window.syncUsageWithServer(); // 서버 동기화 완료 대기
 }
 initDeviceID();
 
