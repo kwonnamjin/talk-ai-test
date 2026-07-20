@@ -616,8 +616,10 @@ window.processPayment = function(plan) {
 
 // 💡 기존 fetchAPI 함수를 찾아서 이것으로 통째로 교체!
 async function fetchAPI(url, options) {
-    // 💡 [핵심 추가] 모든 워커 통신에 요금제(Tier) 정보를 강제로 꽂아넣습니다.
     if (!options.headers) options.headers = {};
+    
+    // 🌟 [핵심 수정] 저장할 때와 조회할 때 아이디가 엇나가지 않도록 myDeviceId를 강제 고정!
+    options.headers['X-Device-ID'] = myDeviceId || localStorage.getItem('web_device_id') || 'unknown';
     options.headers['X-Plan-Tier'] = localStorage.getItem('subscription_tier') || 'free';
     
     let delay = 2000; 
@@ -627,22 +629,13 @@ async function fetchAPI(url, options) {
         try { 
             const res = await fetch(url, options); 
             if(res.ok) return res; 
-            
             lastStatus = res.status; 
-            console.warn(`[API 통신 지연] 서버 상태 코드: ${lastStatus}. ${delay/1000}초 후 재시도합니다...`);
-            
             await new Promise(r => setTimeout(r, delay)); 
             delay *= 2; 
         } catch(e) { 
-            if(i === 2) { 
-                if (typeof updateStatus === 'function') updateStatus("네트워크 연결 불안정");
-                alert("📡 인터넷 연결이 불안정하여 통신에 실패했습니다.");
-                throw e; 
-            }
+            if(i === 2) throw e; 
         } 
     }
-    
-    alert(`📡 현재 AI 서버에 트래픽이 몰려 응답이 지연되고 있습니다.\n(에러 코드: ${lastStatus})\n\n잠시 후 다시 말을 걸어주시면 정상적으로 대화가 이어집니다!`);
     throw new Error("HTTP_ERROR_" + lastStatus);
 }
 
