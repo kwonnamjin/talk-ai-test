@@ -1538,6 +1538,12 @@ window.generateScript = async function() {
             body: JSON.stringify({ level: level, situation: isRandom ? "random daily life" : situation, language: targetLangName, expLanguage: expLangName, isRandom: isRandom }) 
         });
         const data = await res.json(); 
+        if (data.serverCount !== undefined) {
+            let usageObj = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}');
+            usageObj.count = data.serverCount;
+            localStorage.setItem('daily_usage_v4', JSON.stringify(usageObj));
+            if (typeof window.updateBadgeUI === 'function') window.updateBadgeUI();
+        }
         
         if (typeof window.syncUsageWithServer === 'function') window.syncUsageWithServer();
         if (savedScripts.length >= 5) savedScripts.shift(); 
@@ -1860,6 +1866,12 @@ window.generateVocab = async function() {
             body: JSON.stringify({ theme: theme, language: targetLangName, expLanguage: expLangName, existingWords: myExistingWords, userWord: userCustomWord }) 
         });
         const data = await res.json(); 
+        if (data.serverCount !== undefined) {
+            let usageObj = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}');
+            usageObj.count = data.serverCount;
+            localStorage.setItem('daily_usage_v4', JSON.stringify(usageObj));
+            if (typeof window.updateBadgeUI === 'function') window.updateBadgeUI();
+        }
 
         const uniqueVocabData = data.vocabData.filter((v, index, self) => 
             index === self.findIndex((t) => (
@@ -1950,6 +1962,12 @@ window.loadAlphabetData = async function() {
                 });
                 if (!res) throw new Error("서버 에러");
                 const data = await res.json(); 
+                if (data.serverCount !== undefined) {
+            let usageObj = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}');
+            usageObj.count = data.serverCount;
+            localStorage.setItem('daily_usage_v4', JSON.stringify(usageObj));
+            if (typeof window.updateBadgeUI === 'function') window.updateBadgeUI();
+        }
                 if(!data || !data.alphabetData) throw new Error("데이터 누락");
                 
                 // 💡 서버가 차감한 최신 횟수를 앱 화면으로 즉시 가져오기!
