@@ -1169,7 +1169,7 @@ Respond EXACTLY in JSON:
         if (sendBtn) sendBtn.disabled = false;
         if (textInput) {
             textInput.disabled = false;
-            textInput.focus(); // 자연스럽게 다시 타이핑할 수 있게 포커스
+           // textInput.focus(); // 자연스럽게 다시 타이핑할 수 있게 포커스
         }
     }
 }
