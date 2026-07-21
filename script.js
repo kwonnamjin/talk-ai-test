@@ -1533,13 +1533,13 @@ window.generateScript = async function() {
     btn.classList.add('opacity-50', 'cursor-wait');
 
     try {
-        const res = await fetchAPI(`${WORKER_URL}generate-script`, { 
+        const res = await fetch(`${WORKER_URL}generate-script`, { 
             method: 'POST', headers: { 'Content-Type': 'application/json' }, 
             body: JSON.stringify({ level: level, situation: isRandom ? "random daily life" : situation, language: targetLangName, expLanguage: expLangName, isRandom: isRandom }) 
         });
         const data = await res.json(); 
         
-        if (typeof window.syncUsageWithServer === 'function') window.syncUsageWithServer();
+        if (typeof window.incrementLocalUsage === 'function') window.incrementLocalUsage();
         if (savedScripts.length >= 5) savedScripts.shift(); 
         
         savedScripts.push({ level: level, situation: situation, langName: targetLangName, langCode: document.getElementById('targetLanguage').value, scriptData: data.scriptData });
@@ -1855,7 +1855,7 @@ window.generateVocab = async function() {
 
     btn.innerText = "⏳ ..."; btn.disabled = true;
     try {
-       const res = await fetchAPI(`${WORKER_URL}generate-vocab`, { 
+        const res = await fetch(`${WORKER_URL}generate-vocab`, { 
             method: 'POST', headers: { 'Content-Type': 'application/json' }, 
             body: JSON.stringify({ theme: theme, language: targetLangName, expLanguage: expLangName, existingWords: myExistingWords, userWord: userCustomWord }) 
         });
@@ -1867,7 +1867,7 @@ window.generateVocab = async function() {
             ))
         );
 
-        if (typeof window.syncUsageWithServer === 'function') window.syncUsageWithServer();
+        if (typeof window.incrementLocalUsage === 'function') window.incrementLocalUsage();
 
         let newId = savedVocabs.length > 0 ? savedVocabs[savedVocabs.length - 1].id + 1 : 1;
         if (savedVocabs.length >= 5) savedVocabs.shift(); 
@@ -1951,11 +1951,9 @@ window.loadAlphabetData = async function() {
                 if (!res) throw new Error("서버 에러");
                 const data = await res.json(); 
                 if(!data || !data.alphabetData) throw new Error("데이터 누락");
-                
-                // 💡 서버가 차감한 최신 횟수를 앱 화면으로 즉시 가져오기!
-                if (typeof window.syncUsageWithServer === 'function') window.syncUsageWithServer();
+                if (typeof window.incrementLocalUsage === 'function') window.incrementLocalUsage();
 
-                fullData = data; localStorage.setItem(cacheKey, JSON.stringify(fullData)); currentLimit = 0;
+                fullData = data; localStorage.setItem(cacheKey, JSON.stringify(fullData)); currentLimit = 0; 
             } catch (err) { 
                 listArea.innerHTML = `<div class="text-center text-red-400 text-sm mt-10 font-bold">서버 통신 실패. 버튼을 다시 눌러주세요!</div>`;
                 btn.innerText = dict.generateAlphaBtn || "✨ 선택한 언어의 AI 파닉스 가져오기"; btn.disabled = false; return;
@@ -2273,7 +2271,7 @@ window.compressMemory = async function() {
 
     try {
         let res = await fetchAPI(WORKER_URL, {
-            method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Device-ID': myDeviceId,'X-Is-Background': 'true' },
+            method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Device-ID': myDeviceId, },
             body: JSON.stringify({ 
                 model: "deepseek-chat", 
                 messages: [{role: "system", content: sysPrompt}, {role: "user", content: `기존 기억:${oldMemory}\n새로운 대화:${chatLog}`}], 
