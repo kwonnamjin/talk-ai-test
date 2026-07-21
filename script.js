@@ -1112,12 +1112,7 @@ Respond EXACTLY in JSON:
         if(mode==='tutor') { 
             conversationHistory.push({role:"assistant",content:JSON.stringify(parsed)}); 
             sessionStorage.setItem('llmHistory', JSON.stringify(conversationHistory)); 
-            
-            // ✅ 수정: 5턴에 한 번씩만 기억 압축을 실행하도록 변경 (API 요금 및 차감 폭탄 방지)
-            if (window.conversationTurn > 0 && window.conversationTurn % 5 === 0) {
-                if(typeof window.compressMemory === 'function') window.compressMemory(); 
-            }
-            
+            if(typeof window.compressMemory === 'function') window.compressMemory(); 
             INTIMACY_SYSTEM.clearSulking(); 
             INTIMACY_SYSTEM.addExp('chat'); 
         }
@@ -1158,22 +1153,10 @@ Respond EXACTLY in JSON:
         console.error(e); 
         if (typeof updateStatus === 'function') updateStatus("AI 서버 통신 에러"); 
         if(avatarWrap) avatarWrap.style.borderColor="#f87171"; 
-    } finally {
-        // 🚨 [추가된 핵심 코드] 3. 통신이 성공하든 에러가 나든 무조건 잠금 해제!
-        window.isProcessingChat = false;
-        
-        // 버튼과 텍스트 입력창 다시 활성화
-        if (typeof window.enableInputs === 'function') window.enableInputs();
-        const sendBtn = document.getElementById('sendMsgBtn');
-        const textInput = document.getElementById('textInput');
-        if (sendBtn) sendBtn.disabled = false;
-        if (textInput) {
-            textInput.disabled = false;
-            textInput.focus(); // 자연스럽게 다시 타이핑할 수 있게 포커스
-        }
     }
 }
 window.handleUserMessage = handleUserMessage;
+
 window.requestExplanationGlobal = function() { 
     let lastAiMsg = "";
     for(let i = uiChatHistory.length - 1; i >= 0; i--) { if(uiChatHistory[i].sender === 'ai') { lastAiMsg = uiChatHistory[i].text; break; } }
