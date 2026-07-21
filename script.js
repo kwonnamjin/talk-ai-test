@@ -1533,7 +1533,7 @@ window.generateScript = async function() {
     btn.classList.add('opacity-50', 'cursor-wait');
 
     try {
-        const res = await fetch(`${WORKER_URL}generate-script`, { 
+        const res = await fetchAPI(`${WORKER_URL}generate-script`, { 
             method: 'POST', headers: { 'Content-Type': 'application/json' }, 
             body: JSON.stringify({ level: level, situation: isRandom ? "random daily life" : situation, language: targetLangName, expLanguage: expLangName, isRandom: isRandom }) 
         });
@@ -1855,7 +1855,7 @@ window.generateVocab = async function() {
 
     btn.innerText = "⏳ ..."; btn.disabled = true;
     try {
-        const res = await fetch(`${WORKER_URL}generate-vocab`, { 
+       const res = await fetchAPI(`${WORKER_URL}generate-vocab`, { 
             method: 'POST', headers: { 'Content-Type': 'application/json' }, 
             body: JSON.stringify({ theme: theme, language: targetLangName, expLanguage: expLangName, existingWords: myExistingWords, userWord: userCustomWord }) 
         });
@@ -1951,9 +1951,11 @@ window.loadAlphabetData = async function() {
                 if (!res) throw new Error("서버 에러");
                 const data = await res.json(); 
                 if(!data || !data.alphabetData) throw new Error("데이터 누락");
+                
+                // 💡 서버가 차감한 최신 횟수를 앱 화면으로 즉시 가져오기!
                 if (typeof window.syncUsageWithServer === 'function') window.syncUsageWithServer();
 
-                fullData = data; localStorage.setItem(cacheKey, JSON.stringify(fullData)); currentLimit = 0; 
+                fullData = data; localStorage.setItem(cacheKey, JSON.stringify(fullData)); currentLimit = 0;
             } catch (err) { 
                 listArea.innerHTML = `<div class="text-center text-red-400 text-sm mt-10 font-bold">서버 통신 실패. 버튼을 다시 눌러주세요!</div>`;
                 btn.innerText = dict.generateAlphaBtn || "✨ 선택한 언어의 AI 파닉스 가져오기"; btn.disabled = false; return;
