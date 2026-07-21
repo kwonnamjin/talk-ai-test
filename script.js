@@ -1539,7 +1539,7 @@ window.generateScript = async function() {
         });
         const data = await res.json(); 
         
-        if (typeof window.incrementLocalUsage === 'function') window.incrementLocalUsage();
+        if (typeof window.syncUsageWithServer === 'function') window.syncUsageWithServer();
         if (savedScripts.length >= 5) savedScripts.shift(); 
         
         savedScripts.push({ level: level, situation: situation, langName: targetLangName, langCode: document.getElementById('targetLanguage').value, scriptData: data.scriptData });
@@ -1867,7 +1867,7 @@ window.generateVocab = async function() {
             ))
         );
 
-        if (typeof window.incrementLocalUsage === 'function') window.incrementLocalUsage();
+        if (typeof window.syncUsageWithServer === 'function') window.syncUsageWithServer();
 
         let newId = savedVocabs.length > 0 ? savedVocabs[savedVocabs.length - 1].id + 1 : 1;
         if (savedVocabs.length >= 5) savedVocabs.shift(); 
@@ -1951,7 +1951,7 @@ window.loadAlphabetData = async function() {
                 if (!res) throw new Error("서버 에러");
                 const data = await res.json(); 
                 if(!data || !data.alphabetData) throw new Error("데이터 누락");
-                if (typeof window.incrementLocalUsage === 'function') window.incrementLocalUsage();
+                if (typeof window.syncUsageWithServer === 'function') window.syncUsageWithServer();
 
                 fullData = data; localStorage.setItem(cacheKey, JSON.stringify(fullData)); currentLimit = 0; 
             } catch (err) { 
@@ -2271,7 +2271,7 @@ window.compressMemory = async function() {
 
     try {
         let res = await fetchAPI(WORKER_URL, {
-            method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Device-ID': myDeviceId, },
+            method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Device-ID': myDeviceId,'X-Is-Background': 'true' },
             body: JSON.stringify({ 
                 model: "deepseek-chat", 
                 messages: [{role: "system", content: sysPrompt}, {role: "user", content: `기존 기억:${oldMemory}\n새로운 대화:${chatLog}`}], 
