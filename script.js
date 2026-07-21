@@ -1510,12 +1510,10 @@ window.quickPractice = function(scriptIdx, lineIdx) {
 }
 
 window.generateScript = async function() {
-    const btn = document.getElementById("generateBtn");
-if (btn && btn.disabled) return; // 이미 누르고 있으면 중복 실행 차단!
     if (savedScripts.length >= 5) { if (!confirm("새로운 대본 생성 시 가장 오래된 1번 대본이 삭제됩니다.\n계속하시겠습니까?")) return; }
     if (typeof window.checkAndBlockAPI === 'function' && !window.checkAndBlockAPI()) return;
 
-    
+    const btn = document.getElementById("generateBtn");
     
     const levelBtn = document.querySelector('.level-btn.selected-card');
     const level = levelBtn ? levelBtn.innerText.trim() : "초급";
@@ -1844,12 +1842,10 @@ window.playVocabAudio = function() {
 };
 
 window.generateVocab = async function() {
-    const btn = document.getElementById("generateVocabBtn");
-if (btn && btn.disabled) return;
     if (savedVocabs.length >= 5) { if (!confirm("새로운 단어장 생성 시 가장 오래된 단어장이 자동 삭제됩니다.\n계속하시겠습니까?")) return; }
     if (typeof window.checkAndBlockAPI === 'function' && !window.checkAndBlockAPI()) return;
 
-    
+    const btn = document.getElementById("generateVocabBtn");
     const theme = document.querySelector('.vocab-theme-btn.bg-indigo-50').innerText.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]|\n/g, '').trim();
     
     const customInput = document.getElementById('vc_custom_input');
@@ -1916,11 +1912,9 @@ if (btn && btn.disabled) return;
 window.renderVocabs();
 
 window.loadAlphabetData = async function() {
-    const btn = document.getElementById("generateAlphaBtn");
-if (btn && btn.disabled) return;
     try {
         const listArea = document.getElementById("alphabetListArea");
-        
+        const btn = document.getElementById("generateAlphaBtn");
         const tLang = document.getElementById('targetLanguage');
         const targetLangName = tLang.options[tLang.selectedIndex].dataset.langName;
         const targetLangCode = tLang.value;
