@@ -1112,7 +1112,12 @@ Respond EXACTLY in JSON:
         if(mode==='tutor') { 
             conversationHistory.push({role:"assistant",content:JSON.stringify(parsed)}); 
             sessionStorage.setItem('llmHistory', JSON.stringify(conversationHistory)); 
-            if(typeof window.compressMemory === 'function') window.compressMemory(); 
+            
+            // ✅ 수정: 5턴에 한 번씩만 기억 압축을 실행하도록 변경 (API 요금 및 차감 폭탄 방지)
+            if (window.conversationTurn > 0 && window.conversationTurn % 5 === 0) {
+                if(typeof window.compressMemory === 'function') window.compressMemory(); 
+            }
+            
             INTIMACY_SYSTEM.clearSulking(); 
             INTIMACY_SYSTEM.addExp('chat'); 
         }
@@ -1153,10 +1158,22 @@ Respond EXACTLY in JSON:
         console.error(e); 
         if (typeof updateStatus === 'function') updateStatus("AI 서버 통신 에러"); 
         if(avatarWrap) avatarWrap.style.borderColor="#f87171"; 
+    } finally {
+        // 🚨 [추가된 핵심 코드] 3. 통신이 성공하든 에러가 나든 무조건 잠금 해제!
+        window.isProcessingChat = false;
+        
+        // 버튼과 텍스트 입력창 다시 활성화
+        if (typeof window.enableInputs === 'function') window.enableInputs();
+        const sendBtn = document.getElementById('sendMsgBtn');
+        const textInput = document.getElementById('textInput');
+        if (sendBtn) sendBtn.disabled = false;
+        if (textInput) {
+            textInput.disabled = false;
+            textInput.focus(); // 자연스럽게 다시 타이핑할 수 있게 포커스
+        }
     }
 }
 window.handleUserMessage = handleUserMessage;
-
 window.requestExplanationGlobal = function() { 
     let lastAiMsg = "";
     for(let i = uiChatHistory.length - 1; i >= 0; i--) { if(uiChatHistory[i].sender === 'ai') { lastAiMsg = uiChatHistory[i].text; break; } }
@@ -1493,10 +1510,12 @@ window.quickPractice = function(scriptIdx, lineIdx) {
 }
 
 window.generateScript = async function() {
+    const btn = document.getElementById("generateBtn");
+if (btn && btn.disabled) return; // 이미 누르고 있으면 중복 실행 차단!
     if (savedScripts.length >= 5) { if (!confirm("새로운 대본 생성 시 가장 오래된 1번 대본이 삭제됩니다.\n계속하시겠습니까?")) return; }
     if (typeof window.checkAndBlockAPI === 'function' && !window.checkAndBlockAPI()) return;
 
-    const btn = document.getElementById("generateBtn");
+    
     
     const levelBtn = document.querySelector('.level-btn.selected-card');
     const level = levelBtn ? levelBtn.innerText.trim() : "초급";
@@ -1516,13 +1535,19 @@ window.generateScript = async function() {
     btn.classList.add('opacity-50', 'cursor-wait');
 
     try {
-        const res = await fetch(`${WORKER_URL}generate-script`, { 
+        const res = await fetchAPI(`${WORKER_URL}generate-script`, { 
             method: 'POST', headers: { 'Content-Type': 'application/json' }, 
             body: JSON.stringify({ level: level, situation: isRandom ? "random daily life" : situation, language: targetLangName, expLanguage: expLangName, isRandom: isRandom }) 
         });
         const data = await res.json(); 
+        if (data.serverCount !== undefined) {
+            let usageObj = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}');
+            usageObj.count = data.serverCount;
+            localStorage.setItem('daily_usage_v4', JSON.stringify(usageObj));
+            if (typeof window.updateBadgeUI === 'function') window.updateBadgeUI();
+        }
         
-        if (typeof window.incrementLocalUsage === 'function') window.incrementLocalUsage();
+        if (typeof window.syncUsageWithServer === 'function') window.syncUsageWithServer();
         if (savedScripts.length >= 5) savedScripts.shift(); 
         
         savedScripts.push({ level: level, situation: situation, langName: targetLangName, langCode: document.getElementById('targetLanguage').value, scriptData: data.scriptData });
@@ -1819,10 +1844,12 @@ window.playVocabAudio = function() {
 };
 
 window.generateVocab = async function() {
+    const btn = document.getElementById("generateVocabBtn");
+if (btn && btn.disabled) return;
     if (savedVocabs.length >= 5) { if (!confirm("새로운 단어장 생성 시 가장 오래된 단어장이 자동 삭제됩니다.\n계속하시겠습니까?")) return; }
     if (typeof window.checkAndBlockAPI === 'function' && !window.checkAndBlockAPI()) return;
 
-    const btn = document.getElementById("generateVocabBtn");
+    
     const theme = document.querySelector('.vocab-theme-btn.bg-indigo-50').innerText.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]|\n/g, '').trim();
     
     const customInput = document.getElementById('vc_custom_input');
@@ -1838,11 +1865,17 @@ window.generateVocab = async function() {
 
     btn.innerText = "⏳ ..."; btn.disabled = true;
     try {
-        const res = await fetch(`${WORKER_URL}generate-vocab`, { 
+       const res = await fetchAPI(`${WORKER_URL}generate-vocab`, { 
             method: 'POST', headers: { 'Content-Type': 'application/json' }, 
             body: JSON.stringify({ theme: theme, language: targetLangName, expLanguage: expLangName, existingWords: myExistingWords, userWord: userCustomWord }) 
         });
         const data = await res.json(); 
+        if (data.serverCount !== undefined) {
+            let usageObj = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}');
+            usageObj.count = data.serverCount;
+            localStorage.setItem('daily_usage_v4', JSON.stringify(usageObj));
+            if (typeof window.updateBadgeUI === 'function') window.updateBadgeUI();
+        }
 
         const uniqueVocabData = data.vocabData.filter((v, index, self) => 
             index === self.findIndex((t) => (
@@ -1850,7 +1883,7 @@ window.generateVocab = async function() {
             ))
         );
 
-        if (typeof window.incrementLocalUsage === 'function') window.incrementLocalUsage();
+        if (typeof window.syncUsageWithServer === 'function') window.syncUsageWithServer();
 
         let newId = savedVocabs.length > 0 ? savedVocabs[savedVocabs.length - 1].id + 1 : 1;
         if (savedVocabs.length >= 5) savedVocabs.shift(); 
@@ -1883,9 +1916,11 @@ window.generateVocab = async function() {
 window.renderVocabs();
 
 window.loadAlphabetData = async function() {
+    const btn = document.getElementById("generateAlphaBtn");
+if (btn && btn.disabled) return;
     try {
         const listArea = document.getElementById("alphabetListArea");
-        const btn = document.getElementById("generateAlphaBtn");
+        
         const tLang = document.getElementById('targetLanguage');
         const targetLangName = tLang.options[tLang.selectedIndex].dataset.langName;
         const targetLangCode = tLang.value;
@@ -1933,10 +1968,18 @@ window.loadAlphabetData = async function() {
                 });
                 if (!res) throw new Error("서버 에러");
                 const data = await res.json(); 
+                if (data.serverCount !== undefined) {
+            let usageObj = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}');
+            usageObj.count = data.serverCount;
+            localStorage.setItem('daily_usage_v4', JSON.stringify(usageObj));
+            if (typeof window.updateBadgeUI === 'function') window.updateBadgeUI();
+        }
                 if(!data || !data.alphabetData) throw new Error("데이터 누락");
-                if (typeof window.incrementLocalUsage === 'function') window.incrementLocalUsage();
+                
+                // 💡 서버가 차감한 최신 횟수를 앱 화면으로 즉시 가져오기!
+                if (typeof window.syncUsageWithServer === 'function') window.syncUsageWithServer();
 
-                fullData = data; localStorage.setItem(cacheKey, JSON.stringify(fullData)); currentLimit = 0; 
+                fullData = data; localStorage.setItem(cacheKey, JSON.stringify(fullData)); currentLimit = 0;
             } catch (err) { 
                 listArea.innerHTML = `<div class="text-center text-red-400 text-sm mt-10 font-bold">서버 통신 실패. 버튼을 다시 눌러주세요!</div>`;
                 btn.innerText = dict.generateAlphaBtn || "✨ 선택한 언어의 AI 파닉스 가져오기"; btn.disabled = false; return;
@@ -2254,7 +2297,7 @@ window.compressMemory = async function() {
 
     try {
         let res = await fetchAPI(WORKER_URL, {
-            method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Device-ID': myDeviceId },
+            method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Device-ID': myDeviceId,'X-Is-Background': 'true' },
             body: JSON.stringify({ 
                 model: "deepseek-chat", 
                 messages: [{role: "system", content: sysPrompt}, {role: "user", content: `기존 기억:${oldMemory}\n새로운 대화:${chatLog}`}], 
