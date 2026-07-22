@@ -4081,14 +4081,26 @@ async function fetchAPI(url, options) {
     
     options.headers['X-Device-ID'] = myDeviceId || localStorage.getItem('web_device_id') || 'unknown';
     
-    // 🌟 번개를 썼을 때 서버의 제한을 뚫기 위한 무적 깃발 처리
+    // 💡 1. 현재 진짜 내 요금제 셋팅
+    let currentPlan = localStorage.getItem('subscription_tier') || 'free';
+    options.headers['X-Plan-Tier'] = currentPlan;
+    
+    // 🌟 2. [추가된 정공법 로직] 서버를 속이지 않고, 퀘스트 번개를 포함한 '진짜 총 한도'를 계산해서 보냄
+    let currentLightning = parseInt(localStorage.getItem('lightning_coins')) || 0;
+    let baseLimit = 50; 
+    if (currentPlan === 'basic') baseLimit = 130;
+    if (currentPlan === 'premium') baseLimit = 300;
+    if (currentPlan === 'vip') baseLimit = 500;
+    
+    let totalAllowedCount = baseLimit + currentLightning;
+    options.headers['X-Max-Limit'] = totalAllowedCount.toString(); // 👈 워커가 이 숫자를 보고 열어줍니다!
+
+    // (기존의 깃발 끄기 로직은 꼬임 방지를 위해 청소용으로만 남겨둡니다)
     if (window.isLightningBypass) {
-        options.headers['X-Plan-Tier'] = 'vip';
-        window.isLightningBypass = false; // 한 번 썼으면 즉시 깃발 내리기
-    } else {
-        options.headers['X-Plan-Tier'] = localStorage.getItem('subscription_tier') || 'free';
+        window.isLightningBypass = false; 
     }
     
+    // 👇 아래부터는 대표님이 짜신 완벽한 재시도(Retry) 로직 그대로 유지!
     let delay = 2000; 
     let lastStatus = "네트워크 오류";
     
