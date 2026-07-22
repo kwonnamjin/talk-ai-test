@@ -4095,14 +4095,24 @@ async function fetchAPI(url, options) {
     let currentPlan = localStorage.getItem('subscription_tier') || 'free';
     options.headers['X-Plan-Tier'] = currentPlan;
     
-    // 🌟 2. [추가된 정공법 로직] 서버를 속이지 않고, 퀘스트 번개를 포함한 '진짜 총 한도'를 계산해서 보냄
+    // 🌟 2. [수정됨] 퀘스트 번개 한도 계산 (충돌 방지 로직 도입!)
     let currentLightning = parseInt(localStorage.getItem('lightning_coins')) || 0;
     let baseLimit = 50; 
     if (currentPlan.includes('basic')) baseLimit = 130;
-if (currentPlan.includes('premium')) baseLimit = 300;
-if (currentPlan.includes('vip')) baseLimit = 500;
+    if (currentPlan.includes('premium')) baseLimit = 300;
+    if (currentPlan.includes('vip')) baseLimit = 500;
     
-    let totalAllowedCount = baseLimit + currentLightning;
+    // 👇👇 [여기가 핵심입니다!] 👇👇
+    // 앱에 저장된 '현재 서버 사용량'을 가져옵니다.
+    let usageObj = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}');
+    let currentServerCount = usageObj.count || 0;
+    
+    // 바닥(사용량)이 천장(기본 한도)을 뚫고 올라갔다면, 바닥을 기준으로 남은 번개를 더해줍니다!
+    let effectiveBaseLimit = Math.max(baseLimit, currentServerCount);
+    let totalAllowedCount = effectiveBaseLimit + currentLightning;
+    
+    // ☝️☝️ 이렇게 하면 한도선이 밑으로 떨어지지 않고 딱 고정됩니다! ☝️☝️
+
     options.headers['X-Max-Limit'] = totalAllowedCount.toString(); // 👈 워커가 이 숫자를 보고 열어줍니다!
 
     // (기존의 깃발 끄기 로직은 꼬임 방지를 위해 청소용으로만 남겨둡니다)
