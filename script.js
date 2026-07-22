@@ -417,6 +417,7 @@ window.checkAndBlockAPI = function() {
     if (currentLightning > 0) {
         localStorage.setItem('lightning_coins', currentLightning - 1); 
         if (typeof window.updateBadgeUI === 'function') window.updateBadgeUI(); 
+        window.isLightningBypass = true;
         console.log("⚡ 번개 사용! 남은 퀘스트 번개:", currentLightning - 1);
         return true; 
     }
@@ -614,30 +615,7 @@ window.processPayment = function(plan) {
     }
 }
 
-// 💡 기존 fetchAPI 함수를 찾아서 이것으로 통째로 교체!
-async function fetchAPI(url, options) {
-    if (!options.headers) options.headers = {};
-    
-    // 🌟 [핵심 수정] 저장할 때와 조회할 때 아이디가 엇나가지 않도록 myDeviceId를 강제 고정!
-    options.headers['X-Device-ID'] = myDeviceId || localStorage.getItem('web_device_id') || 'unknown';
-    options.headers['X-Plan-Tier'] = localStorage.getItem('subscription_tier') || 'free';
-    
-    let delay = 2000; 
-    let lastStatus = "네트워크 오류";
-    
-    for(let i=0; i<3; i++) { 
-        try { 
-            const res = await fetch(url, options); 
-            if(res.ok) return res; 
-            lastStatus = res.status; 
-            await new Promise(r => setTimeout(r, delay)); 
-            delay *= 2; 
-        } catch(e) { 
-            if(i === 2) throw e; 
-        } 
-    }
-    throw new Error("HTTP_ERROR_" + lastStatus);
-}
+
 
 // 🌟 서로 말하는 언어를 맞바꾸는 기능 (Me <-> AI)
 window.swapLanguages = function() {
@@ -4093,9 +4071,15 @@ if (!myDeviceId || myDeviceId === 'unknown') {
 async function fetchAPI(url, options) {
     if (!options.headers) options.headers = {};
     
-    // 🌟 대화(POST)나 조회(GET) 모두 100% 동일한 내 진짜 고유 ID만 전송!
-    options.headers['X-Device-ID'] = myDeviceId || localStorage.getItem('web_device_id');
-    options.headers['X-Plan-Tier'] = localStorage.getItem('subscription_tier') || 'free';
+    options.headers['X-Device-ID'] = myDeviceId || localStorage.getItem('web_device_id') || 'unknown';
+    
+    // 🌟 번개를 썼을 때 서버의 제한을 뚫기 위한 무적 깃발 처리
+    if (window.isLightningBypass) {
+        options.headers['X-Plan-Tier'] = 'vip';
+        window.isLightningBypass = false; // 한 번 썼으면 즉시 깃발 내리기
+    } else {
+        options.headers['X-Plan-Tier'] = localStorage.getItem('subscription_tier') || 'free';
+    }
     
     let delay = 2000; 
     let lastStatus = "네트워크 오류";
