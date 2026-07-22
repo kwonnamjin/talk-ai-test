@@ -3662,6 +3662,16 @@ window.processInterpTranslationExplicit = async function(text, speaker) {
         });
         
         let data = await res.json();
+        // 🌟 [핵심 추가] 서버에서 받아온 사용량을 앱 화면(번개 등)에 즉시 반영하고 뱃지(UI) 새로고침!
+        if (data.serverCount !== undefined) {
+            let usageObj = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}');
+            usageObj.count = data.serverCount;
+            localStorage.setItem('daily_usage_v4', JSON.stringify(usageObj));
+            
+            // 번개 깎는 UI 함수와 동기화 함수 즉시 실행
+            if (typeof window.updateBadgeUI === 'function') window.updateBadgeUI();
+            if (typeof window.syncUsageWithServer === 'function') window.syncUsageWithServer();
+        }
         let rawContent = data.choices[0].message.content.replace(/```json/g, "").replace(/```/g, "").trim();
         let parsed = JSON.parse(rawContent.match(/\{[\s\S]*\}/)[0]);
         
