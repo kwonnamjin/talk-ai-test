@@ -4088,9 +4088,9 @@ async function fetchAPI(url, options) {
     // 🌟 2. [추가된 정공법 로직] 서버를 속이지 않고, 퀘스트 번개를 포함한 '진짜 총 한도'를 계산해서 보냄
     let currentLightning = parseInt(localStorage.getItem('lightning_coins')) || 0;
     let baseLimit = 50; 
-    if (currentPlan === 'basic') baseLimit = 130;
-    if (currentPlan === 'premium') baseLimit = 300;
-    if (currentPlan === 'vip') baseLimit = 500;
+    if (currentPlan.includes('basic')) baseLimit = 130;
+if (currentPlan.includes('premium')) baseLimit = 300;
+if (currentPlan.includes('vip')) baseLimit = 500;
     
     let totalAllowedCount = baseLimit + currentLightning;
     options.headers['X-Max-Limit'] = totalAllowedCount.toString(); // 👈 워커가 이 숫자를 보고 열어줍니다!
