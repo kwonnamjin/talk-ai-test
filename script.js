@@ -4039,23 +4039,31 @@ window.toggleCharacterVisibility = function(isVisible) {
 // ==========================================
 
 // 1. 서버 동기화 함수
+// 서버와 사용량을 동기화하는 함수
 window.syncUsageWithServer = async function() {
-    if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
-        try {
-            const currentTier = localStorage.getItem('subscription_tier') || 'free';
-            console.log("🔄 [동기화 시작] 기기ID:", myDeviceId, "요금제:", currentTier);
-            
-            const serverCount = await window.flutter_inappwebview.callHandler('syncUsageFromServer', myDeviceId, currentTier);
-            
+    try {
+        let deviceId = localStorage.getItem('web_device_id') || 'unknown';
+        let planTier = localStorage.getItem('subscription_tier') || 'free';
+
+        // 플러터(Flutter)의 네이티브 핸들러를 호출해서 서버 데이터를 가져오거나, 
+        // 혹은 JS에서 직접 서버로 fetch('/get-usage')를 쏠 수도 있습니다.
+        // 현재 플러터 코드에 'syncUsageFromServer' 핸들러를 만들어 두셨으므로 아래처럼 호출 가능합니다:
+        
+        let serverCount = await window.flutter_inappwebview.callHandler('syncUsageFromServer', deviceId, planTier);
+        
+        if (serverCount !== null && serverCount !== undefined) {
+            // 가져온 횟수를 로컬스토리지와 UI에 반영
             let usageObj = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}');
             usageObj.count = serverCount;
             localStorage.setItem('daily_usage_v4', JSON.stringify(usageObj));
             
-            if (typeof window.updateBadgeUI === 'function') window.updateBadgeUI();
-            console.log("📥 [동기화 성공] 현재 횟수:", serverCount);
-        } catch(e) {
-            console.log("❌ [동기화 에러]:", e);
+            // 화면에 횟수 배지 UI 업데이트 함수 호출 (기존에 쓰시던 함수명으로 맞추기)
+            if (typeof window.updateBadgeUI === 'function') {
+                window.updateBadgeUI();
+            }
         }
+    } catch (e) {
+        console.error("사용량 동기화 중 에러:", e);
     }
 };
 
