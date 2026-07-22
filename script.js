@@ -4100,7 +4100,7 @@ async function fetchAPI(url, options) {
     let baseLimit = 50; 
     if (currentPlan.includes('basic')) baseLimit = 130;
     if (currentPlan.includes('premium')) baseLimit = 300;
-    if (currentPlan.includes('vip')) baseLimit = 500;
+    if (currentPlan.includes('vip')) baseLimit = 400;
     
     // 👇👇 [여기가 핵심입니다!] 👇👇
     // 앱에 저장된 '현재 서버 사용량'을 가져옵니다.
