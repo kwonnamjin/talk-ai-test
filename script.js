@@ -4091,29 +4091,34 @@ async function fetchAPI(url, options) {
     
     options.headers['X-Device-ID'] = myDeviceId || localStorage.getItem('web_device_id') || 'unknown';
     
+
     // 💡 1. 현재 진짜 내 요금제 셋팅
     let currentPlan = localStorage.getItem('subscription_tier') || 'free';
     options.headers['X-Plan-Tier'] = currentPlan;
     
-    // 🌟 2. [수정됨] 퀘스트 번개 한도 계산 (충돌 방지 로직 도입!)
+    // 🌟 2. [완벽 수정본] 퀘스트 번개 한도 계산 (먹통 방지 공식!)
     let currentLightning = parseInt(localStorage.getItem('lightning_coins')) || 0;
     let baseLimit = 50; 
     if (currentPlan.includes('basic')) baseLimit = 130;
     if (currentPlan.includes('premium')) baseLimit = 300;
     if (currentPlan.includes('vip')) baseLimit = 400;
     
-    // 👇👇 [여기가 핵심입니다!] 👇👇
-    // 앱에 저장된 '현재 서버 사용량'을 가져옵니다.
+    // 앱에 저장된 '현재 서버 사용량' 가져오기
     let usageObj = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}');
     let currentServerCount = usageObj.count || 0;
     
-    // 바닥(사용량)이 천장(기본 한도)을 뚫고 올라갔다면, 바닥을 기준으로 남은 번개를 더해줍니다!
-    let effectiveBaseLimit = Math.max(baseLimit, currentServerCount);
-    let totalAllowedCount = effectiveBaseLimit + currentLightning;
+    // 💡 [핵심 1] 내가 오늘 기본 한도를 넘어서 '이미 써버린 번개 횟수' 계산 (음수면 0으로 처리)
+    let alreadySpentExtra = Math.max(0, currentServerCount - baseLimit);
     
-    // ☝️☝️ 이렇게 하면 한도선이 밑으로 떨어지지 않고 딱 고정됩니다! ☝️☝️
+    // 💡 [핵심 2] 내 진짜 총 한도 = 기본 한도(50) + 오늘 이미 쓴 번개 + 앞으로 쓸 남은 번개
+    let totalAllowedCount = baseLimit + alreadySpentExtra + currentLightning;
 
-    options.headers['X-Max-Limit'] = totalAllowedCount.toString(); // 👈 워커가 이 숫자를 보고 열어줍니다!
+    // 💡 [핵심 3] 앱과 서버 통신 속도 차이(Lag)로 인한 씹힘을 막기 위한 안전 마진(+2) 추가
+    if (currentLightning > 0 || alreadySpentExtra > 0) {
+        totalAllowedCount += 2;
+    }
+    
+    options.headers['X-Max-Limit'] = totalAllowedCount.toString(); // 👈 절대 무너지지 않는 강철 천장 전송!
 
     // (기존의 깃발 끄기 로직은 꼬임 방지를 위해 청소용으로만 남겨둡니다)
     if (window.isLightningBypass) {
