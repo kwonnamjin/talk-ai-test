@@ -1212,6 +1212,13 @@ window.requestExplanationFromBubble = async function(bubbleId, fullText, isExp, 
             }) 
         });
         let data = await res.json();
+        // 🌟 [여기에 추가!] 해설을 받았을 때도 서버 영수증을 확인하고 뱃지 UI를 즉각 새로고침!
+        if (data.serverCount !== undefined) {
+            let usageObj = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}');
+            usageObj.count = data.serverCount;
+            localStorage.setItem('daily_usage_v4', JSON.stringify(usageObj));
+            if (typeof window.updateBadgeUI === 'function') window.updateBadgeUI();
+        }
         
         let rawContent = data.choices[0].message.content.replace(/```json/g, "").replace(/```/g, "").trim();
         const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
