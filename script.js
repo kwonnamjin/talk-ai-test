@@ -478,11 +478,11 @@ window.incrementLocalUsage = function() {
         localStorage.setItem('free_trial_start', Date.now().toString());
     }
 
-    if (status.allowed) {
-        let usageObj = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}');
-        usageObj.count = (usageObj.count || 0) + 1;
-        localStorage.setItem('daily_usage_v4', JSON.stringify(usageObj));
-    } 
+    // 💡 [핵심 수정] status.allowed 조건문을 없애버립니다! 
+    // 이미 방어막을 뚫고 대화에 성공했으므로 무조건 숫자를 올립니다.
+    let usageObj = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}');
+    usageObj.count = (usageObj.count || 0) + 1;
+    localStorage.setItem('daily_usage_v4', JSON.stringify(usageObj));
     
     window.updateBadgeUI();
     return true;
@@ -1206,6 +1206,13 @@ window.requestExplanationFromBubble = async function(bubbleId, fullText, isExp, 
             }) 
         });
         let data = await res.json();
+        // 🌟 [여기에 추가!] 서버의 찐 사용량을 앱에 완벽하게 동기화!
+        if (data.serverCount !== undefined) {
+            let usageObj = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}');
+            usageObj.count = data.serverCount;
+            localStorage.setItem('daily_usage_v4', JSON.stringify(usageObj));
+            if (typeof window.updateBadgeUI === 'function') window.updateBadgeUI();
+        }
         let rawContent = data.choices[0].message.content.replace(/```json/g, "").replace(/```/g, "").trim();
         const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
         let parsed;
