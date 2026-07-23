@@ -1396,8 +1396,21 @@ window.deleteScript = function(index) { if (!confirm("이 대본을 정말 삭�
 
 // 🌟 롤플레잉 저장 버튼 포함
 window.renderScripts = function() {
-    const playerArea = document.getElementById("scriptList"); playerArea.innerHTML = "";
+    const playerArea = document.getElementById("scriptList"); 
+    if(playerArea) playerArea.innerHTML = "";
+    
+    // 🌟 [백신 투여] 저장된 대본 중 내용물이 박살난 '독사과'를 찾아내서 강제로 삭제합니다!
+    const originalLength = savedScripts.length;
+    savedScripts = savedScripts.filter(s => s && s.scriptData && Array.isArray(s.scriptData));
+    
+    // 불량 데이터를 지웠다면 로컬 스토리지에도 깨끗한 상태로 다시 덮어씌웁니다.
+    if (savedScripts.length !== originalLength) {
+        localStorage.setItem('roleplay_scripts', JSON.stringify(savedScripts));
+        console.log("🧹 불량 대본 데이터를 자동 삭제하고 복구했습니다!");
+    }
+
     if(savedScripts.length === 0) return;
+    
     for (let i = savedScripts.length - 1; i >= 0; i--) {
         const scriptItem = savedScripts[i];
         let html = `<div class="mb-5"><div class="bg-indigo-50 border border-indigo-100 rounded-xl p-3 mb-3 flex items-center justify-between shadow-sm"><p class="text-[11px] font-extrabold text-indigo-700">📚 ${i + 1}: [${scriptItem.level}] ${scriptItem.situation} (${scriptItem.langName})</p><div class="flex gap-1.5 items-center"><button id="play-btn-${i}" onclick="window.playSpecificScript(${i})" class="w-8 h-8 rounded-full bg-white text-indigo-600 border border-indigo-200 shadow-sm transition-colors duration-200"><i class="fa-solid fa-volume-high text-xs"></i></button><button onclick="window.startInteractiveTest(${i})" class="w-8 h-8 rounded-full bg-indigo-600 text-white shadow-sm"><i class="fa-solid fa-gamepad text-xs"></i></button><button id="quiz-btn-${i}" onclick="window.toggleQuizMode(${i})" class="w-8 h-8 rounded-full bg-white text-amber-500 border border-amber-200 shadow-sm"><i class="fa-solid fa-puzzle-piece text-xs"></i></button><div class="w-px h-4 bg-indigo-200 mx-0.5"></div><button onclick="window.deleteScript(${i})" class="text-slate-400 hover:text-red-500 px-1 transition-colors" title="삭제"><i class="fa-solid fa-xmark text-lg"></i></button></div></div><div class="space-y-3">`;
@@ -1532,6 +1545,11 @@ if (btn && btn.disabled) return; // 이미 누르고 있으면 중복 실행 차
             body: JSON.stringify({ level: level, situation: isRandom ? "random daily life" : situation, language: targetLangName, expLanguage: expLangName, isRandom: isRandom }) 
         });
         const data = await res.json(); 
+        // 🌟 [철벽 방어] AI가 대본 형식을 망가뜨려서 줬다면 저장하지 않고 에러 처리!
+        if (!data || !data.scriptData || !Array.isArray(data.scriptData)) {
+            alert("AI가 대본 형식을 잘못 생성했습니다. 번개는 차감되지 않으니 다시 시도해 주세요!");
+            return; // 여기서 함수를 강제 종료시켜버립니다.
+        }
         if (data.serverCount !== undefined) {
             let usageObj = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}');
             usageObj.count = data.serverCount;
@@ -1756,8 +1774,24 @@ window.deleteVocab = function(index) {
 };
 
 window.renderVocabs = function() {
-    const listArea = document.getElementById("vocabListArea"); listArea.innerHTML = "";
-    if(savedVocabs.length === 0) { document.getElementById("mainFlashcardArea").classList.add("hidden"); return; }
+    const listArea = document.getElementById("vocabListArea"); 
+    if(listArea) listArea.innerHTML = "";
+    
+    // 🌟 [백신 투여] 저장된 단어장 중 내용물이 박살난 '독사과'를 찾아내서 강제로 삭제합니다!
+    const originalLength = savedVocabs.length;
+    savedVocabs = savedVocabs.filter(v => v && v.vocabData && Array.isArray(v.vocabData));
+    
+    // 불량 데이터를 지웠다면 로컬 스토리지에도 깨끗한 상태로 덮어씌웁니다.
+    if (savedVocabs.length !== originalLength) {
+        localStorage.setItem('vocab_scripts', JSON.stringify(savedVocabs));
+        console.log("🧹 불량 단어장 데이터를 자동 삭제하고 복구했습니다!");
+    }
+
+    if(savedVocabs.length === 0) { 
+        const flashArea = document.getElementById("mainFlashcardArea");
+        if(flashArea) flashArea.classList.add("hidden"); 
+        return; 
+    }
     
     for (let i = savedVocabs.length - 1; i >= 0; i--) {
         const set = savedVocabs[i];
@@ -1862,6 +1896,11 @@ if (btn && btn.disabled) return;
             body: JSON.stringify({ theme: theme, language: targetLangName, expLanguage: expLangName, existingWords: myExistingWords, userWord: userCustomWord }) 
         });
         const data = await res.json(); 
+        // 🌟 [철벽 방어] AI가 단어장 형식을 망가뜨려서 줬다면 필터를 돌리기 전에 강제 종료!
+        if (!data || !data.vocabData || !Array.isArray(data.vocabData)) {
+            alert("AI가 단어장 형식을 잘못 생성했습니다. 번개는 차감되지 않으니 다시 시도해 주세요!");
+            return; // 여기서 멈춰버립니다.
+        }
         if (data.serverCount !== undefined) {
             let usageObj = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}');
             usageObj.count = data.serverCount;
