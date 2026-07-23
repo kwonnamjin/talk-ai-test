@@ -1539,7 +1539,7 @@ if (btn && btn.disabled) return; // 이미 누르고 있으면 중복 실행 차
             if (typeof window.updateBadgeUI === 'function') window.updateBadgeUI();
         }
         
-        if (typeof window.syncUsageWithServer === 'function') window.syncUsageWithServer();
+       // if (typeof window.syncUsageWithServer === 'function') window.syncUsageWithServer();
         if (savedScripts.length >= 5) savedScripts.shift(); 
         
         savedScripts.push({ level: level, situation: situation, langName: targetLangName, langCode: document.getElementById('targetLanguage').value, scriptData: data.scriptData });
@@ -1875,7 +1875,7 @@ if (btn && btn.disabled) return;
             ))
         );
 
-        if (typeof window.syncUsageWithServer === 'function') window.syncUsageWithServer();
+        //if (typeof window.syncUsageWithServer === 'function') window.syncUsageWithServer();
 
         let newId = savedVocabs.length > 0 ? savedVocabs[savedVocabs.length - 1].id + 1 : 1;
         if (savedVocabs.length >= 5) savedVocabs.shift(); 
@@ -1969,7 +1969,7 @@ if (btn && btn.disabled) return;
                 if(!data || !data.alphabetData) throw new Error("데이터 누락");
                 
                 // 💡 서버가 차감한 최신 횟수를 앱 화면으로 즉시 가져오기!
-                if (typeof window.syncUsageWithServer === 'function') window.syncUsageWithServer();
+                //if (typeof window.syncUsageWithServer === 'function') window.syncUsageWithServer();
 
                 fullData = data; localStorage.setItem(cacheKey, JSON.stringify(fullData)); currentLimit = 0;
             } catch (err) { 
@@ -3684,7 +3684,7 @@ window.processInterpTranslationExplicit = async function(text, speaker) {
             
             // 번개 깎는 UI 함수와 동기화 함수 즉시 실행
             if (typeof window.updateBadgeUI === 'function') window.updateBadgeUI();
-            if (typeof window.syncUsageWithServer === 'function') window.syncUsageWithServer();
+            //if (typeof window.syncUsageWithServer === 'function') window.syncUsageWithServer();
         }
         let rawContent = data.choices[0].message.content.replace(/```json/g, "").replace(/```/g, "").trim();
         let parsed = JSON.parse(rawContent.match(/\{[\s\S]*\}/)[0]);
