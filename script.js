@@ -4032,9 +4032,17 @@ window.confirmAppExit = function() {
     }
 };
 
-// 결제 내역 복원 함수
+// 결제 내역 복원 함수 (피드백 추가)
 window.restorePurchase = function() {
     console.log("결제 복원 버튼 클릭됨");
+    
+    // 💡 [추가] 유저가 버튼이 눌렸다는 것을 시각적으로 알 수 있게 알림을 띄웁니다.
+    if (typeof window.updateStatus === 'function') {
+        window.updateStatus("⏳ 구글 플레이 결제 내역을 복원 중입니다...");
+    } else {
+        alert("결제 내역을 확인 중입니다. 잠시만 기다려주세요.");
+    }
+
     if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
         window.flutter_inappwebview.callHandler('restorePurchase');
     } else {
