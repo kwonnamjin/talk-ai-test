@@ -2480,7 +2480,7 @@ window.addStudyMission = function(type) {
             INTIMACY_SYSTEM.addExp('quest');
             
             // 🌙 기존 rwMoons를 ⚡ rwLightning으로 변경
-            let rwLightning = 3; 
+            let rwLightning = 103; 
 
             if (streakData.streak === 5) rwLightning = 3;
             else if (streakData.streak === 10) rwLightning = 5;
