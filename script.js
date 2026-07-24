@@ -506,12 +506,14 @@ window.showSubscriptionModal = function(reason) {
     const existingModal = document.getElementById('subscriptionModal');
     if (existingModal) existingModal.remove();
 
-    // 🌟 안전장치: window.getAppLang 함수가 없어도 작동하도록 직접 구현
-    const lang = (typeof window.getAppLang === 'function') ? window.getAppLang() : (localStorage.getItem('explanation_language') || 'ko-KR').split('-')[0];
+    // 🌟 1. 현재 설정된 언어를 안전하게 추출 (예: ko, th, en, ja 등)
+    const langCode = localStorage.getItem('explanation_language') || 'ko-KR';
+    const lang = langCode.toLowerCase().split('-')[0]; 
     
-    // 사전 데이터 안전하게 가져오기
+    // 🌟 2. 다국어 사전 안전하게 가져오기 (없으면 영어 사전을 기본으로)
     const dict = (typeof UI_DICTIONARY !== 'undefined') ? (UI_DICTIONARY[lang] || UI_DICTIONARY['en']) : {};
     
+    // 🌟 3. 요금제 정보 및 안내 문구도 다국어 사전(dict)에서 가져오거나 언어별 분기 처리
     const p = {
         b_title: dict.ui_plan_basic || "Basic Plan",
         b_desc: dict.ui_plan_basic_desc || "130 credits daily",
@@ -519,13 +521,78 @@ window.showSubscriptionModal = function(reason) {
         p_desc: dict.ui_plan_premium_desc || "300 credits daily",
         v_title: dict.ui_plan_vip || "VIP Plan",
         v_desc: dict.ui_plan_vip_desc || "400 credits daily",
+        // 한국어일 때만 한국어 할인 문구, 나머지는 영어 프로모션 문구 출력
         sale: (lang === 'ko') ? "🎉 출시 기념! 3개월간 50% 반값 할인" : "🎉 Launch Promo! 50% OFF for 3 months",
         unl: "Unlimited"
     };
 
-    const titleText = (lang === 'ko') ? "멤버십 업그레이드" : "Membership Upgrade";
-    const descText = (lang === 'ko') ? "원하는 요금제를 선택해 자유롭게 학습하세요!" : "Choose a plan to continue learning without limits!";
+    // 🌟 4. 유저의 언어(lang)에 따른 타이틀 및 설명 자동 분기 처리 (21개국 완벽 대응)
+    let titleText = "Membership Upgrade";
+    let descText = "Choose a plan to continue learning without limits!";
 
+    if (lang === 'ko') {
+        titleText = "멤버십 업그레이드";
+        descText = "원하는 요금제를 선택해 자유롭게 학습하세요!";
+    } else if (lang === 'th') {
+        titleText = "อัปเกรดสมาชิก";
+        descText = "เลือกแพ็กเกจเพื่อเรียนรู้ต่อได้อย่างไม่จำกัด!";
+    } else if (lang === 'ja') {
+        titleText = "メンバーシップアップグレード";
+        descText = "お好みのプランを選んで、無制限に学習しましょう！";
+    } else if (lang === 'zh') {
+        titleText = "升级会员";
+        descText = "选择您喜欢的套餐，开始无限制学习！";
+    } else if (lang === 'es') {
+        titleText = "Mejorar Membresía";
+        descText = "¡Elige un plan para aprender sin límites!";
+    } else if (lang === 'fr') {
+        titleText = "Améliorer l'Abonnement";
+        descText = "Choisissez un forfait pour apprendre sans limites !";
+    } else if (lang === 'de') {
+        titleText = "Mitgliedschaft aktualisieren";
+        descText = "Wählen Sie einen Plan, um unbegrenzt zu lernen!";
+    } else if (lang === 'vi') {
+        titleText = "Nâng cấp Thành viên";
+        descText = "Chọn gói cước để tiếp tục học không giới hạn!";
+    } else if (lang === 'ru') {
+        titleText = "Улучшить подписку";
+        descText = "Выберите план для обучения без ограничений!";
+    } else if (lang === 'ar') {
+        titleText = "ترقية العضوية";
+        descText = "اختر خطة لمواصلة التعلم بلا حدود!";
+    } else if (lang === 'id') {
+        titleText = "Tingkatkan Keanggotaan";
+        descText = "Pilih paket untuk belajar tanpa batas!";
+    } else if (lang === 'hi') {
+        titleText = "सदस्यता अपग्रेड करें";
+        descText = "बिना सीमा के सीखने के लिए एक योजना चुनें!";
+    } else if (lang === 'pl') {
+        titleText = "Ulepsz subskrypcję";
+        descText = "Wybierz plan, aby uczyć się bez ograniczeń!";
+    } else if (lang === 'gd') {
+        titleText = "Ùraich Ballrachd";
+        descText = "Tagh plana gus ionnsachadh gun chrìoch!";
+    } else if (lang === 'la') {
+        titleText = "Promove Societatem";
+        descText = "Elige planum ut sine fine discas!";
+    } else if (lang === 'he') {
+        titleText = "שדרוג מנוי";
+        descText = "בחר תוכנית כדי להמשיך ללמוד ללא הגבלה!";
+    } else if (lang === 'ne') {
+        titleText = "सदस्यता स्तर उन्नयन गर्नुहोस्";
+        descText = "असीमित सिक्नको लागि योजना छान्नुहोस्!";
+    } else if (lang === 'mn') {
+        titleText = "Гишүүнчлэлээ ахиулах";
+        descText = "Хязгааргүй суралцахын тулд төлөвлөгөө сонгоно уу!";
+    } else if (lang === 'bo') {
+        titleText = "འཐུས་མིའི་རིམ་སྤོར།";
+        descText = "ཚད་མེད་པར་སློབ་སྦྱོང་བྱེད་པར་འཆར་གཞི་ཞིག་འདེམས་ོ།།";
+    } else if (lang === 'sw') {
+        titleText = "Boresha Uanachama";
+        descText = "Chagua mpango wa kujifunza bila kikomo!";
+    }
+
+    
     const modalHtml = `
     <div id="subscriptionModal" data-reason="${reason}" class="fixed inset-0 bg-black/70 z-[999] flex items-center justify-center p-4 backdrop-blur-sm pointer-events-auto">
         <div class="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl relative animate-fade-in-up border border-slate-100">
