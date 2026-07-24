@@ -4259,7 +4259,12 @@ async function fetchAPI(url, options) {
     // 💡 1. 현재 진짜 내 요금제 셋팅
     let currentPlan = localStorage.getItem('subscription_tier') || 'free';
     options.headers['X-Plan-Tier'] = currentPlan;
-    
+    // 👇👇 [여기에 추가!] 결제 영수증(토큰)을 서버로 같이 쏴줍니다 👇👇
+    let userToken = localStorage.getItem('user_purchase_token');
+    if (userToken) {
+        options.headers['X-Purchase-Token'] = userToken;
+    }
+    // 👆👆 ------------------------------------------------ 👆👆
     // 🌟 2. [완벽 수정본] 퀘스트 번개 한도 계산 (먹통 방지 공식!)
     let currentLightning = parseInt(localStorage.getItem('lightning_coins')) || 0;
     let baseLimit = 50; 
