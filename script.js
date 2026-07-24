@@ -655,10 +655,48 @@ window.triggerBannerClick = function(e) {
     window.showSubscriptionModal('upgrade');
 };
 
-window.processPayment = function(plan) {
+window.processPayment = function(targetPlan) {
+    // 1. 유저의 현재 요금제 상태 확인 (무료, 베이직, 프리미엄 등)
+    let rawTier = localStorage.getItem('subscription_tier') || 'free';
+    let currentTier = 'free';
+    if (rawTier.includes('basic')) currentTier = 'basic';
+    else if (rawTier.includes('premium')) currentTier = 'premium';
+    else if (rawTier.includes('vip')) currentTier = 'vip';
+
+    let sku = '';
+    let basePlanId = '';
+
+    // 2. 목표 요금제(targetPlan)와 현재 상태(currentTier)에 따른 분기 처리
+    if (targetPlan === 'basic') {
+        sku = 'sub_basic_monthly';
+        basePlanId = 'basic-promo'; // 신규 가입 3,900원
+    } 
+    else if (targetPlan === 'premium') {
+        sku = 'sub_premium_monthly';
+        if (currentTier === 'basic') {
+            basePlanId = 'premium-up-basic-promo'; // 베이직 -> 프리미엄 업그레이드 (7,900원)
+        } else {
+            basePlanId = 'premium-promo'; // 신규 가입 (7,900원)
+        }
+    } 
+    else if (targetPlan === 'vip') {
+        sku = 'sub_vip_monthly';
+        if (currentTier === 'premium') {
+            basePlanId = 'vip-up-premium-promo'; // 프리미엄 -> VIP 업그레이드 (9,900원)
+        } else if (currentTier === 'basic') {
+            basePlanId = 'vip-upgrade-promo'; // 베이직 -> VIP 업그레이드 (9,900원)
+        } else {
+            basePlanId = 'vip-promo'; // 신규 가입 (9,900원)
+        }
+    }
+
+    // 3. 플러터 앱으로 SKU와 BasePlanId를 객체(Object) 형태로 전달
     if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
-        // 실제 앱의 결제 로직 호출 (plan 변수에 'basic', 'premium', 'vip'가 전달됨)
-        window.flutter_inappwebview.callHandler('purchase', plan);
+        window.flutter_inappwebview.callHandler('purchase', { 
+            plan: targetPlan, 
+            sku: sku, 
+            basePlanId: basePlanId 
+        });
     } else {
         alert("앱 내에서만 결제가 가능합니다.");
     }
