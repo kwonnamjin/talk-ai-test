@@ -382,9 +382,17 @@ window.checkUsageLimit = function() {
     else if (rawTier.includes('vip')) currentTier = 'vip';
     else if (rawTier.includes('premium')) currentTier = 'premium';
     
-    // 💡 수정된 부분: VIP를 400으로 맞췄습니다. (베이직, 프리미엄 숫자는 기획에 맞게 수정해 쓰시면 됩니다)
+    // 💡 VIP 400 및 요금제별 한도 설정
     const PLAN_LIMITS = { free: 50, basic: 130, premium: 300, vip: 400 }; 
     const maxLimit = PLAN_LIMITS[currentTier] || 50;
+
+    if (currentTier === 'free') {
+        const firstUseDate = localStorage.getItem('free_trial_start');
+        if (firstUseDate) {
+            const daysPassed = (Date.now() - parseInt(firstUseDate)) / (1000 * 60 * 60 * 24);
+            if (daysPassed > 3) return { allowed: false, reason: 'trial_expired', tier: currentTier, count: 0, maxLimit };
+        }
+    }
 
     const todayStr = new Date().toLocaleDateString();
     let usageObj = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}');
@@ -396,10 +404,6 @@ window.checkUsageLimit = function() {
     if (usageObj.count >= maxLimit) return { allowed: false, reason: 'limit_reached', tier: currentTier, count: usageObj.count, maxLimit };
     return { allowed: true, tier: currentTier, count: usageObj.count, maxLimit };
 };
-
-function checkUsageLimit() {
-    return window.checkUsageLimit();
-}
 
 // 위에 덮어쓴 함수와 같은 역할을 하는 중복 선언도 통일
 function checkUsageLimit() {
@@ -497,28 +501,6 @@ window.enableInputs = function() {
 const PLAN_LIMITS = { 'free': 50, 'basic': 150, 'premium': 400 };
 function getResetDateStr() { return new Date().toISOString().split('T')[0]; }
 
-function checkUsageLimit() {
-    const currentTier = localStorage.getItem('subscription_tier') || 'free';
-    const maxLimit = PLAN_LIMITS[currentTier];
-
-    if (currentTier === 'free') {
-        const firstUseDate = localStorage.getItem('free_trial_start');
-        if (firstUseDate) {
-            const daysPassed = (Date.now() - parseInt(firstUseDate)) / (1000 * 60 * 60 * 24);
-            if (daysPassed > 3) return { allowed: false, reason: 'trial_expired', tier: currentTier, count: 0, maxLimit };
-        }
-    }
-
-    const todayStr = getResetDateStr();
-    let usageObj = JSON.parse(localStorage.getItem('daily_usage_v4') || '{}');
-    if (usageObj.date !== todayStr) {
-        usageObj = { date: todayStr, count: 0 };
-        localStorage.setItem('daily_usage_v4', JSON.stringify(usageObj));
-    }
-
-    if (usageObj.count >= maxLimit) return { allowed: false, reason: 'limit_reached', tier: currentTier, count: usageObj.count, maxLimit };
-    return { allowed: true, tier: currentTier, count: usageObj.count, maxLimit };
-}
 
 window.showSubscriptionModal = function(reason) {
     const existingModal = document.getElementById('subscriptionModal');
@@ -2365,7 +2347,14 @@ setTimeout(window.updateMemoryDisplay, 500);
 let savedAIMemos = JSON.parse(localStorage.getItem('ai_auto_memos')) || [];
 window.toggleMemoModal = function(show) {
     const modal = document.getElementById('memoModal');
-    if (show) { window.renderMemos(); modal.classList.remove('hidden'); } else modal.classList.add('hidden');
+    if (!modal) return; // 👈 모달이 없으면 에러 안 내고 안전하게 여기서 멈춤!
+
+    if (show) { 
+        window.renderMemos(); 
+        modal.classList.remove('hidden'); 
+    } else { 
+        modal.classList.add('hidden'); 
+    }
 };
 
 window.renderMemos = function() {
@@ -3894,11 +3883,20 @@ window.refreshAllTranslations = function() {
 
     // 🌟 2. 텍스트 번역 도우미 (오류 완벽 수정: 무조건 로컬스토리지에서 찐언어 가져옴!)
     window.getTrans = function(key, defaultStr) {
-        const langCode = localStorage.getItem('explanation_language') || 'ko-KR';
-        const lang = langCode.split('-')[0];
-        const dict = window.UI_DICTIONARY ? window.UI_DICTIONARY[lang] : null;
-        return (dict && dict[key]) ? dict[key] : defaultStr;
-    };
+    const langCode = localStorage.getItem('explanation_language') || 'ko-KR';
+    const lang = langCode.split('-')[0];
+    
+    // 1. 해당 언어에 있으면 그 번역 반환
+    if (window.UI_DICTIONARY && window.UI_DICTIONARY[lang] && window.UI_DICTIONARY[lang][key]) {
+        return window.UI_DICTIONARY[lang][key];
+    }
+    // 2. 없으면 영어(en)로 대체
+    if (window.UI_DICTIONARY && window.UI_DICTIONARY['en'] && window.UI_DICTIONARY['en'][key]) {
+        return window.UI_DICTIONARY['en'][key];
+    }
+    // 3. 둘 다 없으면 전달받은 기본값(defaultStr) 반환
+    return defaultStr || key;
+};
 
     // 3. 동적 마이크 UI / 상태창 텍스트 변경
     window.toggleAutoSend = function() {
