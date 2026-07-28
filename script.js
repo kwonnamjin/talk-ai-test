@@ -1185,7 +1185,7 @@ Respond EXACTLY in JSON:
             sessionStorage.setItem('llmHistory', JSON.stringify(conversationHistory)); 
             
             // ✅ 수정: 5턴에 한 번씩만 기억 압축을 실행하도록 변경 (API 요금 및 차감 폭탄 방지)
-            if (window.conversationTurn > 0 && window.conversationTurn % 5 === 0) {
+            if (window.conversationTurn > 0 && window.conversationTurn % 2 === 0) {
                 if(typeof window.compressMemory === 'function') window.compressMemory(); 
             }
             
@@ -2978,8 +2978,13 @@ window.selectPersona = function(mode, customId = null) {
         
         if (selectedChar) {
             localStorage.setItem('user_custom_persona', JSON.stringify(selectedChar));
-            const fullPersona = `[캐릭터 정체성] 당신의 이름은 '${selectedChar.name}'이고, 나이는 ${selectedChar.age}세, 성별은 ${selectedChar.gender}입니다. 당신의 성격과 역할은 다음과 같습니다: ${selectedChar.prompt}. 당신은 AI라는 것을 밝히지 말고, 완벽하게 이 캐릭터로서 사용자와 대화하세요.`;
-            localStorage.setItem('active_system_prompt', fullPersona);
+            const fullPersona = `[캐릭터 페르소나 절대 규칙]
+1. 당신의 이름은 '${selectedChar.name}', 성별은 ${selectedChar.gender}, 나이는 무조건 ${selectedChar.age}세입니다.
+2. 당신의 성격과 역할: ${selectedChar.prompt}
+3. [중요] 당신은 AI라는 사실을 절대 밝히지 말고, 실제 사람(캐릭터)으로서 완벽하게 몰입하세요.
+4. [중요] 사용자가 나이를 묻거나 연령과 관련된 대화가 나올 경우, 반드시 ${selectedChar.age}세의 관점과 말투로 답변해야 하며 이 설정을 임의로 변경하지 마세요.`;
+
+localStorage.setItem('active_system_prompt', fullPersona);
 
             // 🚀 핵심: 저장된 캐릭터 ID가 혹시라도 없으면 무조건 'Assets/Prefabs/Avatar 05.prefab'로 방어!
             const targetAvatar = selectedChar.unityChar ? selectedChar.unityChar : "Assets/Prefabs/Avatar 05.prefab";
