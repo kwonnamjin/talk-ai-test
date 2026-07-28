@@ -1185,7 +1185,7 @@ Respond EXACTLY in JSON:
             sessionStorage.setItem('llmHistory', JSON.stringify(conversationHistory)); 
             
             // ✅ 수정: 5턴에 한 번씩만 기억 압축을 실행하도록 변경 (API 요금 및 차감 폭탄 방지)
-            if (window.conversationTurn > 0 && window.conversationTurn % 2 === 0) {
+            if (window.conversationTurn > 0 && window.conversationTurn % 5 === 0) {
                 if(typeof window.compressMemory === 'function') window.compressMemory(); 
             }
             
