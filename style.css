@@ -134,3 +134,12 @@ button#modeTutorBtn, button#modeTranslateBtn {
     z-index: 9999 !important;
     pointer-events: none !important; 
 }
+
+/* AI 프로필 이름표 스타일 */
+.ai-profile-name {
+    font-size: 12px;
+    color: #888; /* 회색으로 살짝 눈에 덜 띄게 */
+    margin-bottom: 4px;
+    margin-left: 8px; /* 말풍선 위치에 맞게 여백 조절 */
+    font-weight: bold;
+}

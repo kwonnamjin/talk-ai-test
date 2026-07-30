@@ -847,7 +847,9 @@ window.explainSelectedText = function() {
 
 // 🌟 프리토킹 저장 기능 포함
 window.addMessageToChat = function(sender, text, translation = null, targetLangCode = null, isRestore = false) {
-    const msgDiv = document.createElement('div'); msgDiv.className = "flex flex-col space-y-1 mt-4";
+    const msgDiv = document.createElement('div'); 
+    msgDiv.className = "flex flex-col space-y-1 mt-4";
+    
     if (sender === 'user') {
         msgDiv.innerHTML = `<div class="bg-gradient-to-tr from-blue-600 to-blue-500 text-white rounded-2xl rounded-tr-none p-3.5 max-w-[85%] self-end chat-text-dynamic shadow-md font-medium tracking-wide leading-relaxed">${text}</div>`;
     } else {
@@ -856,24 +858,45 @@ window.addMessageToChat = function(sender, text, translation = null, targetLangC
         const safeText = encodeURIComponent(text.replace(/[\*\#\`]/g, '')).replace(/'/g, "%27");
         const safeTrans = translation ? encodeURIComponent(translation).replace(/'/g, "%27") : '';
         
-        msgDiv.innerHTML = `<div class="bg-white border border-blue-100 rounded-2xl rounded-tl-none p-4 max-w-[90%] shadow-md shadow-blue-900/5 self-start relative">
-            <div class="flex items-start justify-between gap-2">
-                <p id="bubble-${bId}" class="chat-text-dynamic text-slate-800 break-words leading-relaxed font-medium">${window.createSpansForText(text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>'), bId)}</p>
-                <div class="flex gap-1 ml-2 shrink-0">
-                    <button onclick="window.requestExplanationFromBubble('${bId}', decodeURIComponent('${safeText}'), false)" class="text-emerald-500 w-7 h-7 rounded-full bg-white shadow-sm border border-emerald-100"><i class="fa-solid fa-lightbulb"></i></button>
-                    <button onclick="window.speakText(decodeURIComponent('${safeText}'), '${targetLangCode}')" class="text-blue-500 w-7 h-7 rounded-full bg-white shadow-sm border border-blue-100"><i class="fa-solid fa-volume-high"></i></button>
+        // 🌟 [여기서부터 추가됨] 로컬스토리지에서 AI 이름표 정보 가져오기
+        let profileHTML = '';
+        const savedProfile = localStorage.getItem('active_ai_profile');
+        if (savedProfile) {
+            try {
+                const profile = JSON.parse(savedProfile);
+                // Tailwind CSS로 작고 깔끔하게! (입력한 글자 그대로 띄어쓰기로 연결)
+                profileHTML = `<div class="text-[12px] text-slate-500 font-bold ml-3 tracking-wide">${profile.name} ${profile.age} ${profile.gender}</div>`;
+            } catch (e) {
+                console.error("프로필 파싱 에러", e);
+            }
+        } else {
+            // 커스텀 프로필이 없을 때의 기본 이름 (필요 없으면 빈 문자열 '' 로 두셔도 됩니다)
+            profileHTML = `<div class="text-[12px] text-slate-500 font-bold ml-3 tracking-wide">AI 튜터</div>`;
+        }
+        // 🌟 [여기까지 추가됨]
+
+        // 🌟 [수정됨] 기존 템플릿 맨 위에 ${profileHTML} 삽입!
+        msgDiv.innerHTML = `
+            ${profileHTML}
+            <div class="bg-white border border-blue-100 rounded-2xl rounded-tl-none p-4 max-w-[90%] shadow-md shadow-blue-900/5 self-start relative">
+                <div class="flex items-start justify-between gap-2">
+                    <p id="bubble-${bId}" class="chat-text-dynamic text-slate-800 break-words leading-relaxed font-medium">${window.createSpansForText(text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>'), bId)}</p>
+                    <div class="flex gap-1 ml-2 shrink-0">
+                        <button onclick="window.requestExplanationFromBubble('${bId}', decodeURIComponent('${safeText}'), false)" class="text-emerald-500 w-7 h-7 rounded-full bg-white shadow-sm border border-emerald-100"><i class="fa-solid fa-lightbulb"></i></button>
+                        <button onclick="window.speakText(decodeURIComponent('${safeText}'), '${targetLangCode}')" class="text-blue-500 w-7 h-7 rounded-full bg-white shadow-sm border border-blue-100"><i class="fa-solid fa-volume-high"></i></button>
+                    </div>
                 </div>
-            </div>
-            ${translation ? `<p class="text-slate-500 mt-2 border-t pt-2 border-slate-100 font-medium" style="font-size: calc(var(--chat-font-size) - 3px);">${translation}</p>` : ''}
-            
-            <!-- 📥 프리토킹 보관함 버튼 -->
-            <div class="mt-3 pt-2.5 border-t border-slate-100/80">
-                <button onclick="window.saveToArchive('freetalk', { original: decodeURIComponent('${safeText}'), translation: decodeURIComponent('${safeTrans}'), langCode: '${targetLangCode}' })" class="w-full py-2 rounded-lg border border-slate-200 bg-slate-50 text-slate-500 text-[11px] font-bold shadow-sm hover:bg-slate-100 flex items-center justify-center gap-1.5 transition-all">
-                    <i class="fa-solid fa-bookmark text-slate-400"></i> 내 보관함에 저장하기
-                </button>
-            </div>
-        </div>`;
+                ${translation ? `<p class="text-slate-500 mt-2 border-t pt-2 border-slate-100 font-medium" style="font-size: calc(var(--chat-font-size) - 3px);">${translation}</p>` : ''}
+                
+                <!-- 📥 프리토킹 보관함 버튼 -->
+                <div class="mt-3 pt-2.5 border-t border-slate-100/80">
+                    <button onclick="window.saveToArchive('freetalk', { original: decodeURIComponent('${safeText}'), translation: decodeURIComponent('${safeTrans}'), langCode: '${targetLangCode}' })" class="w-full py-2 rounded-lg border border-slate-200 bg-slate-50 text-slate-500 text-[11px] font-bold shadow-sm hover:bg-slate-100 flex items-center justify-center gap-1.5 transition-all">
+                        <i class="fa-solid fa-bookmark text-slate-400"></i> 내 보관함에 저장하기
+                    </button>
+                </div>
+            </div>`;
     }
+    
     chatContainer.appendChild(msgDiv); setTimeout(() => chatContainer.scrollTop = chatContainer.scrollHeight, 50);
     if (!isRestore) { uiChatHistory.push({sender, text, translation, targetLangCode}); sessionStorage.setItem('uiHistory', JSON.stringify(uiChatHistory)); sessionStorage.setItem('bubbleCounter', bubbleCounter.toString()); }
 }
@@ -2985,6 +3008,12 @@ window.selectPersona = function(mode, customId = null) {
 4. [중요] 사용자가 나이를 묻거나 연령과 관련된 대화가 나올 경우, 반드시 ${selectedChar.age}세의 관점과 말투로 답변해야 하며 이 설정을 임의로 변경하지 마세요.`;
 
 localStorage.setItem('active_system_prompt', fullPersona);
+const profileInfo = {
+    name: selectedChar.name,
+    age: selectedChar.age,
+    gender: selectedChar.gender
+};
+localStorage.setItem('active_ai_profile', JSON.stringify(profileInfo));
 
             // 🚀 핵심: 저장된 캐릭터 ID가 혹시라도 없으면 무조건 'Assets/Prefabs/Avatar 05.prefab'로 방어!
             const targetAvatar = selectedChar.unityChar ? selectedChar.unityChar : "Assets/Prefabs/Avatar 05.prefab";
