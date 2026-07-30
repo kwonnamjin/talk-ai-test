@@ -865,7 +865,7 @@ window.addMessageToChat = function(sender, text, translation = null, targetLangC
             try {
                 const profile = JSON.parse(savedProfile);
                 // Tailwind CSS로 작고 깔끔하게! (입력한 글자 그대로 띄어쓰기로 연결)
-                profileHTML = `<div class="text-[12px] text-slate-500 font-bold ml-3 tracking-wide">${profile.name} ${profile.age} ${profile.gender}</div>`;
+                profileHTML = `<div class="ai-profile-name">${profile.name} ${profile.age} ${profile.gender}</div>`;
             } catch (e) {
                 console.error("프로필 파싱 에러", e);
             }
